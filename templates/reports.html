@@ -1,0 +1,394 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Reports - Stolen Phone System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #222;
+        }
+
+        .navbar {
+            background: #071e3d;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            font-size: 20px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+            background: #1261a0;
+            padding: 9px 15px;
+            border-radius: 7px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #071e3d;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #777;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+        }
+
+        .card-title {
+            color: #777;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .number {
+            color: #071e3d;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .report-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            margin-bottom: 25px;
+        }
+
+        .report-card h2 {
+            color: #071e3d;
+            margin-bottom: 20px;
+        }
+
+        .report-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .report-row:last-child {
+            border-bottom: none;
+        }
+
+        .report-name {
+            font-weight: bold;
+        }
+
+        .report-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1261a0;
+        }
+
+        .bar-container {
+            width: 55%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            background: #1261a0;
+            border-radius: 10px;
+        }
+
+        .bar-1 {
+            width: 70%;
+        }
+
+        .bar-2 {
+            width: 45%;
+        }
+
+        .bar-3 {
+            width: 25%;
+        }
+
+        .bar-4 {
+            width: 15%;
+        }
+
+        .info {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.7;
+            color: #666;
+        }
+
+        footer {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin: 35px 0;
+        }
+
+        @media (max-width: 900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 15px;
+            }
+
+            .container {
+                margin-top: 25px;
+            }
+
+            .report-row {
+                gap: 15px;
+            }
+
+            .bar-container {
+                width: 40%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+
+        <h2>📱 Stolen Phone System</h2>
+
+        <a
+            href="{{ url_for('dashboard') }}"
+            class="back"
+        >
+            ← Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- MAIN CONTENT -->
+    <div class="container">
+
+        <div class="header">
+
+            <h1>📊 System Reports</h1>
+
+            <p>
+                Stolen phone records and case management statistics.
+            </p>
+
+        </div>
+
+
+        <!-- SUMMARY CARDS -->
+        <div class="cards">
+
+            <div class="card">
+
+                <div class="card-title">
+                    REGISTERED PHONES
+                </div>
+
+                <div class="number">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    STOLEN PHONES
+                </div>
+
+                <div class="number">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    RECOVERED PHONES
+                </div>
+
+                <div class="number">
+                    0
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-title">
+                    ACTIVE CASES
+                </div>
+
+                <div class="number">
+                    0
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- CASE STATUS -->
+        <div class="report-card">
+
+            <h2>Case Status</h2>
+
+
+            <div class="report-row">
+
+                <span class="report-name">
+                    Reported
+                </span>
+
+                <div class="bar-container">
+                    <div class="bar bar-1"></div>
+                </div>
+
+                <span class="report-value">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="report-row">
+
+                <span class="report-name">
+                    Under Investigation
+                </span>
+
+                <div class="bar-container">
+                    <div class="bar bar-2"></div>
+                </div>
+
+                <span class="report-value">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="report-row">
+
+                <span class="report-name">
+                    Recovered
+                </span>
+
+                <div class="bar-container">
+                    <div class="bar bar-3"></div>
+                </div>
+
+                <span class="report-value">
+                    0
+                </span>
+
+            </div>
+
+
+            <div class="report-row">
+
+                <span class="report-name">
+                    Closed
+                </span>
+
+                <div class="bar-container">
+                    <div class="bar bar-4"></div>
+                </div>
+
+                <span class="report-value">
+                    0
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- INFORMATION -->
+        <div class="report-card">
+
+            <h2>Report Information</h2>
+
+            <div class="info">
+
+                <p>
+                    This report page will display real statistics
+                    after the PostgreSQL database is connected.
+                </p>
+
+                <p>
+                    The system will calculate registered phones,
+                    stolen phones, recovered phones and active cases
+                    automatically.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <footer>
+        © 2026 Stolen Phone Recording System
+    </footer>
+
+</body>
+</html>
+```
