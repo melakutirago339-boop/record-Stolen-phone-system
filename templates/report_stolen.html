@@ -1,0 +1,391 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Report Stolen Phone - Stolen Phone System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7fb;
+            color: #222;
+        }
+
+        .navbar {
+            background: #071e3d;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h2 {
+            font-size: 20px;
+        }
+
+        .back {
+            color: white;
+            text-decoration: none;
+            background: #1261a0;
+            padding: 9px 15px;
+            border-radius: 7px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 35px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #071e3d;
+            margin-bottom: 8px;
+        }
+
+        .description {
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .full {
+            grid-column: 1 / 3;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #1261a0;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .warning {
+            background: #fff4e5;
+            border-left: 5px solid #f39c12;
+            padding: 15px;
+            margin-bottom: 25px;
+            color: #7a4b00;
+            line-height: 1.5;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button,
+        .cancel {
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        button {
+            border: none;
+            background: #d32f2f;
+            color: white;
+            flex: 1;
+        }
+
+        button:hover {
+            background: #b71c1c;
+        }
+
+        .cancel {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .cancel:hover {
+            background: #d1d5db;
+        }
+
+        footer {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin: 35px 0;
+        }
+
+        @media (max-width: 650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full {
+                grid-column: 1;
+            }
+
+            .card {
+                padding: 25px 20px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <h2>📱 Stolen Phone System</h2>
+
+        <a href="{{ url_for('dashboard') }}" class="back">
+            ← Dashboard
+        </a>
+    </div>
+
+
+    <div class="container">
+
+        <div class="card">
+
+            <h1>🚨 Report Stolen Phone</h1>
+
+            <p class="description">
+                Record a stolen phone incident and create a case.
+            </p>
+
+
+            <div class="warning">
+                <strong>Important:</strong>
+                Enter the IMEI and incident information carefully.
+                The information will be used for case management.
+            </div>
+
+
+            <form method="POST" action="#">
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+                        <label for="owner_name">
+                            Owner Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="owner_name"
+                            name="owner_name"
+                            placeholder="Enter owner's full name"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="phone_number">
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="phone_number"
+                            name="phone_number"
+                            placeholder="e.g. 0912345678"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="imei">
+                            IMEI Number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="imei"
+                            name="imei"
+                            placeholder="Enter 15-digit IMEI"
+                            maxlength="15"
+                            pattern="[0-9]{15}"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="brand">
+                            Phone Brand
+                        </label>
+
+                        <input
+                            type="text"
+                            id="brand"
+                            name="brand"
+                            placeholder="e.g. Samsung"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="model">
+                            Phone Model
+                        </label>
+
+                        <input
+                            type="text"
+                            id="model"
+                            name="model"
+                            placeholder="e.g. Galaxy A32"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="incident_date">
+                            Date Stolen
+                        </label>
+
+                        <input
+                            type="date"
+                            id="incident_date"
+                            name="incident_date"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="location">
+                            Location Stolen
+                        </label>
+
+                        <input
+                            type="text"
+                            id="location"
+                            name="location"
+                            placeholder="e.g. Addis Ababa"
+                            required
+                        >
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="status">
+                            Case Status
+                        </label>
+
+                        <select id="status" name="status">
+                            <option value="Reported">
+                                Reported
+                            </option>
+
+                            <option value="Under Investigation">
+                                Under Investigation
+                            </option>
+
+                            <option value="Recovered">
+                                Recovered
+                            </option>
+
+                            <option value="Closed">
+                                Closed
+                            </option>
+                        </select>
+                    </div>
+
+
+                    <div class="form-group full">
+                        <label for="description">
+                            Incident Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Describe what happened..."
+                            required
+                        ></textarea>
+                    </div>
+
+                </div>
+
+
+                <div class="buttons">
+
+                    <a
+                        href="{{ url_for('dashboard') }}"
+                        class="cancel"
+                    >
+                        Cancel
+                    </a>
+
+                    <button type="submit">
+                        🚨 Submit Stolen Phone Report
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <footer>
+        © 2026 Stolen Phone Recording System
+    </footer>
+
+</body>
+</html>
+```
