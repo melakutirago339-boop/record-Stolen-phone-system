@@ -1,27 +1,21 @@
+
 ```python
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 
 app = Flask(__name__)
 
-# Secret key
 app.secret_key = os.environ.get(
     "SECRET_KEY",
-    "change-this-secret-key"
+    "stolen-phone-system-secret-key"
 )
 
 
-# =========================
-# HOME
-# =========================
 @app.route("/")
 def home():
     return redirect(url_for("login"))
 
 
-# =========================
-# LOGIN
-# =========================
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -31,8 +25,6 @@ def login():
         password = request.form.get("password")
         role = request.form.get("role")
 
-        # Temporary login
-        # PostgreSQL login will be added later
         if username == "admin" and password == "admin123":
 
             session["username"] = username
@@ -48,9 +40,6 @@ def login():
     return render_template("login.html")
 
 
-# =========================
-# DASHBOARD
-# =========================
 @app.route("/dashboard")
 def dashboard():
 
@@ -64,9 +53,6 @@ def dashboard():
     )
 
 
-# =========================
-# REGISTER PHONE
-# =========================
 @app.route("/register-phone", methods=["GET", "POST"])
 def register_phone():
 
@@ -87,8 +73,7 @@ def register_phone():
         registration_date = request.form.get("registration_date")
         description = request.form.get("description")
 
-        # Database saving will be added in the next step.
-        print("PHONE REGISTRATION:")
+        print("PHONE REGISTRATION")
         print("Owner:", owner_name)
         print("Phone:", phone_number)
         print("IMEI 1:", imei1)
@@ -107,21 +92,45 @@ def register_phone():
     )
 
 
-# =========================
-# REPORT STOLEN PHONE
-# =========================
-@app.route("/report-stolen")
+@app.route("/report-stolen", methods=["GET", "POST"])
 def report_stolen():
 
     if "username" not in session:
         return redirect(url_for("login"))
 
-    return render_template("report_stolen.html")
+    message = None
+
+    if request.method == "POST":
+
+        owner_name = request.form.get("owner_name")
+        phone_number = request.form.get("phone_number")
+        imei = request.form.get("imei")
+        brand = request.form.get("brand")
+        model = request.form.get("model")
+        incident_date = request.form.get("incident_date")
+        location = request.form.get("location")
+        status = request.form.get("status")
+        description = request.form.get("description")
+
+        print("STOLEN PHONE REPORT")
+        print("Owner:", owner_name)
+        print("Phone:", phone_number)
+        print("IMEI:", imei)
+        print("Brand:", brand)
+        print("Model:", model)
+        print("Date:", incident_date)
+        print("Location:", location)
+        print("Status:", status)
+        print("Description:", description)
+
+        message = "Stolen phone report received successfully."
+
+    return render_template(
+        "report_stolen.html",
+        message=message
+    )
 
 
-# =========================
-# SEARCH IMEI
-# =========================
 @app.route("/search-imei", methods=["GET", "POST"])
 def search_imei():
 
@@ -145,9 +154,6 @@ def search_imei():
     )
 
 
-# =========================
-# CASE MANAGEMENT
-# =========================
 @app.route("/cases")
 def cases():
 
@@ -157,9 +163,6 @@ def cases():
     return render_template("cases.html")
 
 
-# =========================
-# REPORTS
-# =========================
 @app.route("/reports")
 def reports():
 
@@ -169,9 +172,6 @@ def reports():
     return render_template("reports.html")
 
 
-# =========================
-# LOGOUT
-# =========================
 @app.route("/logout")
 def logout():
 
@@ -180,9 +180,6 @@ def logout():
     return redirect(url_for("login"))
 
 
-# =========================
-# RUN APP
-# =========================
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
