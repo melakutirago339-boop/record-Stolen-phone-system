@@ -1,3 +1,4 @@
+```python
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 
@@ -31,17 +32,17 @@ def login():
         role = request.form.get("role")
 
         # Temporary login
-        # We will connect this to PostgreSQL later.
-        if username and password and role:
+        # PostgreSQL login will be added later
+        if username == "admin" and password == "admin123":
 
             session["username"] = username
-            session["role"] = role
+            session["role"] = role or "admin"
 
             return redirect(url_for("dashboard"))
 
         return render_template(
             "login.html",
-            error="Please enter all required information."
+            error="Invalid username or password"
         )
 
     return render_template("login.html")
@@ -72,6 +73,8 @@ def register_phone():
     if "username" not in session:
         return redirect(url_for("login"))
 
+    message = None
+
     if request.method == "POST":
 
         owner_name = request.form.get("owner_name")
@@ -81,38 +84,37 @@ def register_phone():
         brand = request.form.get("brand")
         model = request.form.get("model")
         color = request.form.get("color")
+        registration_date = request.form.get("registration_date")
+        description = request.form.get("description")
 
-        # Database saving will be added next.
-        print("Phone Registration:")
-        print(owner_name, phone_number, imei1, imei2, brand, model, color)
+        # Database saving will be added in the next step.
+        print("PHONE REGISTRATION:")
+        print("Owner:", owner_name)
+        print("Phone:", phone_number)
+        print("IMEI 1:", imei1)
+        print("IMEI 2:", imei2)
+        print("Brand:", brand)
+        print("Model:", model)
+        print("Color:", color)
+        print("Registration Date:", registration_date)
+        print("Description:", description)
 
-        return redirect(url_for("dashboard"))
+        message = "Phone information received successfully."
 
-    return render_template("register_phone.html")
+    return render_template(
+        "register_phone.html",
+        message=message
+    )
 
 
 # =========================
 # REPORT STOLEN PHONE
 # =========================
-@app.route("/report-stolen", methods=["GET", "POST"])
+@app.route("/report-stolen")
 def report_stolen():
 
     if "username" not in session:
         return redirect(url_for("login"))
-
-    if request.method == "POST":
-
-        imei = request.form.get("imei")
-        owner_name = request.form.get("owner_name")
-        phone_number = request.form.get("phone_number")
-        location = request.form.get("location")
-        description = request.form.get("description")
-
-        # Database saving will be added next.
-        print("Stolen Phone Report:")
-        print(imei, owner_name, phone_number, location, description)
-
-        return redirect(url_for("dashboard"))
 
     return render_template("report_stolen.html")
 
@@ -132,10 +134,9 @@ def search_imei():
 
         imei = request.form.get("imei")
 
-        # PostgreSQL search will be added next.
         result = {
             "imei": imei,
-            "status": "Not Found"
+            "status": "Not checked yet"
         }
 
     return render_template(
@@ -180,7 +181,7 @@ def logout():
 
 
 # =========================
-# RUN APPLICATION
+# RUN APP
 # =========================
 if __name__ == "__main__":
 
@@ -191,3 +192,4 @@ if __name__ == "__main__":
         port=port,
         debug=False
     )
+```
