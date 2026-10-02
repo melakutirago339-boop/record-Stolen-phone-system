@@ -1,5 +1,3 @@
-
-```python
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 
@@ -189,4 +187,4 @@ if __name__ == "__main__":
         port=port,
         debug=False
     )
-```
+
