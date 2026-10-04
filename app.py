@@ -141,16 +141,66 @@ def logout():
 # DASHBOARD
 # =========================================================
 
+```python
 @app.route("/dashboard")
 def dashboard():
 
     if "username" not in session:
         return redirect(url_for("login"))
 
+    registered_count = 0
+    stolen_count = 0
+    recovered_count = 0
+    active_cases = 0
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Registered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM phones
+        """)
+        registered_count = cur.fetchone()[0]
+
+        # Stolen phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+        """)
+        stolen_count = cur.fetchone()[0]
+
+        # Recovered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+            WHERE status = 'Recovered'
+        """)
+        recovered_count = cur.fetchone()[0]
+
+        # Active cases
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+            WHERE status = 'Stolen'
+        """)
+        active_cases = cur.fetchone()[0]
+
+        cur.close()
+        conn.close()
+
+    except Exception as e:
+        print("Dashboard database error:", e)
+
     return render_template(
         "dashboard.html",
         username=session.get("username"),
-        role=session.get("role")
+        role=session.get("role"),
+        registered_count=registered_count,
+        stolen_count=stolen_count,
+        recovered_count=recovered_count,
+        active_cases=active_cases
     )
 
 
