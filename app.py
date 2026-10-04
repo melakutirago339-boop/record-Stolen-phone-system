@@ -107,9 +107,9 @@ def login():
 
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
-        role = request.form.get("role", "admin").strip()
+        role = request.form.get("role", "Administrator").strip()
 
-        # Simple login for now
+        # Admin login
         if username == "admin" and password == "admin":
 
             session["username"] = username
