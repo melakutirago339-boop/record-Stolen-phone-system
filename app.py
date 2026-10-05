@@ -2,39 +2,52 @@ from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import psycopg2
 
-app = Flask(**name**)
+app = Flask(__name__)
 
-app.secret_key = os.environ.get(
-"SECRET_KEY",
-"stolen-phone-system-secret-key"
-)
+app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
+
+# =========================
+
+# DATABASE CONNECTION
+
+# =========================
 
 def get_db_connection():
 database_url = os.environ.get("DATABASE_URL")
 
-```
+
 if not database_url:
-    raise Exception("DATABASE_URL is not configured")
+    raise RuntimeError("DATABASE_URL is not configured.")
 
 return psycopg2.connect(database_url)
-```
+
+
+# =========================
+
+# CREATE DATABASE TABLES
+
+# =========================
 
 def create_tables():
 conn = None
 cur = None
 
-```
+
 try:
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Registered phones
     cur.execute("""
         CREATE TABLE IF NOT EXISTS registered_phones (
             id SERIAL PRIMARY KEY,
             owner_name VARCHAR(100) NOT NULL,
             phone_number VARCHAR(50),
+            phone_brand VARCHAR(100),
             phone_model VARCHAR(100),
+            phone_color VARCHAR(50),
             imei VARCHAR(50) UNIQUE NOT NULL,
+            imei2 VARCHAR(50),
             date_registered DATE,
             description TEXT,
             status VARCHAR(30) DEFAULT 'Registered',
@@ -42,6 +55,7 @@ try:
         )
     """)
 
+    # Stolen phones
     cur.execute("""
         CREATE TABLE IF NOT EXISTS stolen_phones (
             id SERIAL PRIMARY KEY,
@@ -57,6 +71,7 @@ try:
         )
     """)
 
+    # Cases
     cur.execute("""
         CREATE TABLE IF NOT EXISTS cases (
             id SERIAL PRIMARY KEY,
@@ -71,7 +86,6 @@ try:
     """)
 
     conn.commit()
-
     print("Database tables created successfully.")
 
 except Exception as e:
@@ -80,26 +94,28 @@ except Exception as e:
 finally:
     if cur:
         cur.close()
-
     if conn:
         conn.close()
-```
 
-@app.route("/")
-def home():
-return redirect(url_for("login"))
 
-@app.route("/login", methods=["GET", "POST"])
+# =========================
+
+# LOGIN
+
+# =========================
+
+@app.route("/", methods=["GET", "POST"])
 def login():
 
-```
+
 if request.method == "POST":
 
-    username = request.form.get("username", "").strip()
-    password = request.form.get("password", "").strip()
-    role = request.form.get("role", "admin").strip()
+    username = request.form.get("username")
+    password = request.form.get("password")
+    role = request.form.get("role", "officer")
 
-    if username == "admin" and password == "admin":
+    # Test login
+    if username == "admin" and password == "admin123":
 
         session["username"] = username
         session["role"] = role
@@ -108,16 +124,22 @@ if request.method == "POST":
 
     return render_template(
         "login.html",
-        error="Invalid username or password ❌"
+        error="Invalid username or password."
     )
 
 return render_template("login.html")
-```
+
+
+# =========================
+
+# DASHBOARD
+
+# =========================
 
 @app.route("/dashboard")
 def dashboard():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -130,9 +152,11 @@ conn = None
 cur = None
 
 try:
+
     conn = get_db_connection()
     cur = conn.cursor()
 
+    # Registered phones
     cur.execute("""
         SELECT COUNT(*)
         FROM registered_phones
@@ -140,6 +164,7 @@ try:
 
     registered_count = cur.fetchone()[0]
 
+    # Stolen phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
@@ -147,6 +172,7 @@ try:
 
     stolen_count = cur.fetchone()[0]
 
+    # Recovered phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
@@ -155,6 +181,7 @@ try:
 
     recovered_count = cur.fetchone()[0]
 
+    # Active cases
     cur.execute("""
         SELECT COUNT(*)
         FROM cases
@@ -164,9 +191,11 @@ try:
     active_cases = cur.fetchone()[0]
 
 except Exception as e:
+
     print("Dashboard database error:", e)
 
 finally:
+
     if cur:
         cur.close()
 
@@ -182,59 +211,32 @@ return render_template(
     recovered_count=recovered_count,
     active_cases=active_cases
 )
-```
+
+
+# =========================
+
+# REGISTER PHONE
+
+# =========================
 
 @app.route("/register-phone", methods=["GET", "POST"])
 def register_phone():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
 if request.method == "POST":
 
-    owner_name = request.form.get(
-        "owner_name",
-        ""
-    ).strip()
-
-    phone_number = request.form.get(
-        "phone_number",
-        ""
-    ).strip()
-
-    imei = request.form.get(
-        "imei",
-        ""
-    ).strip()
-
-    phone_model = request.form.get(
-        "phone_model",
-        ""
-    ).strip()
-
-    date_registered = request.form.get(
-        "date_registered"
-    ) or None
-
-    description = request.form.get(
-        "description",
-        ""
-    ).strip()
-
-    if not owner_name or not imei:
-
-        return render_template(
-            "register_phone.html",
-            error="Owner name and IMEI are required."
-        )
-
-    if len(imei) != 15 or not imei.isdigit():
-
-        return render_template(
-            "register_phone.html",
-            error="IMEI must contain exactly 15 digits."
-        )
+    owner_name = request.form.get("owner_name")
+    phone_number = request.form.get("phone_number")
+    imei = request.form.get("imei")
+    imei2 = request.form.get("imei2")
+    phone_brand = request.form.get("phone_brand")
+    phone_model = request.form.get("phone_model")
+    phone_color = request.form.get("phone_color")
+    date_registered = request.form.get("date_registered")
+    description = request.form.get("description")
 
     conn = None
     cur = None
@@ -249,17 +251,23 @@ if request.method == "POST":
             (
                 owner_name,
                 phone_number,
+                phone_brand,
                 phone_model,
+                phone_color,
                 imei,
+                imei2,
                 date_registered,
                 description
             )
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             owner_name,
             phone_number,
+            phone_brand,
             phone_model,
+            phone_color,
             imei,
+            imei2,
             date_registered,
             description
         ))
@@ -277,7 +285,7 @@ if request.method == "POST":
 
         return render_template(
             "register_phone.html",
-            error="Could not register phone. IMEI may already exist."
+            error="Could not register the phone. Please check the IMEI and try again."
         )
 
     finally:
@@ -289,32 +297,44 @@ if request.method == "POST":
             conn.close()
 
 return render_template("register_phone.html")
-```
+
+
+# =========================
+
+# LOGOUT
+
+# =========================
 
 @app.route("/logout")
 def logout():
 
-```
+
 session.clear()
 
 return redirect(url_for("login"))
-```
+
+
+# =========================
+
+# STARTUP
+
+# =========================
 
 try:
 create_tables()
-
 except Exception as e:
 print("Startup database error:", e)
 
+# =========================
+
+# LOCAL DEVELOPMENT
+
+# =========================
+
 if **name** == "**main**":
 
-```
-port = int(
-    os.environ.get(
-        "PORT",
-        5000
-    )
-)
+
+port = int(os.environ.get("PORT", 5000))
 
 app.run(
     host="0.0.0.0",
