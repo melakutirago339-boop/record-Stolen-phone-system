@@ -1,360 +1,62 @@
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Dashboard - Stolen Phone System</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f4f7fb;
-            color: #222;
-        }
-
-        /* TOP NAVBAR */
-        .navbar {
-            height: 70px;
-            background: #071e3d;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 30px;
-        }
-
-        .logo-title {
-            font-size: 21px;
-            font-weight: bold;
-        }
-
-        .user-area {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
-
-        .user-info {
-            text-align: right;
-            font-size: 14px;
-        }
-
-        .role {
-            color: #9cc9ff;
-            font-size: 12px;
-        }
-
-        .logout {
-            background: #d32f2f;
-            color: white;
-            text-decoration: none;
-            padding: 10px 16px;
-            border-radius: 7px;
-            font-weight: bold;
-        }
-
-        .logout:hover {
-            background: #b71c1c;
-        }
-
-        /* MAIN */
-        .container {
-            max-width: 1200px;
-            margin: 35px auto;
-            padding: 0 20px;
-        }
-
-        .welcome {
-            margin-bottom: 30px;
-        }
-
-        .welcome h1 {
-            color: #071e3d;
-            margin-bottom: 8px;
-        }
-
-        .welcome p {
-            color: #777;
-        }
-
-        /* STAT CARDS */
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 35px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-
-        .stat-card h3 {
-            color: #777;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        .stat-card .number {
-            font-size: 30px;
-            font-weight: bold;
-            color: #071e3d;
-        }
-
-        /* MENU */
-        .section-title {
-            color: #071e3d;
-            margin-bottom: 20px;
-        }
-
-        .menu {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-        }
-
-        .menu-card {
-            background: white;
-            text-decoration: none;
-            color: #222;
-            padding: 28px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            transition: 0.2s;
-        }
-
-        .menu-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-
-        .icon {
-            font-size: 35px;
-            margin-bottom: 15px;
-        }
-
-        .menu-card h3 {
-            color: #071e3d;
-            margin-bottom: 8px;
-        }
-
-        .menu-card p {
-            color: #777;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* FOOTER */
-        footer {
-            text-align: center;
-            padding: 30px;
-            margin-top: 40px;
-            color: #888;
-            font-size: 13px;
-        }
-
-        /* MOBILE */
-        @media (max-width: 900px) {
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .menu {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 600px) {
-            .navbar {
-                padding: 0 15px;
-            }
-
-            .logo-title {
-                font-size: 16px;
-            }
-
-            .user-info {
-                display: none;
-            }
-
-            .stats,
-            .menu {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <!-- NAVBAR -->
-    <div class="navbar">
-
-        <div class="logo-title">
-            📱 Stolen Phone System
-        </div>
-
-        <div class="user-area">
-
-            <div class="user-info">
-                <div>Welcome, {{ username }}</div>
-                <div class="role">
-                    Role: {{ role }}
-                </div>
-            </div>
-
-            <a href="{{ url_for('logout') }}" class="logout">
-                Logout
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <!-- MAIN CONTENT -->
-    <div class="container">
-
-        <div class="welcome">
-            <h1>Control Dashboard</h1>
-
-            <p>
-                Stolen Phone Recording and Recovery Management System
-            </p>
-        </div>
-
-
-        <!-- STATISTICS -->
-        <div class="stats">
-
-            <div class="stat-card">
-                <h3>REGISTERED PHONES</h3>
-                <div class="number">0</div>
-            </div>
-
-            <div class="stat-card">
-                <h3>STOLEN PHONES</h3>
-                <div class="number">0</div>
-            </div>
-
-            <div class="stat-card">
-                <h3>RECOVERED PHONES</h3>
-                <div class="number">0</div>
-            </div>
-
-            <div class="stat-card">
-                <h3>ACTIVE CASES</h3>
-                <div class="number">0</div>
-            </div>
-
-        </div>
-
-
-        <!-- SYSTEM MENU -->
-        <h2 class="section-title">
-            System Management
-        </h2>
-
-        <div class="menu">
-
-            <a href="{{ url_for('register_phone') }}" class="menu-card">
-
-                <div class="icon">📱</div>
-
-                <h3>Register Phone</h3>
-
-                <p>
-                    Register a new mobile phone and owner information.
-                </p>
-
-            </a>
-
-
-            <a href="{{ url_for('report_stolen') }}" class="menu-card">
-
-                <div class="icon">🚨</div>
-
-                <h3>Report Stolen Phone</h3>
-
-                <p>
-                    Record a stolen phone report and create a case.
-                </p>
-
-            </a>
-
-
-            <a href="{{ url_for('search_imei') }}" class="menu-card">
-
-                <div class="icon">🔎</div>
-
-                <h3>Search IMEI</h3>
-
-                <p>
-                    Search phone information using the IMEI number.
-                </p>
-
-            </a>
-
-
-            <a href="{{ url_for('cases') }}" class="menu-card">
-
-                <div class="icon">📂</div>
-
-                <h3>Case Management</h3>
-
-                <p>
-                    View and manage stolen phone investigation cases.
-                </p>
-
-            </a>
-
-
-            <a href="{{ url_for('reports') }}" class="menu-card">
-
-                <div class="icon">📊</div>
-
-                <h3>Reports</h3>
-
-                <p>
-                    View system statistics and case reports.
-                </p>
-
-            </a>
-
-
-            <a href="{{ url_for('logout') }}" class="menu-card">
-
-                <div class="icon">🚪</div>
-
-                <h3>Logout</h3>
-
-                <p>
-                    Securely sign out from the system.
-                </p>
-
-            </a>
-
-        </div>
-
-    </div>
-
-
-    <!-- FOOTER -->
-    <footer>
-        © 2026 Stolen Phone Recording System
-    </footer>
-
-</body>
-</html>
+```python
+@app.route("/dashboard")
+def dashboard():
+
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    registered_count = 0
+    stolen_count = 0
+    recovered_count = 0
+    active_cases = 0
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        # Registered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM registered_phones
+        """)
+        registered_count = cur.fetchone()[0]
+
+        # Stolen phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+        """)
+        stolen_count = cur.fetchone()[0]
+
+        # Recovered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+            WHERE status = 'Recovered'
+        """)
+        recovered_count = cur.fetchone()[0]
+
+        # Active cases
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM cases
+            WHERE case_status = 'Open'
+        """)
+        active_cases = cur.fetchone()[0]
+
+        cur.close()
+        conn.close()
+
+    except Exception as e:
+        print("Dashboard database error:", e)
+
+    return render_template(
+        "dashboard.html",
+        username=session.get("username"),
+        role=session.get("role"),
+        registered_count=registered_count,
+        stolen_count=stolen_count,
+        recovered_count=recovered_count,
+        active_cases=active_cases
+    )
 ```
