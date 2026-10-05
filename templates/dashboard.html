@@ -5,11 +5,9 @@ def dashboard():
     if "username" not in session:
         return redirect(url_for("login"))
 
-    registered_count = 0
-    stolen_count = 0
-    recovered_count = 0
-    active_cases = 0
-
+   <div>{{ stolen_count }}</div>
+<div>{{ recovered_count }}</div>
+<div>{{ active_cases }}</div>
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -19,14 +17,13 @@ def dashboard():
             SELECT COUNT(*)
             FROM registered_phones
         """)
-        registered_count = cur.fetchone()[0]
-
+        {{ registered_count }}
         # Stolen phones
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
         """)
-        stolen_count = cur.fetchone()[0]
+        {{ stolen_count }}
 
         # Recovered phones
         cur.execute("""
@@ -34,15 +31,14 @@ def dashboard():
             FROM stolen_phones
             WHERE status = 'Recovered'
         """)
-        recovered_count = cur.fetchone()[0]
-
+        {{ stolen_count }}
         # Active cases
         cur.execute("""
             SELECT COUNT(*)
             FROM cases
             WHERE case_status = 'Open'
         """)
-        active_cases = cur.fetchone()[0]
+       {{ active_cases }}
 
         cur.close()
         conn.close()
