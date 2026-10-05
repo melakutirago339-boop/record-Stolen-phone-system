@@ -3,7 +3,7 @@ import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-app = Flask(**name**)
+app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
 # =========================
@@ -15,12 +15,11 @@ app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 def get_db_connection():
 database_url = os.environ.get("DATABASE_URL")
 
-```
 if not database_url:
     raise Exception("DATABASE_URL is not configured")
 
 return psycopg2.connect(database_url)
-```
+
 
 # =========================
 
@@ -32,7 +31,7 @@ def create_tables():
 conn = None
 cur = None
 
-```
+
 try:
     conn = get_db_connection()
     cur = conn.cursor()
@@ -53,7 +52,7 @@ try:
             status VARCHAR(30) DEFAULT 'Registered',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    )
 
     # Stolen phones
     cur.execute("""
@@ -69,7 +68,7 @@ try:
             status VARCHAR(30) DEFAULT 'Stolen',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    )
 
     # Cases
     cur.execute("""
@@ -83,7 +82,7 @@ try:
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    """)
+    )
 
     conn.commit()
     print("Database tables created successfully.")
@@ -96,7 +95,7 @@ finally:
         cur.close()
     if conn:
         conn.close()
-```
+
 
 # =========================
 
@@ -111,7 +110,7 @@ return redirect(url_for("login"))
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
-```
+
 if request.method == "POST":
 
     username = request.form.get("username", "").strip()
@@ -131,7 +130,7 @@ if request.method == "POST":
     )
 
 return render_template("login.html")
-```
+
 
 # =========================
 
@@ -142,7 +141,7 @@ return render_template("login.html")
 @app.route("/dashboard")
 def dashboard():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -162,14 +161,14 @@ try:
     cur.execute("""
         SELECT COUNT(*)
         FROM registered_phones
-    """)
+    )
     registered_count = cur.fetchone()[0]
 
     # Stolen phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
-    """)
+    )
     stolen_count = cur.fetchone()[0]
 
     # Recovered phones
@@ -177,7 +176,7 @@ try:
         SELECT COUNT(*)
         FROM stolen_phones
         WHERE status = 'Recovered'
-    """)
+    )
     recovered_count = cur.fetchone()[0]
 
     # Active cases
@@ -185,7 +184,7 @@ try:
         SELECT COUNT(*)
         FROM cases
         WHERE case_status = 'Open'
-    """)
+    )
     active_cases = cur.fetchone()[0]
 
 except Exception as e:
@@ -206,7 +205,7 @@ return render_template(
     recovered_count=recovered_count,
     active_cases=active_cases
 )
-```
+
 
 # =========================
 
@@ -217,7 +216,7 @@ return render_template(
 @app.route("/register-phone", methods=["GET", "POST"])
 def register_phone():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -272,7 +271,7 @@ if request.method == "POST":
                 description
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
+        , (
             owner_name,
             phone_number,
             imei_1,
@@ -307,7 +306,7 @@ if request.method == "POST":
             conn.close()
 
 return render_template("register_phone.html")
-```
+
 
 # =========================
 
@@ -318,7 +317,7 @@ return render_template("register_phone.html")
 @app.route("/report-stolen", methods=["GET", "POST"])
 def report_stolen():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -363,7 +362,7 @@ if request.method == "POST":
                 description
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (
+        , (
             owner_name,
             phone_number,
             phone_model,
@@ -396,7 +395,7 @@ if request.method == "POST":
             conn.close()
 
 return render_template("report_stolen.html")
-```
+
 
 # =========================
 
@@ -407,7 +406,7 @@ return render_template("report_stolen.html")
 @app.route("/search-imei", methods=["GET", "POST"])
 def search_imei():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -431,7 +430,7 @@ if request.method == "POST":
             WHERE imei_1 = %s
                OR imei_2 = %s
             LIMIT 1
-        """, (
+        , (
             searched_imei,
             searched_imei
         ))
@@ -453,7 +452,7 @@ return render_template(
     result=result,
     searched_imei=searched_imei
 )
-```
+
 
 # =========================
 
@@ -464,7 +463,7 @@ return render_template(
 @app.route("/cases")
 def cases():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
@@ -481,7 +480,7 @@ try:
         SELECT *
         FROM cases
         ORDER BY id DESC
-    """)
+    )
 
     cases_list = cur.fetchall()
 
@@ -499,7 +498,7 @@ return render_template(
     "cases.html",
     cases=cases_list
 )
-```
+
 
 # =========================
 
@@ -510,12 +509,12 @@ return render_template(
 @app.route("/reports")
 def reports():
 
-```
+
 if "username" not in session:
     return redirect(url_for("login"))
 
 return redirect(url_for("dashboard"))
-```
+
 
 # =========================
 
@@ -526,11 +525,12 @@ return redirect(url_for("dashboard"))
 @app.route("/logout")
 def logout():
 
-```
+
 session.clear()
 
-return redirect(url_for("login"))
-```
+return redirect(url_for("login")
+)
+
 
 # =========================
 
@@ -545,11 +545,11 @@ print("Startup database error:", e)
 
 if **name** == "**main**":
 
-```
+
 port = int(os.environ.get("PORT", 5000))
 
 app.run(
     host="0.0.0.0",
     port=port
 )
-```
+
