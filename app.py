@@ -1,16 +1,9 @@
-```python
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import psycopg2
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
-
-# =========================
-
-# DATABASE CONNECTION
-
-# =========================
 
 def get_db_connection():
 database_url = os.environ.get("DATABASE_URL")
@@ -22,12 +15,6 @@ if not database_url:
 return psycopg2.connect(database_url)
 
 
-# =========================
-
-# CREATE DATABASE TABLES
-
-# =========================
-
 def create_tables():
 conn = None
 cur = None
@@ -37,17 +24,13 @@ try:
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Registered phones
     cur.execute("""
         CREATE TABLE IF NOT EXISTS registered_phones (
             id SERIAL PRIMARY KEY,
             owner_name VARCHAR(100) NOT NULL,
             phone_number VARCHAR(50),
-            imei_1 VARCHAR(50) UNIQUE NOT NULL,
-            imei_2 VARCHAR(50),
-            phone_brand VARCHAR(50),
             phone_model VARCHAR(100),
-            phone_color VARCHAR(50),
+            imei VARCHAR(50) UNIQUE NOT NULL,
             date_registered DATE,
             description TEXT,
             status VARCHAR(30) DEFAULT 'Registered',
@@ -55,7 +38,6 @@ try:
         )
     """)
 
-    # Stolen phones
     cur.execute("""
         CREATE TABLE IF NOT EXISTS stolen_phones (
             id SERIAL PRIMARY KEY,
@@ -71,7 +53,6 @@ try:
         )
     """)
 
-    # Cases
     cur.execute("""
         CREATE TABLE IF NOT EXISTS cases (
             id SERIAL PRIMARY KEY,
@@ -97,13 +78,8 @@ finally:
     if conn:
         conn.close()
 
-# =========================
 
-# LOGIN
-
-# =========================
-
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
 return redirect(url_for("login"))
 
@@ -132,12 +108,6 @@ if request.method == "POST":
 return render_template("login.html")
 
 
-# =========================
-
-# DASHBOARD
-
-# =========================
-
 @app.route("/dashboard")
 def dashboard():
 
@@ -150,28 +120,22 @@ stolen_count = 0
 recovered_count = 0
 active_cases = 0
 
-conn = None
-cur = None
-
 try:
     conn = get_db_connection()
     cur = conn.cursor()
 
-    # Registered phones
     cur.execute("""
         SELECT COUNT(*)
         FROM registered_phones
     """)
     registered_count = cur.fetchone()[0]
 
-    # Stolen phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
     """)
     stolen_count = cur.fetchone()[0]
 
-    # Recovered phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
@@ -179,7 +143,6 @@ try:
     """)
     recovered_count = cur.fetchone()[0]
 
-    # Active cases
     cur.execute("""
         SELECT COUNT(*)
         FROM cases
@@ -187,14 +150,11 @@ try:
     """)
     active_cases = cur.fetchone()[0]
 
+    cur.close()
+    conn.close()
+
 except Exception as e:
     print("Dashboard database error:", e)
-
-finally:
-    if cur:
-        cur.close()
-    if conn:
-        conn.close()
 
 return render_template(
     "dashboard.html",
@@ -207,12 +167,6 @@ return render_template(
 )
 
 
-# =========================
-
-# REGISTER PHONE
-
-# =========================
-
 @app.route("/register-phone", methods=["GET", "POST"])
 def register_phone():
 
@@ -224,34 +178,16 @@ if request.method == "POST":
 
     owner_name = request.form.get("owner_name", "").strip()
     phone_number = request.form.get("phone_number", "").strip()
-    imei_1 = request.form.get("imei_1", "").strip()
-    imei_2 = request.form.get("imei_2", "").strip()
-    phone_brand = request.form.get("phone_brand", "").strip()
+    imei = request.form.get("imei", "").strip()
     phone_model = request.form.get("phone_model", "").strip()
-    phone_color = request.form.get("phone_color", "").strip()
-    date_registered = request.form.get("date_registered", "").strip()
+    date_registered = request.form.get("date_registered") or None
     description = request.form.get("description", "").strip()
 
-    if not owner_name or not imei_1:
+    if not owner_name or not imei:
         return render_template(
             "register_phone.html",
-            error="Owner name and IMEI 1 are required."
+            error="Owner name and IMEI are required."
         )
-
-    if not imei_1.isdigit() or len(imei_1) != 15:
-        return render_template(
-            "register_phone.html",
-            error="IMEI 1 must contain exactly 15 digits."
-        )
-
-    if imei_2 and (not imei_2.isdigit() or len(imei_2) != 15):
-        return render_template(
-            "register_phone.html",
-            error="IMEI 2 must contain exactly 15 digits."
-        )
-
-    conn = None
-    cur = None
 
     try:
         conn = get_db_connection()
@@ -259,267 +195,34 @@ if request.method == "POST":
 
         cur.execute("""
             INSERT INTO registered_phones
-            (
-                owner_name,
-                phone_number,
-                imei_1,
-                imei_2,
-                phone_brand,
-                phone_model,
-                phone_color,
-                date_registered,
-                description
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            owner_name,
-            phone_number,
-            imei_1,
-            imei_2 or None,
-            phone_brand,
-            phone_model,
-            phone_color,
-            date_registered or None,
-            description
-        ))
-
-        conn.commit()
-
-        return redirect(url_for("dashboard"))
-
-    except Exception as e:
-
-        if conn:
-            conn.rollback()
-
-        print("Register phone database error:", e)
-
-        return render_template(
-            "register_phone.html",
-            error=f"Database error: {e}"
-        )
-
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-return render_template("register_phone.html")
-
-
-# =========================
-
-# REPORT STOLEN PHONE
-
-# =========================
-
-@app.route("/report-stolen", methods=["GET", "POST"])
-def report_stolen():
-
-
-if "username" not in session:
-    return redirect(url_for("login"))
-
-if request.method == "POST":
-
-    owner_name = request.form.get("owner_name", "").strip()
-    phone_number = request.form.get("phone_number", "").strip()
-    phone_model = request.form.get("phone_model", "").strip()
-    imei = request.form.get("imei", "").strip()
-    stolen_date = request.form.get("stolen_date", "").strip()
-    stolen_location = request.form.get("stolen_location", "").strip()
-    description = request.form.get("description", "").strip()
-
-    if not owner_name or not imei:
-        return render_template(
-            "report_stolen.html",
-            error="Owner name and IMEI are required."
-        )
-
-    if not imei.isdigit() or len(imei) != 15:
-        return render_template(
-            "report_stolen.html",
-            error="IMEI must contain exactly 15 digits."
-        )
-
-    conn = None
-    cur = None
-
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            INSERT INTO stolen_phones
-            (
-                owner_name,
-                phone_number,
-                phone_model,
-                imei,
-                stolen_date,
-                stolen_location,
-                description
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            (owner_name, phone_number, phone_model, imei,
+             date_registered, description)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             owner_name,
             phone_number,
             phone_model,
             imei,
-            stolen_date or None,
-            stolen_location,
+            date_registered,
             description
         ))
 
         conn.commit()
+        cur.close()
+        conn.close()
 
         return redirect(url_for("dashboard"))
 
     except Exception as e:
-
-        if conn:
-            conn.rollback()
-
-        print("Report stolen database error:", e)
+        print("Register phone error:", e)
 
         return render_template(
-            "report_stolen.html",
-            error=f"Database error: {e}"
+            "register_phone.html",
+            error="Could not register phone. Please check the IMEI."
         )
 
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
+return render_template("register_phone.html")
 
-return render_template("report_stolen.html")
-
-
-# =========================
-
-# SEARCH IMEI
-
-# =========================
-
-@app.route("/search-imei", methods=["GET", "POST"])
-def search_imei():
-
-
-if "username" not in session:
-    return redirect(url_for("login"))
-
-result = None
-searched_imei = ""
-
-if request.method == "POST":
-
-    searched_imei = request.form.get("imei", "").strip()
-
-    conn = None
-    cur = None
-
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-
-        cur.execute("""
-            SELECT *
-            FROM registered_phones
-            WHERE imei_1 = %s
-               OR imei_2 = %s
-            LIMIT 1
-        """, (
-            searched_imei,
-            searched_imei
-        ))
-
-        result = cur.fetchone()
-
-    except Exception as e:
-
-        print("IMEI search error:", e)
-
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-return render_template(
-    "search_imei.html",
-    result=result,
-    searched_imei=searched_imei
-)
-
-# =========================
-
-# CASE MANAGEMENT
-
-# =========================
-
-@app.route("/cases")
-def cases():
-
-
-if "username" not in session:
-    return redirect(url_for("login"))
-
-cases_list = []
-
-conn = None
-cur = None
-
-try:
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-
-    cur.execute("""
-        SELECT *
-        FROM cases
-        ORDER BY id DESC
-    """)
-
-    cases_list = cur.fetchall()
-
-except Exception as e:
-
-    print("Cases database error:", e)
-
-finally:
-    if cur:
-        cur.close()
-    if conn:
-        conn.close()
-
-return render_template(
-    "cases.html",
-    cases=cases_list
-)
-
-
-# =========================
-
-# REPORTS
-
-# =========================
-
-@app.route("/reports")
-def reports():
-
-
-if "username" not in session:
-    return redirect(url_for("login"))
-
-return redirect(url_for("dashboard"))
-
-
-# =========================
-
-# LOGOUT
-
-# =========================
 
 @app.route("/logout")
 def logout():
@@ -530,11 +233,7 @@ session.clear()
 return redirect(url_for("login"))
 
 
-# =========================
-
-# STARTUP
-
-# =========================
+# Create database tables when the application starts.
 
 try:
 create_tables()
