@@ -1,7 +1,7 @@
+```python
 from flask import Flask, render_template, request, redirect, url_for, session
 import os
 import psycopg2
-from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
@@ -14,6 +14,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "change-this-secret-key")
 
 def get_db_connection():
 database_url = os.environ.get("DATABASE_URL")
+
 
 if not database_url:
     raise Exception("DATABASE_URL is not configured")
@@ -52,7 +53,7 @@ try:
             status VARCHAR(30) DEFAULT 'Registered',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    )
+    """)
 
     # Stolen phones
     cur.execute("""
@@ -68,7 +69,7 @@ try:
             status VARCHAR(30) DEFAULT 'Stolen',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    )
+    """)
 
     # Cases
     cur.execute("""
@@ -82,7 +83,7 @@ try:
             notes TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-    )
+    """)
 
     conn.commit()
     print("Database tables created successfully.")
@@ -95,7 +96,6 @@ finally:
         cur.close()
     if conn:
         conn.close()
-
 
 # =========================
 
@@ -161,14 +161,14 @@ try:
     cur.execute("""
         SELECT COUNT(*)
         FROM registered_phones
-    )
+    """)
     registered_count = cur.fetchone()[0]
 
     # Stolen phones
     cur.execute("""
         SELECT COUNT(*)
         FROM stolen_phones
-    )
+    """)
     stolen_count = cur.fetchone()[0]
 
     # Recovered phones
@@ -176,7 +176,7 @@ try:
         SELECT COUNT(*)
         FROM stolen_phones
         WHERE status = 'Recovered'
-    )
+    """)
     recovered_count = cur.fetchone()[0]
 
     # Active cases
@@ -184,7 +184,7 @@ try:
         SELECT COUNT(*)
         FROM cases
         WHERE case_status = 'Open'
-    )
+    """)
     active_cases = cur.fetchone()[0]
 
 except Exception as e:
@@ -271,7 +271,7 @@ if request.method == "POST":
                 description
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-        , (
+        """, (
             owner_name,
             phone_number,
             imei_1,
@@ -362,7 +362,7 @@ if request.method == "POST":
                 description
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        , (
+        """, (
             owner_name,
             phone_number,
             phone_model,
@@ -430,7 +430,7 @@ if request.method == "POST":
             WHERE imei_1 = %s
                OR imei_2 = %s
             LIMIT 1
-        , (
+        """, (
             searched_imei,
             searched_imei
         ))
@@ -452,7 +452,6 @@ return render_template(
     result=result,
     searched_imei=searched_imei
 )
-
 
 # =========================
 
@@ -480,7 +479,7 @@ try:
         SELECT *
         FROM cases
         ORDER BY id DESC
-    )
+    """)
 
     cases_list = cur.fetchall()
 
@@ -528,8 +527,7 @@ def logout():
 
 session.clear()
 
-return redirect(url_for("login")
-)
+return redirect(url_for("login"))
 
 
 # =========================
