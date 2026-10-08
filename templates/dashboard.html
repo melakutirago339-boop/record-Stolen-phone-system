@@ -1,4 +1,3 @@
-
 @app.route("/dashboard")
 def dashboard():
 
@@ -14,7 +13,6 @@ def dashboard():
     cur = None
 
     try:
-
         conn = get_db_connection()
         cur = conn.cursor()
 
@@ -49,11 +47,9 @@ def dashboard():
         active_cases = cur.fetchone()[0]
 
     except Exception as e:
-
         print("Dashboard database error:", e)
 
     finally:
-
         if cur:
             cur.close()
 
