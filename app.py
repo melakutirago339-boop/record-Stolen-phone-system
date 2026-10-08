@@ -246,7 +246,7 @@ def register_phone():
 
             conn.commit()
 
-            cur.close()
+                        cur.close()
             conn.close()
 
             return render_template(
@@ -261,15 +261,11 @@ def register_phone():
             )
 
     return render_template("register_phone.html")
-        except Exception as e:
 
-            return render_template(
-                "register_phone.html",
-                error=f"Registration failed: {e}"
-            )
 
-    return render_template("register_phone.html")
-
+# =================================================
+# REPORT STOLEN PHONE
+# =================================================
 
 # =================================================
 # REPORT STOLEN PHONE
