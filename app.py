@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, session, flash
+from flask import Flask, render_template, request, redirect, session
 import os
 import psycopg2
 from functools import wraps
@@ -98,7 +98,7 @@ def create_tables():
     cur.close()
     conn.close()
 
-    print("Database tables ready ✅")
+    print("Database tables ready")
 
 
 # -------------------------------------------------
@@ -140,7 +140,6 @@ def login():
         password = request.form.get("password", "").strip()
         role = request.form.get("role", "admin").strip()
 
-        # Demo login
         if username == "admin" and password == "admin123":
 
             session["username"] = username
@@ -191,7 +190,7 @@ def db_test():
         conn.close()
 
         return f"""
-        <h2>Database Connected Successfully ✅</h2>
+        <h2>Database Connected Successfully</h2>
         <p>Database time: {result[0]}</p>
         <a href="/dashboard">Back to Dashboard</a>
         """
@@ -199,7 +198,7 @@ def db_test():
     except Exception as e:
 
         return f"""
-        <h2>Database Error ❌</h2>
+        <h2>Database Error</h2>
         <p>{e}</p>
         <a href="/dashboard">Back to Dashboard</a>
         """
@@ -216,25 +215,50 @@ def register_phone():
 
     if request.method == "POST":
 
-        owner_name = request.form.get("owner_name", "").strip()
-        phone_number = request.form.get("phone_number", "").strip()
-        imei = request.form.get("imei", "").strip()
-        phone_model = request.form.get("phone_model", "").strip()
-        color = request.form.get("color", "").strip()
+        owner_name = request.form.get(
+            "owner_name", ""
+        ).strip()
+
+        phone_number = request.form.get(
+            "phone_number", ""
+        ).strip()
+
+        imei = request.form.get(
+            "imei", ""
+        ).strip()
+
+        phone_model = request.form.get(
+            "phone_model", ""
+        ).strip()
+
+        color = request.form.get(
+            "color", ""
+        ).strip()
 
         if not owner_name or not imei:
+
             return render_template(
                 "register_phone.html",
                 error="Owner name and IMEI are required."
             )
 
+        conn = None
+        cur = None
+
         try:
+
             conn = get_db_connection()
             cur = conn.cursor()
 
             cur.execute("""
                 INSERT INTO registered_phones
-                (owner_name, phone_number, imei, phone_model, color)
+                (
+                    owner_name,
+                    phone_number,
+                    imei,
+                    phone_model,
+                    color
+                )
                 VALUES (%s, %s, %s, %s, %s)
             """, (
                 owner_name,
@@ -246,26 +270,31 @@ def register_phone():
 
             conn.commit()
 
-                        cur.close()
-            conn.close()
-
             return render_template(
                 "register_phone.html",
-                success="Phone registered successfully ✅"
+                success="Phone registered successfully"
             )
 
         except Exception as e:
+
+            if conn:
+                conn.rollback()
+
             return render_template(
                 "register_phone.html",
                 error=f"Registration failed: {e}"
             )
 
+        finally:
+
+            if cur:
+                cur.close()
+
+            if conn:
+                conn.close()
+
     return render_template("register_phone.html")
 
-
-# =================================================
-# REPORT STOLEN PHONE
-# =================================================
 
 # =================================================
 # REPORT STOLEN PHONE
@@ -278,11 +307,25 @@ def report_stolen():
 
     if request.method == "POST":
 
-        owner_name = request.form.get("owner_name", "").strip()
-        phone_number = request.form.get("phone_number", "").strip()
-        imei = request.form.get("imei", "").strip()
-        phone_model = request.form.get("phone_model", "").strip()
-        last_location = request.form.get("last_location", "").strip()
+        owner_name = request.form.get(
+            "owner_name", ""
+        ).strip()
+
+        phone_number = request.form.get(
+            "phone_number", ""
+        ).strip()
+
+        imei = request.form.get(
+            "imei", ""
+        ).strip()
+
+        phone_model = request.form.get(
+            "phone_model", ""
+        ).strip()
+
+        last_location = request.form.get(
+            "last_location", ""
+        ).strip()
 
         if not owner_name or not imei:
 
@@ -290,6 +333,9 @@ def report_stolen():
                 "report_stolen.html",
                 error="Owner name and IMEI are required."
             )
+
+        conn = None
+        cur = None
 
         try:
 
@@ -318,20 +364,28 @@ def report_stolen():
 
             conn.commit()
 
-            cur.close()
-            conn.close()
-
             return render_template(
                 "report_stolen.html",
-                success="Stolen phone report saved successfully ✅"
+                success="Stolen phone report saved successfully"
             )
 
         except Exception as e:
+
+            if conn:
+                conn.rollback()
 
             return render_template(
                 "report_stolen.html",
                 error=f"Report failed: {e}"
             )
+
+        finally:
+
+            if cur:
+                cur.close()
+
+            if conn:
+                conn.close()
 
     return render_template("report_stolen.html")
 
@@ -350,7 +404,12 @@ def search_imei():
 
     if request.method == "POST":
 
-        searched_imei = request.form.get("imei", "").strip()
+        searched_imei = request.form.get(
+            "imei", ""
+        ).strip()
+
+        conn = None
+        cur = None
 
         try:
 
@@ -420,9 +479,6 @@ def search_imei():
                     "status": "Registered"
                 })
 
-            cur.close()
-            conn.close()
-
         except Exception as e:
 
             return render_template(
@@ -431,6 +487,14 @@ def search_imei():
                 results=[],
                 searched_imei=searched_imei
             )
+
+        finally:
+
+            if cur:
+                cur.close()
+
+            if conn:
+                conn.close()
 
     return render_template(
         "search_imei.html",
@@ -453,33 +517,27 @@ def cases():
     if request.method == "POST":
 
         case_number = request.form.get(
-            "case_number",
-            ""
+            "case_number", ""
         ).strip()
 
         imei = request.form.get(
-            "imei",
-            ""
+            "imei", ""
         ).strip()
 
         owner_name = request.form.get(
-            "owner_name",
-            ""
+            "owner_name", ""
         ).strip()
 
         officer_name = request.form.get(
-            "officer_name",
-            ""
+            "officer_name", ""
         ).strip()
 
         case_status = request.form.get(
-            "case_status",
-            "Open"
+            "case_status", "Open"
         ).strip()
 
         description = request.form.get(
-            "description",
-            ""
+            "description", ""
         ).strip()
 
         if not case_number or not imei:
@@ -487,6 +545,9 @@ def cases():
             error = "Case number and IMEI are required."
 
         else:
+
+            conn = None
+            cur = None
 
             try:
 
@@ -515,17 +576,28 @@ def cases():
 
                 conn.commit()
 
-                cur.close()
-                conn.close()
-
-                message = "Case created successfully ✅"
+                message = "Case created successfully"
 
             except Exception as e:
 
+                if conn:
+                    conn.rollback()
+
                 error = f"Case creation failed: {e}"
+
+            finally:
+
+                if cur:
+                    cur.close()
+
+                if conn:
+                    conn.close()
 
     # Get cases
     case_list = []
+
+    conn = None
+    cur = None
 
     try:
 
@@ -561,12 +633,17 @@ def cases():
                 "created_at": row[7]
             })
 
-        cur.close()
-        conn.close()
-
     except Exception as e:
 
         error = str(e)
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
     return render_template(
         "cases.html",
@@ -590,38 +667,31 @@ def location():
     if request.method == "POST":
 
         location_name = request.form.get(
-            "location_name",
-            ""
+            "location_name", ""
         ).strip()
 
         city = request.form.get(
-            "city",
-            ""
+            "city", ""
         ).strip()
 
         latitude = request.form.get(
-            "latitude",
-            ""
+            "latitude", ""
         ).strip()
 
         longitude = request.form.get(
-            "longitude",
-            ""
+            "longitude", ""
         ).strip()
 
         location_type = request.form.get(
-            "location_type",
-            "Other"
+            "location_type", "Other"
         ).strip()
 
         address = request.form.get(
-            "address",
-            ""
+            "address", ""
         ).strip()
 
         status = request.form.get(
-            "status",
-            "Authorized"
+            "status", "Authorized"
         ).strip()
 
         if not location_name:
@@ -629,6 +699,9 @@ def location():
             error = "Location name is required."
 
         else:
+
+            conn = None
+            cur = None
 
             try:
 
@@ -659,17 +732,28 @@ def location():
 
                 conn.commit()
 
-                cur.close()
-                conn.close()
-
-                message = "Authorized location saved successfully ✅"
+                message = "Authorized location saved successfully"
 
             except Exception as e:
 
+                if conn:
+                    conn.rollback()
+
                 error = f"Location save failed: {e}"
+
+            finally:
+
+                if cur:
+                    cur.close()
+
+                if conn:
+                    conn.close()
 
     # Get locations
     locations = []
+
+    conn = None
+    cur = None
 
     try:
 
@@ -707,12 +791,17 @@ def location():
                 "created_at": row[8]
             })
 
-        cur.close()
-        conn.close()
-
     except Exception as e:
 
         error = str(e)
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
     return render_template(
         "location.html",
@@ -736,6 +825,9 @@ def reports():
     locations_count = 0
 
     recent_stolen = []
+
+    conn = None
+    cur = None
 
     try:
 
@@ -805,9 +897,6 @@ def reports():
                 "status": row[7]
             })
 
-        cur.close()
-        conn.close()
-
     except Exception as e:
 
         return render_template(
@@ -819,6 +908,14 @@ def reports():
             locations_count=locations_count,
             recent_stolen=recent_stolen
         )
+
+    finally:
+
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
 
     return render_template(
         "reports.html",
