@@ -223,26 +223,18 @@ def register_phone():
         color = request.form.get("color", "").strip()
 
         if not owner_name or not imei:
-
             return render_template(
                 "register_phone.html",
                 error="Owner name and IMEI are required."
             )
 
         try:
-
             conn = get_db_connection()
             cur = conn.cursor()
 
             cur.execute("""
                 INSERT INTO registered_phones
-                (
-                    owner_name,
-                    phone_number,
-                    imei,
-                    phone_model,
-                    color
-                )
+                (owner_name, phone_number, imei, phone_model, color)
                 VALUES (%s, %s, %s, %s, %s)
             """, (
                 owner_name,
@@ -262,6 +254,13 @@ def register_phone():
                 success="Phone registered successfully ✅"
             )
 
+        except Exception as e:
+            return render_template(
+                "register_phone.html",
+                error=f"Registration failed: {e}"
+            )
+
+    return render_template("register_phone.html")
         except Exception as e:
 
             return render_template(
