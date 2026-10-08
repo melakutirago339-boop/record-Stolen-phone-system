@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Authorized Location - Stolen Phone System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f9;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: #1f2937;
+            color: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 22px;
+        }
+
+        .back-btn {
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+        }
+
+        .back-btn:hover {
+            background: #1d4ed8;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 35px auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.10);
+        }
+
+        .card h2 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 6px;
+            background: #16a34a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #15803d;
+        }
+
+        .info {
+            margin-top: 25px;
+            padding: 15px;
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            color: #374151;
+            border-radius: 5px;
+        }
+
+        @media (max-width: 650px) {
+            .row {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 17px;
+            }
+
+            .container {
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>📍 Authorized Location</h1>
+
+        <a href="/dashboard" class="back-btn">
+            ← Dashboard
+        </a>
+    </div>
+
+    <div class="container">
+
+        <div class="card">
+
+            <h2>Register Authorized Location</h2>
+
+            <p class="description">
+                Add an authorized location for the stolen phone recovery system.
+            </p>
+
+            <form method="POST" action="/location">
+
+                <div class="row">
+
+                    <div class="form-group">
+                        <label for="location_name">
+                            Location Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="location_name"
+                            name="location_name"
+                            placeholder="Example: Addis Ababa Police Station"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">
+                            City
+                        </label>
+
+                        <input
+                            type="text"
+                            id="city"
+                            name="city"
+                            placeholder="Example: Addis Ababa"
+                            required
+                        >
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="form-group">
+                        <label for="latitude">
+                            Latitude
+                        </label>
+
+                        <input
+                            type="text"
+                            id="latitude"
+                            name="latitude"
+                            placeholder="Example: 9.0320"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="longitude">
+                            Longitude
+                        </label>
+
+                        <input
+                            type="text"
+                            id="longitude"
+                            name="longitude"
+                            placeholder="Example: 38.7469"
+                        >
+                    </div>
+
+                </div>
+
+                <div class="form-group">
+                    <label for="location_type">
+                        Location Type
+                    </label>
+
+                    <select
+                        id="location_type"
+                        name="location_type"
+                    >
+                        <option value="Police Station">
+                            Police Station
+                        </option>
+
+                        <option value="Office">
+                            Office
+                        </option>
+
+                        <option value="Security Area">
+                            Security Area
+                        </option>
+
+                        <option value="Recovery Center">
+                            Recovery Center
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">
+                        Address
+                    </label>
+
+                    <textarea
+                        id="address"
+                        name="address"
+                        placeholder="Enter full location address..."
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select
+                        id="status"
+                        name="status"
+                    >
+                        <option value="Authorized">
+                            Authorized
+                        </option>
+
+                        <option value="Pending">
+                            Pending
+                        </option>
+
+                        <option value="Inactive">
+                            Inactive
+                        </option>
+                    </select>
+                </div>
+
+                <button
+                    type="submit"
+                    class="submit-btn"
+                >
+                    📍 Save Authorized Location
+                </button>
+
+            </form>
+
+            <div class="info">
+                <strong>ℹ️ Information</strong><br><br>
+
+                This page is used to register locations that are
+                authorized for phone recovery and investigation activities.
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
