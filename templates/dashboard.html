@@ -1,8 +1,7 @@
 @app.route("/dashboard")
 def dashboard():
-
     if "username" not in session:
-        return redirect(url_for("login"))
+    return redirect(url_for("login"))
 
     registered_count = 0
     stolen_count = 0
@@ -57,11 +56,11 @@ def dashboard():
             conn.close()
 
     return render_template(
-        "dashboard.html",
-        username=session.get("username"),
-        role=session.get("role"),
-        registered_count=registered_count,
-        stolen_count=stolen_count,
-        recovered_count=recovered_count,
-        active_cases=active_cases
-    )
+    "dashboard.html",
+    username=session.get("username"),
+    role=session.get("role"),
+    registered_count=registered_count,
+    stolen_count=stolen_count,
+    recovered_count=recovered_count,
+    active_cases=active_cases
+)
