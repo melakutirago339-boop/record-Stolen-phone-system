@@ -161,6 +161,7 @@ def login():
 
 
 
+
 @app.route("/dashboard")
 def dashboard():
     if "username" not in session:
@@ -185,15 +186,13 @@ def dashboard():
         stolen_count = cur.fetchone()[0]
 
         cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
+            SELECT COUNT(*) FROM stolen_phones
             WHERE LOWER(status) = 'recovered'
         """)
         recovered_count = cur.fetchone()[0]
 
         cur.execute("""
-            SELECT COUNT(*)
-            FROM cases
+            SELECT COUNT(*) FROM cases
             WHERE LOWER(case_status) = 'open'
         """)
         active_cases = cur.fetchone()[0]
