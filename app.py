@@ -159,16 +159,62 @@ def login():
 # DASHBOARD
 # -------------------------------------------------
 
+
 @app.route("/dashboard")
-@login_required
 def dashboard():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    registered_count = 0
+    stolen_count = 0
+    recovered_count = 0
+    active_cases = 0
+
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT COUNT(*) FROM registered_phones")
+        registered_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM stolen_phones")
+        stolen_count = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+            WHERE status = 'Recovered'
+        """)
+        recovered_count = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM cases
+            WHERE case_status = 'Open'
+        """)
+        active_cases = cur.fetchone()[0]
+
+    except Exception as e:
+        print("Dashboard database error:", e)
+
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
 
     return render_template(
         "dashboard.html",
         username=session.get("username"),
-        role=session.get("role")
+        role=session.get("role"),
+        registered_count=registered_count,
+        stolen_count=stolen_count,
+        recovered_count=recovered_count,
+        active_cases=active_cases
     )
-
 
 # -------------------------------------------------
 # DATABASE TEST
