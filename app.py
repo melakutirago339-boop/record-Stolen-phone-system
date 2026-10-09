@@ -159,14 +159,11 @@ def login():
 # DASHBOARD
 # -------------------------------------------------
 
-
-
+# DASHBOARD
+# -------------------------------------------------
 
 @app.route("/dashboard")
 def dashboard():
-    if "username" not in session:
-        return redirect(url_for("login"))
-
     registered_count = 0
     stolen_count = 0
     recovered_count = 0
