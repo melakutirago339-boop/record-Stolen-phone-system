@@ -246,96 +246,85 @@ def db_test():
         """
 
 
-# =================================================
-# REGISTER PHONE
-# =================================================
 
-@app.route("/register_phone", methods=["GET", "POST"])
-@app.route("/register", methods=["GET", "POST"])
-@login_required
-def register_phone():
+# -------------------------------------------------
+# USER REGISTRATION
+# -------------------------------------------------
+
+@app.route("/register_user", methods=["GET", "POST"])
+def register_user():
 
     if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        role = request.form.get("role", "user").strip().lower()
 
-        owner_name = request.form.get(
-            "owner_name", ""
-        ).strip()
-
-        phone_number = request.form.get(
-            "phone_number", ""
-        ).strip()
-
-        imei = request.form.get(
-            "imei", ""
-        ).strip()
-
-        phone_model = request.form.get(
-            "phone_model", ""
-        ).strip()
-
-        color = request.form.get(
-            "color", ""
-        ).strip()
-
-        if not owner_name or not imei:
-
+        if not username or not password:
             return render_template(
-                "register_phone.html",
-                error="Owner name and IMEI are required."
+                "register_user.html",
+                error="Username and password are required."
             )
+
+        if role not in ["user", "officer"]:
+            role = "user"
 
         conn = None
         cur = None
 
         try:
-
             conn = get_db_connection()
             cur = conn.cursor()
 
             cur.execute("""
-                INSERT INTO registered_phones
-                (
-                    owner_name,
-                    phone_number,
-                    imei,
-                    phone_model,
-                    color
+                CREATE TABLE IF NOT EXISTS app_users (
+                    id SERIAL PRIMARY KEY,
+                    username VARCHAR(100) UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    role VARCHAR(20) NOT NULL DEFAULT 'user',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-                VALUES (%s, %s, %s, %s, %s)
+            """)
+
+            from werkzeug.security import generate_password_hash
+
+            cur.execute("""
+                INSERT INTO app_users (username, password_hash, role)
+                VALUES (%s, %s, %s)
             """, (
-                owner_name,
-                phone_number,
-                imei,
-                phone_model,
-                color
+                username,
+                generate_password_hash(password),
+                role
             ))
 
             conn.commit()
 
-            return render_template(
-                "register_phone.html",
-                success="Phone registered successfully"
-            )
+            return redirect("/login")
 
-        except Exception as e:
-
+        except psycopg2.errors.UniqueViolation:
             if conn:
                 conn.rollback()
 
             return render_template(
-                "register_phone.html",
+                "register_user.html",
+                error="Username already exists. Choose another."
+            )
+
+        except Exception as e:
+            if conn:
+                conn.rollback()
+
+            return render_template(
+                "register_user.html",
                 error=f"Registration failed: {e}"
             )
 
         finally:
-
             if cur:
                 cur.close()
-
             if conn:
                 conn.close()
 
-    return render_template("register_phone.html")
+    return render_template("register_user.html")
 
 
 # =================================================
