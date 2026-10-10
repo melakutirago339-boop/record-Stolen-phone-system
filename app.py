@@ -187,16 +187,14 @@ def dashboard():
         stolen_count = cur.fetchone()[0]
 
         cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
-            WHERE LOWER(status) = 'recovered'
+            SELECT COUNT(*) FROM stolen_phones
+            WHERE status = 'Recovered'
         """)
         recovered_count = cur.fetchone()[0]
 
         cur.execute("""
-            SELECT COUNT(*)
-            FROM cases
-            WHERE LOWER(case_status) = 'open'
+            SELECT COUNT(*) FROM cases
+            WHERE case_status = 'Open'
         """)
         active_cases = cur.fetchone()[0]
 
@@ -218,7 +216,6 @@ def dashboard():
         recovered_count=recovered_count,
         active_cases=active_cases
     )
-
 # -------------------------------------------------
 # DATABASE TEST
 # -------------------------------------------------
