@@ -33,6 +33,7 @@ def get_db_connection():
 # -------------------------------------------------
 
 
+```python
 def create_tables():
     conn = None
     cur = None
@@ -41,7 +42,7 @@ def create_tables():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # 1. Registered phones
+        # Registered phones
         cur.execute("""
             CREATE TABLE IF NOT EXISTS registered_phones (
                 id SERIAL PRIMARY KEY,
@@ -54,14 +55,13 @@ def create_tables():
             )
         """)
 
-        # Fix missing columns in existing registered_phones table
         cur.execute("""
             ALTER TABLE registered_phones
             ADD COLUMN IF NOT EXISTS registration_date
             TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         """)
 
-        # 2. Stolen phones
+        # Stolen phones
         cur.execute("""
             CREATE TABLE IF NOT EXISTS stolen_phones (
                 id SERIAL PRIMARY KEY,
@@ -75,7 +75,6 @@ def create_tables():
             )
         """)
 
-        # Fix missing columns in existing stolen_phones table
         cur.execute("""
             ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
@@ -93,7 +92,7 @@ def create_tables():
             VARCHAR(50) DEFAULT 'Stolen'
         """)
 
-        # 3. Cases
+        # Cases
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cases (
                 id SERIAL PRIMARY KEY,
@@ -107,7 +106,7 @@ def create_tables():
             )
         """)
 
-        # 4. Authorized locations
+        # Authorized locations
         cur.execute("""
             CREATE TABLE IF NOT EXISTS authorized_locations (
                 id SERIAL PRIMARY KEY,
@@ -122,32 +121,20 @@ def create_tables():
             )
         """)
 
-            try:
-        # your database code here
         conn.commit()
         print("Database tables ready")
 
     except Exception as e:
         if conn:
             conn.rollback()
+
         print("Database table setup error:", repr(e))
         raise
 
     finally:
         if cur:
             cur.close()
-        if conn:
-            conn.close()
 
-    except Exception as e:
-        if conn:
-            conn.rollback()
-        print("Database table setup error:", repr(e))
-        raise
-
-    finally:
-        if cur:
-            cur.close()
         if conn:
             conn.close()
              print("Database tables ready")
