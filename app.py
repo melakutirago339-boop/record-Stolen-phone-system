@@ -33,7 +33,6 @@ def get_db_connection():
 # -------------------------------------------------
 
 
-```python
 def create_tables():
     conn = None
     cur = None
@@ -137,7 +136,7 @@ def create_tables():
 
         if conn:
             conn.close()
-             print("Database tables ready")
+            )
 
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
