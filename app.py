@@ -122,8 +122,22 @@ def create_tables():
             )
         """)
 
+            try:
+        # your database code here
         conn.commit()
         print("Database tables ready")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print("Database table setup error:", repr(e))
+        raise
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
     except Exception as e:
         if conn:
