@@ -32,74 +32,110 @@ def get_db_connection():
 # CREATE DATABASE TABLES
 # -------------------------------------------------
 
+```python
 def create_tables():
+    conn = None
+    cur = None
 
-    conn = get_db_connection()
-    cur = conn.cursor()
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    # Registered phones
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS registered_phones (
-            id SERIAL PRIMARY KEY,
-            owner_name VARCHAR(150) NOT NULL,
-            phone_number VARCHAR(50),
-            imei VARCHAR(100) UNIQUE NOT NULL,
-            phone_model VARCHAR(150),
-            color VARCHAR(50),
-            registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+        # 1. Registered phones
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS registered_phones (
+                id SERIAL PRIMARY KEY,
+                owner_name VARCHAR(150) NOT NULL,
+                phone_number VARCHAR(50),
+                imei VARCHAR(100) UNIQUE NOT NULL,
+                phone_model VARCHAR(150),
+                color VARCHAR(50),
+                registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
-    # Stolen phones
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS stolen_phones (
-            id SERIAL PRIMARY KEY,
-            owner_name VARCHAR(150) NOT NULL,
-            phone_number VARCHAR(50),
-            imei VARCHAR(100) NOT NULL,
-            phone_model VARCHAR(150),
-            last_location VARCHAR(255),
-            report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status VARCHAR(50) DEFAULT 'Stolen'
-        )
-    """)
+        # Fix missing columns in existing registered_phones table
+        cur.execute("""
+            ALTER TABLE registered_phones
+            ADD COLUMN IF NOT EXISTS registration_date
+            TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        """)
 
-    # Cases
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS cases (
-            id SERIAL PRIMARY KEY,
-            case_number VARCHAR(100) UNIQUE NOT NULL,
-            imei VARCHAR(100),
-            owner_name VARCHAR(150),
-            officer_name VARCHAR(150),
-            case_status VARCHAR(50) DEFAULT 'Open',
-            description TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+        # 2. Stolen phones
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS stolen_phones (
+                id SERIAL PRIMARY KEY,
+                owner_name VARCHAR(150) NOT NULL,
+                phone_number VARCHAR(50),
+                imei VARCHAR(100) NOT NULL,
+                phone_model VARCHAR(150),
+                last_location VARCHAR(255),
+                report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(50) DEFAULT 'Stolen'
+            )
+        """)
 
-    # Authorized locations
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS authorized_locations (
-            id SERIAL PRIMARY KEY,
-            location_name VARCHAR(150) NOT NULL,
-            city VARCHAR(100),
-            latitude VARCHAR(50),
-            longitude VARCHAR(50),
-            location_type VARCHAR(100),
-            address TEXT,
-            status VARCHAR(50) DEFAULT 'Authorized',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+        # Fix missing columns in existing stolen_phones table
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
+        """)
 
-    conn.commit()
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS report_date
+            TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        """)
 
-    cur.close()
-    conn.close()
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS status
+            VARCHAR(50) DEFAULT 'Stolen'
+        """)
 
-    print("Database tables ready")
+        # 3. Cases
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS cases (
+                id SERIAL PRIMARY KEY,
+                case_number VARCHAR(100) UNIQUE NOT NULL,
+                imei VARCHAR(100),
+                owner_name VARCHAR(150),
+                officer_name VARCHAR(150),
+                case_status VARCHAR(50) DEFAULT 'Open',
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
+        # 4. Authorized locations
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS authorized_locations (
+                id SERIAL PRIMARY KEY,
+                location_name VARCHAR(150) NOT NULL,
+                city VARCHAR(100),
+                latitude VARCHAR(50),
+                longitude VARCHAR(50),
+                location_type VARCHAR(100),
+                address TEXT,
+                status VARCHAR(50) DEFAULT 'Authorized',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        conn.commit()
+        print("Database tables ready")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print("Database table setup error:", repr(e))
+        raise
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
