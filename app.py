@@ -136,7 +136,7 @@ def create_tables():
 
         if conn:
             conn.close()
-            )
+            
 
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
