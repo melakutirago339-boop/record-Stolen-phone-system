@@ -262,14 +262,43 @@ def register_phone():
     if request.method == "POST":
         owner_name = request.form.get("owner_name", "").strip()
         phone_number = request.form.get("phone_number", "").strip()
-        imei = request.form.get("imei", "").strip()
-        phone_model = request.form.get("phone_model", "").strip()
+
+        # Accept both old and new form field names
+        imei = (
+            request.form.get("imei", "").strip()
+            or request.form.get("imei1", "").strip()
+        )
+        imei2 = request.form.get("imei2", "").strip()
+
+        phone_model = (
+            request.form.get("phone_model", "").strip()
+            or request.form.get("model", "").strip()
+        )
+        brand = request.form.get("brand", "").strip()
         color = request.form.get("color", "").strip()
+        registration_date = request.form.get(
+            "registration_date", ""
+        ).strip()
+        description = request.form.get("description", "").strip()
 
         if not owner_name or not imei:
             return render_template(
                 "register_phone.html",
-                error="Owner name and IMEI are required."
+                error="Owner name and IMEI 1 are required."
+            )
+
+        if not imei.isdigit() or len(imei) != 15:
+            return render_template(
+                "register_phone.html",
+                error="IMEI 1 must contain exactly 15 digits."
+            )
+
+        if imei2 and (
+            not imei2.isdigit() or len(imei2) != 15
+        ):
+            return render_template(
+                "register_phone.html",
+                error="IMEI 2 must contain exactly 15 digits."
             )
 
         conn = None
@@ -279,16 +308,47 @@ def register_phone():
             conn = get_db_connection()
             cur = conn.cursor()
 
+            # Add optional fields to existing databases safely
+            cur.execute("""
+                ALTER TABLE registered_phones
+                ADD COLUMN IF NOT EXISTS brand VARCHAR(100)
+            """)
+            cur.execute("""
+                ALTER TABLE registered_phones
+                ADD COLUMN IF NOT EXISTS imei2 VARCHAR(100)
+            """)
+            cur.execute("""
+                ALTER TABLE registered_phones
+                ADD COLUMN IF NOT EXISTS description TEXT
+            """)
+
             cur.execute("""
                 INSERT INTO registered_phones
-                (owner_name, phone_number, imei, phone_model, color)
-                VALUES (%s, %s, %s, %s, %s)
+                (
+                    owner_name,
+                    phone_number,
+                    imei,
+                    phone_model,
+                    color,
+                    brand,
+                    imei2,
+                    description,
+                    registration_date
+                )
+                VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s,
+                    COALESCE(%s::timestamp, CURRENT_TIMESTAMP)
+                )
             """, (
                 owner_name,
                 phone_number,
                 imei,
                 phone_model,
-                color
+                color,
+                brand,
+                imei2 or None,
+                description,
+                registration_date or None
             ))
 
             conn.commit()
@@ -302,11 +362,15 @@ def register_phone():
             if conn:
                 conn.rollback()
 
-            print("Phone registration error:", e)
+            print("Phone registration error:", repr(e))
 
             return render_template(
                 "register_phone.html",
-                error="Registration failed. Check the IMEI or database."
+                error=(
+                    "Registration failed. "
+                    "Check whether this IMEI is already registered "
+                    "and review the Render logs."
+                )
             )
 
         finally:
@@ -316,8 +380,6 @@ def register_phone():
                 conn.close()
 
     return render_template("register_phone.html")
-    
-
 # =================================================
 # REPORT STOLEN PHONE
 # =================================================
