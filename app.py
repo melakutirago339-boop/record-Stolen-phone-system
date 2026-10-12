@@ -375,51 +375,67 @@ def register_phone():
 # REPORT STOLEN PHONE
 # =================================================
 
+
 @app.route("/report_stolen", methods=["GET", "POST"])
 @app.route("/report", methods=["GET", "POST"])
 @login_required
 def report_stolen():
-
     if request.method == "POST":
+        owner_name = request.form.get("owner_name", "").strip()
+        phone_number = request.form.get("phone_number", "").strip()
 
-        owner_name = request.form.get(
-            "owner_name", ""
-        ).strip()
+        imei = (
+            request.form.get("imei", "").strip()
+            or request.form.get("imei1", "").strip()
+        )
 
-        phone_number = request.form.get(
-            "phone_number", ""
-        ).strip()
+        brand = request.form.get("brand", "").strip()
+        phone_model = (
+            request.form.get("phone_model", "").strip()
+            or request.form.get("model", "").strip()
+        )
 
-        imei = request.form.get(
-            "imei", ""
-        ).strip()
+        date_stolen = (
+            request.form.get("date_stolen", "").strip()
+            or request.form.get("incident_date", "").strip()
+        )
 
-        phone_model = request.form.get(
-            "phone_model", ""
-        ).strip()
+        location = (
+            request.form.get("location_stolen", "").strip()
+            or request.form.get("last_location", "").strip()
+            or request.form.get("location", "").strip()
+        )
 
-        last_location = request.form.get(
-            "last_location", ""
-        ).strip()
+        status = request.form.get("case_status", "Reported").strip()
+        description = request.form.get("description", "").strip()
 
         if not owner_name or not imei:
-
             return render_template(
                 "report_stolen.html",
                 error="Owner name and IMEI are required."
             )
 
+        allowed_statuses = {
+            "Reported",
+            "Under Investigation",
+            "Recovered",
+            "Closed"
+        }
+
+        if status not in allowed_statuses:
+            status = "Reported"
+
         conn = None
         cur = None
 
         try:
-
             conn = get_db_connection()
             cur = conn.cursor()
 
+            # Keep the existing table structure.
+            # Store the incident details in existing columns.
             cur.execute("""
-                INSERT INTO stolen_phones
-                (
+                INSERT INTO stolen_phones (
                     owner_name,
                     phone_number,
                     imei,
@@ -432,33 +448,31 @@ def report_stolen():
                 owner_name,
                 phone_number,
                 imei,
-                phone_model,
-                last_location,
-                "Stolen"
+                (brand + " " + phone_model).strip(),
+                location,
+                status
             ))
 
             conn.commit()
 
-            return render_template(
-                "report_stolen.html",
-                success="Stolen phone report saved successfully"
-            )
+            return redirect(url_for("dashboard"))
 
         except Exception as e:
-
             if conn:
                 conn.rollback()
 
+            print("Stolen phone report error:", repr(e))
+
             return render_template(
                 "report_stolen.html",
-                error=f"Report failed: {e}"
+                error=(
+                    "Report failed. Check the IMEI and database logs."
+                )
             )
 
         finally:
-
             if cur:
                 cur.close()
-
             if conn:
                 conn.close()
 
