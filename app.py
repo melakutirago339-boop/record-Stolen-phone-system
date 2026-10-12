@@ -32,7 +32,7 @@ def get_db_connection():
 # CREATE DATABASE TABLES
 # -------------------------------------------------
 
-```python
+
 def create_tables():
     conn = None
     cur = None
