@@ -633,56 +633,44 @@ def search_imei():
 # CASE MANAGEMENT
 # =================================================
 
+
 @app.route("/cases", methods=["GET", "POST"])
 @login_required
 def cases():
-
     message = None
     error = None
+    conn = None
+    cur = None
 
-    if request.method == "POST":
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-        case_number = request.form.get(
-            "case_number", ""
-        ).strip()
+        # Create a case from a stolen-phone report
+        if request.method == "POST":
+            case_number = request.form.get(
+                "case_number", ""
+            ).strip()
 
-        imei = request.form.get(
-            "imei", ""
-        ).strip()
+            imei = request.form.get("imei", "").strip()
+            owner_name = request.form.get(
+                "owner_name", ""
+            ).strip()
+            officer_name = request.form.get(
+                "officer_name", ""
+            ).strip()
+            case_status = request.form.get(
+                "case_status", "Open"
+            ).strip()
+            description = request.form.get(
+                "description", ""
+            ).strip()
 
-        owner_name = request.form.get(
-            "owner_name", ""
-        ).strip()
-
-        officer_name = request.form.get(
-            "officer_name", ""
-        ).strip()
-
-        case_status = request.form.get(
-            "case_status", "Open"
-        ).strip()
-
-        description = request.form.get(
-            "description", ""
-        ).strip()
-
-        if not case_number or not imei:
-
-            error = "Case number and IMEI are required."
-
-        else:
-
-            conn = None
-            cur = None
-
-            try:
-
-                conn = get_db_connection()
-                cur = conn.cursor()
-
+            if not case_number or not imei:
+                error = "Case number and IMEI are required."
+            else:
                 cur.execute("""
-                    INSERT INTO cases
-                    (
+                    INSERT INTO cases (
                         case_number,
                         imei,
                         owner_name,
@@ -699,55 +687,47 @@ def cases():
                     case_status,
                     description
                 ))
-
                 conn.commit()
+                message = "Case created successfully."
 
-                message = "Case created successfully"
-
-            except Exception as e:
-
-                if conn:
-                    conn.rollback()
-
-                error = f"Case creation failed: {e}"
-
-            finally:
-
-                if cur:
-                    cur.close()
-
-                if conn:
-                    conn.close()
-
-    # Get cases
-    case_list = []
-
-    conn = None
-    cur = None
-
-    try:
-
-        conn = get_db_connection()
-        cur = conn.cursor()
+        # Show existing cases and stolen-phone reports.
+        cur.execute("""
+            SELECT
+                c.id,
+                c.case_number,
+                c.imei,
+                c.owner_name,
+                c.officer_name,
+                c.case_status,
+                c.description,
+                c.created_at
+            FROM cases c
+            ORDER BY c.created_at DESC
+        """)
+        existing_cases = cur.fetchall()
 
         cur.execute("""
             SELECT
-                id,
-                case_number,
-                imei,
-                owner_name,
-                officer_name,
-                case_status,
-                description,
-                created_at
-            FROM cases
-            ORDER BY created_at DESC
+                s.id,
+                s.imei,
+                s.owner_name,
+                s.phone_model,
+                s.last_location,
+                s.report_date,
+                s.status
+            FROM stolen_phones s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cases c
+                WHERE c.imei = s.imei
+            )
+            ORDER BY s.report_date DESC
         """)
+        unlinked_reports = cur.fetchall()
 
-        rows = cur.fetchall()
+        case_list = []
 
-        for row in rows:
-
+        for row in existing_cases:
             case_list.append({
                 "id": row[0],
                 "case_number": row[1],
@@ -756,18 +736,39 @@ def cases():
                 "officer_name": row[4],
                 "case_status": row[5],
                 "description": row[6],
-                "created_at": row[7]
+                "created_at": row[7],
+                "source": "case"
             })
 
-    except Exception as e:
+        for row in unlinked_reports:
+            case_list.append({
+                "id": row[0],
+                "case_number": "STOLEN-" + str(row[0]),
+                "imei": row[1],
+                "owner_name": row[2],
+                "officer_name": "",
+                "case_status": row[6] or "Reported",
+                "description": "Stolen phone report",
+                "created_at": row[5],
+                "source": "report"
+            })
 
-        error = str(e)
+        case_list.sort(
+            key=lambda item: item["created_at"] or "",
+            reverse=True
+        )
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print("Case management error:", repr(e))
+        error = "Could not load cases. Check Render Logs."
+
+        case_list = []
 
     finally:
-
         if cur:
             cur.close()
-
         if conn:
             conn.close()
 
@@ -777,6 +778,7 @@ def cases():
         success=message,
         error=error
     )
+
 
 
 # =================================================
