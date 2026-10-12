@@ -136,6 +136,7 @@ def create_tables():
             cur.close()
         if conn:
             conn.close()
+             print("Database tables ready")
 
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
