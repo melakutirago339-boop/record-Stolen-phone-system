@@ -1,52 +1,95 @@
 
-@app.route("/dashboard")
-@login_required
-def dashboard():
-    registered_count = 0
-    stolen_count = 0
-    recovered_count = 0
-    active_cases = 0
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stolen Phone System Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        header {
+            background: #0f172a;
+            color: white;
+            padding: 20px;
+        }
+        main {
+            max-width: 1000px;
+            margin: 25px auto;
+            padding: 20px;
+        }
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+        }
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px #00000010;
+        }
+        .number {
+            font-size: 30px;
+            font-weight: bold;
+            color: #2563eb;
+        }
+        nav a {
+            display: inline-block;
+            margin: 8px 8px 8px 0;
+            padding: 12px 15px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+        }
+        nav a:hover {
+            background: #1d4ed8;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Stolen Phone Recovery System</h1>
+    <p>Welcome, {{ username }} | Role: {{ role }}</p>
+</header>
 
-    conn = None
-    cur = None
+<main>
+    <h2>Dashboard</h2>
 
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
+    <section class="cards">
+        <div class="card">
+            <h3>Registered Phones</h3>
+            <p class="number">{{ registered_count }}</p>
+        </div>
+        <div class="card">
+            <h3>Stolen Phones</h3>
+            <p class="number">{{ stolen_count }}</p>
+        </div>
+        <div class="card">
+            <h3>Recovered Phones</h3>
+            <p class="number">{{ recovered_count }}</p>
+        </div>
+        <div class="card">
+            <h3>Open Cases</h3>
+            <p class="number">{{ active_cases }}</p>
+        </div>
+    </section>
 
-        cur.execute("SELECT COUNT(*) FROM registered_phones")
-        registered_count = cur.fetchone()[0]
-
-        cur.execute("SELECT COUNT(*) FROM stolen_phones")
-        stolen_count = cur.fetchone()[0]
-
-        cur.execute("""
-            SELECT COUNT(*) FROM stolen_phones
-            WHERE LOWER(status) = 'recovered'
-        """)
-        recovered_count = cur.fetchone()[0]
-
-        cur.execute("""
-            SELECT COUNT(*) FROM cases
-            WHERE LOWER(case_status) = 'open'
-        """)
-        active_cases = cur.fetchone()[0]
-
-    except Exception as e:
-        print("Dashboard database error:", e)
-
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-    return render_template(
-        "dashboard.html",
-        username=session.get("username"),
-        role=session.get("role"),
-        registered_count=registered_count,
-        stolen_count=stolen_count,
-        recovered_count=recovered_count,
-        active_cases=active_cases
-    )
+    <h2>System Menu</h2>
+    <nav>
+        <a href="/register_phone">Register Phone</a>
+        <a href="/report_stolen">Report Stolen Phone</a>
+        <a href="/search_imei">Search IMEI</a>
+        <a href="/cases">Case Management</a>
+        <a href="/location">Authorized Locations</a>
+        <a href="/reports">Reports</a>
+        <a href="/logout">Logout</a>
+    </nav>
+</main>
+</body>
+</html>
