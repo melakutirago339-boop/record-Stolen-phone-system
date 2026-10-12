@@ -255,6 +255,7 @@ def db_test():
 # USER REGISTRATION
 # -------------------------------------------------
 
+
 @app.route("/register_phone", methods=["GET", "POST"])
 @app.route("/register", methods=["GET", "POST"])
 @login_required
@@ -263,7 +264,6 @@ def register_phone():
         owner_name = request.form.get("owner_name", "").strip()
         phone_number = request.form.get("phone_number", "").strip()
 
-        # Accept both old and new form field names
         imei = (
             request.form.get("imei", "").strip()
             or request.form.get("imei1", "").strip()
@@ -276,9 +276,6 @@ def register_phone():
         )
         brand = request.form.get("brand", "").strip()
         color = request.form.get("color", "").strip()
-        registration_date = request.form.get(
-            "registration_date", ""
-        ).strip()
         description = request.form.get("description", "").strip()
 
         if not owner_name or not imei:
@@ -308,7 +305,6 @@ def register_phone():
             conn = get_db_connection()
             cur = conn.cursor()
 
-            # Add optional fields to existing databases safely
             cur.execute("""
                 ALTER TABLE registered_phones
                 ADD COLUMN IF NOT EXISTS brand VARCHAR(100)
@@ -323,8 +319,7 @@ def register_phone():
             """)
 
             cur.execute("""
-                INSERT INTO registered_phones
-                (
+                INSERT INTO registered_phones (
                     owner_name,
                     phone_number,
                     imei,
@@ -332,13 +327,9 @@ def register_phone():
                     color,
                     brand,
                     imei2,
-                    description,
-                    registration_date
+                    description
                 )
-                VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s,
-                    COALESCE(%s::timestamp, CURRENT_TIMESTAMP)
-                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 owner_name,
                 phone_number,
@@ -347,8 +338,7 @@ def register_phone():
                 color,
                 brand,
                 imei2 or None,
-                description,
-                registration_date or None
+                description
             ))
 
             conn.commit()
@@ -380,6 +370,7 @@ def register_phone():
                 conn.close()
 
     return render_template("register_phone.html")
+
 # =================================================
 # REPORT STOLEN PHONE
 # =================================================
