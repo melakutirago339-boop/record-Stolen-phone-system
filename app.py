@@ -251,6 +251,7 @@ def login():
 # DASHBOARD
 # -------------------------------------------------
 
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -266,28 +267,53 @@ def dashboard():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) FROM registered_phones")
+        # Total registered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM registered_phones
+        """)
         registered_count = cur.fetchone()[0]
 
-        cur.execute("SELECT COUNT(*) FROM stolen_phones")
-        stolen_count = cur.fetchone()[0]
-
+        # Total stolen-phone reports
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
-            WHERE LOWER(status) = 'recovered'
+        """)
+        stolen_count = cur.fetchone()[0]
+
+        # Recovered phones from either status column
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+            WHERE LOWER(COALESCE(status, '')) = 'recovered'
+               OR LOWER(COALESCE(case_status, '')) = 'recovered'
         """)
         recovered_count = cur.fetchone()[0]
 
+        # Open cases: reported or under investigation
         cur.execute("""
-            SELECT COUNT(*)
-            FROM cases
-            WHERE LOWER(case_status) = 'open'
+            SELECT
+                (SELECT COUNT(*)
+                 FROM cases
+                 WHERE LOWER(COALESCE(case_status, 'reported'))
+                       IN ('reported', 'investigation'))
+                +
+                (SELECT COUNT(*)
+                 FROM stolen_phones AS s
+                 WHERE LOWER(COALESCE(s.case_status, 'reported'))
+                       IN ('reported', 'investigation')
+                   AND NOT EXISTS (
+                       SELECT 1
+                       FROM cases AS c
+                       WHERE c.imei = s.imei
+                   ))
         """)
         active_cases = cur.fetchone()[0]
 
     except Exception as e:
-        print("Dashboard database error:", e)
+        if conn:
+            conn.rollback()
+        print("Dashboard database error:", repr(e))
 
     finally:
         if cur:
@@ -304,7 +330,7 @@ def dashboard():
         recovered_count=recovered_count,
         active_cases=active_cases
     )
-
+    
 # -------------------------------------------------
 # DATABASE TEST
 # -------------------------------------------------
