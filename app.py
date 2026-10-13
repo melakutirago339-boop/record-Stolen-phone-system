@@ -633,7 +633,6 @@ def search_imei():
 # CASE MANAGEMENT
 # =================================================
 
-
 for row in unlinked_reports:
     case_list.append({
         "id": row[0],
@@ -648,7 +647,6 @@ for row in unlinked_reports:
         "created_at": row[5],
         "source": "report"
     })
-
 
 # =================================================
 # AUTHORIZED LOCATION
