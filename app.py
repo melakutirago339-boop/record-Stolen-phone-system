@@ -156,6 +156,23 @@ def create_tables():
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
+        
+        # Case history table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS case_history (
+                id SERIAL PRIMARY KEY,
+                source VARCHAR(20) NOT NULL,
+                record_id INTEGER NOT NULL,
+                case_number VARCHAR(100),
+                imei VARCHAR(100),
+                previous_status VARCHAR(50),
+                new_status VARCHAR(50) NOT NULL,
+                officer_name VARCHAR(150),
+                changed_by VARCHAR(150),
+                changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
 
         # Authorized locations
         cur.execute("""
