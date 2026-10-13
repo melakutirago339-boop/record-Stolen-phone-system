@@ -91,6 +91,7 @@ def create_tables():
             VARCHAR(50) DEFAULT 'Stolen'
         """)
 
+        
         # Cases
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cases (
@@ -104,6 +105,44 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Add missing columns to an existing cases table
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS owner_name VARCHAR(150)
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS officer_name VARCHAR(150)
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS case_status VARCHAR(50) DEFAULT 'Open'
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS description TEXT
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS created_at
+            TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS imei VARCHAR(100)
+        """)
+
+        cur.execute("""
+            ALTER TABLE cases
+            ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
+        """)
+
 
         # Authorized locations
         cur.execute("""
