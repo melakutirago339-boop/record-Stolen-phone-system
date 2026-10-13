@@ -673,12 +673,15 @@ def search_imei():
 # CASE MANAGEMENT
 # =================================================
 
-@app.route("/cases", methods=["GET", "POST"])
-@login_required
+
+# =================================================
+# CASE MANAGEMENT
+# =================================================
 
 @app.route("/cases", methods=["GET", "POST"])
 @login_required
 def cases():
+
     message = None
     error = None
     conn = None
