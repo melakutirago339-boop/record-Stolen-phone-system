@@ -238,54 +238,44 @@
         </div>
 
 
-        <!-- STATISTICS -->
-        <div class="stats">
+        
+<!-- STATISTICS -->
+{% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
 
-            <div class="stat">
-                <div class="stat-title">
-                    TOTAL CASES
-                </div>
+{% for case in cases %}
+    {% set ns.total = ns.total + 1 %}
+    {% set status = (case.case_status or 'Reported')|lower %}
 
-                <div class="stat-number">
-                    0
-                </div>
-            </div>
+    {% if status == 'reported' %}
+        {% set ns.reported = ns.reported + 1 %}
+    {% elif status in ['investigation', 'in progress', 'under investigation'] %}
+        {% set ns.investigation = ns.investigation + 1 %}
+    {% elif status == 'recovered' %}
+        {% set ns.recovered = ns.recovered + 1 %}
+    {% endif %}
+{% endfor %}
 
+<div class="stats">
+    <div class="stat">
+        <div class="stat-title">TOTAL CASES</div>
+        <div class="stat-number">{{ ns.total }}</div>
+    </div>
 
-            <div class="stat">
-                <div class="stat-title">
-                    REPORTED
-                </div>
+    <div class="stat">
+        <div class="stat-title">REPORTED</div>
+        <div class="stat-number">{{ ns.reported }}</div>
+    </div>
 
-                <div class="stat-number">
-                    0
-                </div>
-            </div>
+    <div class="stat">
+        <div class="stat-title">INVESTIGATION</div>
+        <div class="stat-number">{{ ns.investigation }}</div>
+    </div>
 
-
-            <div class="stat">
-                <div class="stat-title">
-                    INVESTIGATION
-                </div>
-
-                <div class="stat-number">
-                    0
-                </div>
-            </div>
-
-
-            <div class="stat">
-                <div class="stat-title">
-                    RECOVERED
-                </div>
-
-                <div class="stat-number">
-                    0
-                </div>
-            </div>
-
-        </div>
-
+    <div class="stat">
+        <div class="stat-title">RECOVERED</div>
+        <div class="stat-number">{{ ns.recovered }}</div>
+    </div>
+</div>
 
         <!-- CASE TABLE -->
         <div class="table-card">
@@ -321,32 +311,52 @@
                 </thead>
 
 
-                <tbody>
-
-                    <!-- Database records will appear here later -->
-
-                    <tr>
-                        <td colspan="7">
-
-                            <div class="empty">
-
-                                <div class="empty-icon">
-                                    📂
-                                </div>
-
-                                <h3>No Cases Found</h3>
-
-                                <p>
-                                    Stolen phone cases will appear here
-                                    after they are registered.
-                                </p>
-
-                            </div>
-
-                        </td>
-                    </tr>
-
-                </tbody>
+               
+<tbody>
+    {% if cases %}
+        {% for case in cases %}
+        <tr>
+            <td>{{ case.case_number or case.id }}</td>
+            <td>{{ case.owner_name or 'Unknown' }}</td>
+            <td>{{ case.imei or 'N/A' }}</td>
+            <td>{{ case.phone_model or 'Not specified' }}</td>
+            <td>{{ case.last_location or 'Not specified' }}</td>
+            <td>
+                {% if case.created_at %}
+                    {{ case.created_at.strftime('%Y-%m-%d') if case.created_at.strftime is defined else case.created_at }}
+                {% else %}
+                    N/A
+                {% endif %}
+            </td>
+            <td>
+                <span class="status
+                    {% if (case.case_status or '')|lower == 'recovered' %}
+                        recovered
+                    {% elif (case.case_status or '')|lower in ['investigation', 'in progress', 'under investigation'] %}
+                        investigation
+                    {% elif (case.case_status or '')|lower == 'closed' %}
+                        closed
+                    {% else %}
+                        reported
+                    {% endif %}
+                ">
+                    {{ case.case_status or 'Reported' }}
+                </span>
+            </td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="7">
+                <div class="empty">
+                    <div class="empty-icon">📂</div>
+                    <h3>No Cases Found</h3>
+                    <p>Stolen phone reports will appear here when available.</p>
+                </div>
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
 
             </table>
 
