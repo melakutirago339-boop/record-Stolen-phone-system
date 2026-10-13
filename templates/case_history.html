@@ -1,71 +1,110 @@
 
-# =================================================
-# CASE HISTORY
-# =================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case History</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            margin: 0;
+            padding: 24px;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,.08);
+        }
+        h1 { color: #123b69; }
+        .actions { margin-bottom: 20px; }
+        .actions a {
+            display: inline-block;
+            background: #123b69;
+            color: white;
+            padding: 10px 14px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            text-decoration: none;
+        }
+        .message {
+            padding: 12px;
+            background: #fee2e2;
+            color: #991b1b;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        th { background: #123b69; color: white; }
+        tr:hover { background: #f8fafc; }
+        .empty { padding: 20px; text-align: center; color: #64748b; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Case History</h1>
+    <p>Track case status changes, officers, and update times.</p>
 
-@app.route("/case_history")
-@login_required
-def case_history():
+    <div class="actions">
+        <a href="/dashboard">Dashboard</a>
+        <a href="/cases">Case Management</a>
+        <a href="/reports">Reports</a>
+    </div>
 
-    history_list = []
-    error = None
-    conn = None
-    cur = None
+    {% if error %}
+        <div class="message">{{ error }}</div>
+    {% endif %}
 
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT
-                id,
-                source,
-                record_id,
-                case_number,
-                imei,
-                previous_status,
-                new_status,
-                officer_name,
-                changed_by,
-                changed_at
-            FROM case_history
-            ORDER BY changed_at DESC
-            LIMIT 200
-        """)
-
-        rows = cur.fetchall()
-
-        for row in rows:
-            history_list.append({
-                "id": row[0],
-                "source": row[1],
-                "record_id": row[2],
-                "case_number": row[3] or "",
-                "imei": row[4] or "",
-                "previous_status": row[5] or "",
-                "new_status": row[6] or "",
-                "officer_name": row[7] or "",
-                "changed_by": row[8] or "",
-                "changed_at": row[9]
-            })
-
-    except Exception as e:
-        if conn:
-            conn.rollback()
-
-        print("Case history error:", repr(e))
-        error = "Could not load case history. Check Render Logs."
-
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-    return render_template(
-        "case_history.html",
-        history_list=history_list,
-        error=error
-    )
-
-
+    {% if history_list %}
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Case Number</th>
+                    <th>IMEI</th>
+                    <th>Previous Status</th>
+                    <th>New Status</th>
+                    <th>Officer</th>
+                    <th>Changed By</th>
+                    <th>Date and Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history_list %}
+                <tr>
+                    <td>{{ item.case_number }}</td>
+                    <td>{{ item.imei }}</td>
+                    <td>{{ item.previous_status }}</td>
+                    <td>{{ item.new_status }}</td>
+                    <td>{{ item.officer_name }}</td>
+                    <td>{{ item.changed_by }}</td>
+                    <td>{{ item.changed_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <div class="empty">
+            No case history recorded yet. Change a case status to create a history entry.
+        </div>
+    {% endif %}
+</div>
+</body>
+</html>
