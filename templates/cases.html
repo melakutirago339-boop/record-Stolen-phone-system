@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Case Management - Stolen Phone System</title>
 
     <style>
@@ -27,23 +26,29 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
 
         .navbar h2 {
             font-size: 20px;
         }
 
-        .back {
+        .back, .new-case, .btn {
+            display: inline-block;
             color: white;
             text-decoration: none;
             background: #1261a0;
-            padding: 9px 15px;
+            padding: 10px 14px;
+            border: 0;
             border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 40px auto;
+            max-width: 1400px;
+            margin: 35px auto;
             padding: 0 20px;
         }
 
@@ -64,14 +69,14 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 18px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
-        .stat {
+        .stat, .panel, .table-card {
             background: white;
             padding: 22px;
             border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            box-shadow: 0 4px 15px rgba(0,0,0,.07);
         }
 
         .stat-title {
@@ -86,18 +91,62 @@
             font-weight: bold;
         }
 
+        .panel {
+            margin-bottom: 25px;
+        }
+
+        .panel h2 {
+            color: #071e3d;
+            margin-bottom: 18px;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .detail {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 13px;
+            overflow-wrap: anywhere;
+        }
+
+        .detail strong {
+            display: block;
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+
+        .message {
+            padding: 13px 16px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+        }
+
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         .table-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
             overflow-x: auto;
+            margin-bottom: 25px;
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
@@ -105,19 +154,10 @@
             color: #071e3d;
         }
 
-        .new-case {
-            background: #1261a0;
-            color: white;
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 7px;
-            font-weight: bold;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 850px;
+            min-width: 1100px;
         }
 
         th {
@@ -125,13 +165,14 @@
             color: white;
             padding: 13px;
             text-align: left;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         td {
-            padding: 13px;
+            padding: 12px;
             border-bottom: 1px solid #eee;
-            font-size: 14px;
+            font-size: 13px;
+            vertical-align: top;
         }
 
         tr:hover {
@@ -144,6 +185,7 @@
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
+            white-space: nowrap;
         }
 
         .reported {
@@ -166,15 +208,43 @@
             color: #374151;
         }
 
+        .update-form {
+            min-width: 190px;
+        }
+
+        .update-form input,
+        .update-form select {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: white;
+            font-size: 12px;
+        }
+
+        .update-form button {
+            width: 100%;
+        }
+
+        .small-link {
+            display: inline-block;
+            color: #1261a0;
+            font-weight: bold;
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
         .empty {
             text-align: center;
-            padding: 50px 20px;
+            padding: 40px 15px;
             color: #888;
         }
 
         .empty-icon {
-            font-size: 45px;
-            margin-bottom: 15px;
+            font-size: 42px;
+            margin-bottom: 12px;
         }
 
         footer {
@@ -188,23 +258,38 @@
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .navbar {
+                padding: 15px;
+            }
         }
 
         @media (max-width: 550px) {
-            .navbar {
+            .stats, .details {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                padding: 0 12px;
+                margin-top: 22px;
+            }
+
+            .stat, .panel, .table-card {
                 padding: 15px;
             }
 
             .navbar h2 {
-                font-size: 16px;
+                font-size: 15px;
             }
 
-            .stats {
-                grid-template-columns: 1fr;
+            .back {
+                padding: 8px;
+                font-size: 12px;
             }
 
-            .table-card {
-                padding: 15px;
+            .table-header {
+                align-items: flex-start;
+                flex-direction: column;
             }
         }
     </style>
@@ -212,163 +297,249 @@
 
 <body>
 
-    <!-- NAVBAR -->
-    <div class="navbar">
+<div class="navbar">
+    <h2>📱 Stolen Phone System</h2>
+    <a href="{{ url_for('dashboard') }}" class="back">
+        ← Dashboard
+    </a>
+</div>
 
-        <h2>📱 Stolen Phone System</h2>
+<div class="container">
 
-        <a href="{{ url_for('dashboard') }}" class="back">
-            ← Dashboard
-        </a>
-
+    <div class="header">
+        <h1>📂 Case Management</h1>
+        <p>View cases, assign officers, and update investigation status.</p>
     </div>
 
+    {% if success %}
+        <div class="message success">{{ success }}</div>
+    {% endif %}
 
-    <!-- MAIN -->
-    <div class="container">
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% endif %}
 
-        <div class="header">
+    {% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
 
-            <h1>📂 Case Management</h1>
+    {% for case in cases %}
+        {% set ns.total = ns.total + 1 %}
+        {% set status = (case.case_status or 'Reported')|lower %}
 
-            <p>
-                Manage stolen phone cases and investigation status.
-            </p>
+        {% if status == 'reported' %}
+            {% set ns.reported = ns.reported + 1 %}
+        {% elif status in ['investigation', 'in progress', 'under investigation'] %}
+            {% set ns.investigation = ns.investigation + 1 %}
+        {% elif status == 'recovered' %}
+            {% set ns.recovered = ns.recovered + 1 %}
+        {% endif %}
+    {% endfor %}
 
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-title">TOTAL CASES</div>
+            <div class="stat-number">{{ ns.total }}</div>
         </div>
 
+        <div class="stat">
+            <div class="stat-title">REPORTED</div>
+            <div class="stat-number">{{ ns.reported }}</div>
+        </div>
 
-        
-<!-- STATISTICS -->
-{% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
+        <div class="stat">
+            <div class="stat-title">INVESTIGATION</div>
+            <div class="stat-number">{{ ns.investigation }}</div>
+        </div>
 
-{% for case in cases %}
-    {% set ns.total = ns.total + 1 %}
-    {% set status = (case.case_status or 'Reported')|lower %}
+        <div class="stat">
+            <div class="stat-title">RECOVERED</div>
+            <div class="stat-number">{{ ns.recovered }}</div>
+        </div>
+    </div>
 
-    {% if status == 'reported' %}
-        {% set ns.reported = ns.reported + 1 %}
-    {% elif status in ['investigation', 'in progress', 'under investigation'] %}
-        {% set ns.investigation = ns.investigation + 1 %}
-    {% elif status == 'recovered' %}
-        {% set ns.recovered = ns.recovered + 1 %}
+    {% if selected_case %}
+    <div class="panel" id="case-details">
+        <h2>🔎 Case Details</h2>
+
+        <div class="details">
+            <div class="detail">
+                <strong>Case ID</strong>
+                {{ selected_case.case_number }}
+            </div>
+
+            <div class="detail">
+                <strong>Owner</strong>
+                {{ selected_case.owner_name or 'Unknown' }}
+            </div>
+
+            <div class="detail">
+                <strong>IMEI</strong>
+                {{ selected_case.imei or 'N/A' }}
+            </div>
+
+            <div class="detail">
+                <strong>Phone Model</strong>
+                {{ selected_case.phone_model or 'Not specified' }}
+            </div>
+
+            <div class="detail">
+                <strong>Last Location</strong>
+                {{ selected_case.last_location or 'Not specified' }}
+            </div>
+
+            <div class="detail">
+                <strong>Assigned Officer</strong>
+                {{ selected_case.officer_name or 'Not assigned' }}
+            </div>
+
+            <div class="detail">
+                <strong>Status</strong>
+                {{ selected_case.case_status or 'Reported' }}
+            </div>
+
+            <div class="detail">
+                <strong>Date</strong>
+                {{ selected_case.created_at or 'N/A' }}
+            </div>
+
+            <div class="detail">
+                <strong>Description</strong>
+                {{ selected_case.description or 'No description provided' }}
+            </div>
+        </div>
+
+        <p style="margin-top:18px;">
+            <a class="small-link" href="{{ url_for('cases') }}">
+                ← Back to all cases
+            </a>
+        </p>
+    </div>
     {% endif %}
-{% endfor %}
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-title">TOTAL CASES</div>
-        <div class="stat-number">{{ ns.total }}</div>
-    </div>
+    <div class="table-card">
+        <div class="table-header">
+            <h2>Phone Cases</h2>
 
-    <div class="stat">
-        <div class="stat-title">REPORTED</div>
-        <div class="stat-number">{{ ns.reported }}</div>
-    </div>
+            <a href="{{ url_for('report_stolen') }}" class="new-case">
+                + Report Stolen Phone
+            </a>
+        </div>
 
-    <div class="stat">
-        <div class="stat-title">INVESTIGATION</div>
-        <div class="stat-number">{{ ns.investigation }}</div>
-    </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Case ID</th>
+                    <th>Owner</th>
+                    <th>IMEI</th>
+                    <th>Phone</th>
+                    <th>Location</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Officer</th>
+                    <th>View / Update</th>
+                </tr>
+            </thead>
 
-    <div class="stat">
-        <div class="stat-title">RECOVERED</div>
-        <div class="stat-number">{{ ns.recovered }}</div>
+            <tbody>
+            {% if cases %}
+                {% for case in cases %}
+                <tr>
+                    <td>{{ case.case_number or case.id }}</td>
+                    <td>{{ case.owner_name or 'Unknown' }}</td>
+                    <td>{{ case.imei or 'N/A' }}</td>
+                    <td>{{ case.phone_model or 'Not specified' }}</td>
+                    <td>{{ case.last_location or 'Not specified' }}</td>
+
+                    <td>
+                        {% if case.created_at and case.created_at.strftime is defined %}
+                            {{ case.created_at.strftime('%Y-%m-%d') }}
+                        {% else %}
+                            {{ case.created_at or 'N/A' }}
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% set status = (case.case_status or 'Reported')|lower %}
+                        <span class="status {% if status == 'recovered' %}recovered{% elif status in ['investigation', 'in progress', 'under investigation'] %}investigation{% elif status == 'closed' %}closed{% else %}reported{% endif %}">
+                            {{ case.case_status or 'Reported' }}
+                        </span>
+                    </td>
+
+                    <td>{{ case.officer_name or 'Not assigned' }}</td>
+
+                    <td>
+                        <a class="small-link"
+                           href="{{ url_for('cases', source=case.source, view_id=case.id) }}">
+                            View Case
+                        </a>
+
+                        <form class="update-form" method="POST"
+                              action="{{ url_for('cases') }}">
+
+                            <input type="hidden" name="action" value="update_case">
+                            <input type="hidden" name="source" value="{{ case.source }}">
+                            <input type="hidden" name="record_id" value="{{ case.id }}">
+
+                            <label>
+                                <span style="display:block;font-size:12px;margin-bottom:5px;">
+                                    Case Status
+                                </span>
+
+                                <select name="case_status" required>
+                                    <option value="Reported"
+                                        {% if (case.case_status or 'Reported')|lower == 'reported' %}selected{% endif %}>
+                                        Reported
+                                    </option>
+
+                                    <option value="Investigation"
+                                        {% if (case.case_status or '')|lower in ['investigation', 'in progress', 'under investigation'] %}selected{% endif %}>
+                                        Investigation
+                                    </option>
+
+                                    <option value="Recovered"
+                                        {% if (case.case_status or '')|lower == 'recovered' %}selected{% endif %}>
+                                        Recovered
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label>
+                                <span style="display:block;font-size:12px;margin-bottom:5px;">
+                                    Officer Name
+                                </span>
+
+                                <input type="text"
+                                       name="officer_name"
+                                       maxlength="150"
+                                       placeholder="Enter officer name"
+                                       value="{{ case.officer_name or '' }}">
+                            </label>
+
+                            <button class="btn" type="submit">
+                                Save Update
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="9">
+                        <div class="empty">
+                            <div class="empty-icon">📂</div>
+                            <h3>No Cases Found</h3>
+                            <p>Stolen phone reports will appear here when available.</p>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
 
-        <!-- CASE TABLE -->
-        <div class="table-card">
-
-            <div class="table-header">
-
-                <h2>Phone Cases</h2>
-
-                <a
-                    href="{{ url_for('report_stolen') }}"
-                    class="new-case"
-                >
-                    + New Case
-                </a>
-
-            </div>
-
-
-            <table>
-
-                <thead>
-
-                    <tr>
-                        <th>Case ID</th>
-                        <th>Owner</th>
-                        <th>IMEI</th>
-                        <th>Phone</th>
-                        <th>Location</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                    </tr>
-
-                </thead>
-
-
-               
-<tbody>
-    {% if cases %}
-        {% for case in cases %}
-        <tr>
-            <td>{{ case.case_number or case.id }}</td>
-            <td>{{ case.owner_name or 'Unknown' }}</td>
-            <td>{{ case.imei or 'N/A' }}</td>
-            <td>{{ case.phone_model or 'Not specified' }}</td>
-            <td>{{ case.last_location or 'Not specified' }}</td>
-            <td>
-                {% if case.created_at %}
-                    {{ case.created_at.strftime('%Y-%m-%d') if case.created_at.strftime is defined else case.created_at }}
-                {% else %}
-                    N/A
-                {% endif %}
-            </td>
-            <td>
-                <span class="status
-                    {% if (case.case_status or '')|lower == 'recovered' %}
-                        recovered
-                    {% elif (case.case_status or '')|lower in ['investigation', 'in progress', 'under investigation'] %}
-                        investigation
-                    {% elif (case.case_status or '')|lower == 'closed' %}
-                        closed
-                    {% else %}
-                        reported
-                    {% endif %}
-                ">
-                    {{ case.case_status or 'Reported' }}
-                </span>
-            </td>
-        </tr>
-        {% endfor %}
-    {% else %}
-        <tr>
-            <td colspan="7">
-                <div class="empty">
-                    <div class="empty-icon">📂</div>
-                    <h3>No Cases Found</h3>
-                    <p>Stolen phone reports will appear here when available.</p>
-                </div>
-            </td>
-        </tr>
-    {% endif %}
-</tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-
-    <footer>
-        © 2026 Stolen Phone Recording System
-    </footer>
+<footer>
+    © 2026 Stolen Phone Recovery System
+</footer>
 
 </body>
 </html>
-
