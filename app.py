@@ -746,12 +746,17 @@ def cases():
         if request.method == "POST":
             action = request.form.get("action", "").strip()
 
+         
             # Update an existing case or stolen-phone report
             if action == "update_case":
                 source = request.form.get("source", "").strip()
                 record_id = request.form.get("record_id", "").strip()
-                case_status = request.form.get("case_status", "Reported").strip()
-                officer_name = request.form.get("officer_name", "").strip()
+                case_status = request.form.get(
+                    "case_status", "Reported"
+                ).strip()
+                officer_name = request.form.get(
+                    "officer_name", ""
+                ).strip()
 
                 allowed_statuses = [
                     "Reported", "Investigation", "Recovered"
@@ -763,35 +768,83 @@ def cases():
                     or source not in ["case", "report"]
                 ):
                     error = "Invalid case update details."
-                elif source == "case":
-                    cur.execute("""
-                        UPDATE cases
-                        SET case_status = %s,
-                            officer_name = %s
-                        WHERE id = %s
-                    """, (case_status, officer_name, int(record_id)))
-
-                    if cur.rowcount:
-                        conn.commit()
-                        message = "Case status and officer updated."
-                    else:
-                        conn.rollback()
-                        error = "Case not found."
 
                 else:
-                    cur.execute("""
-                        UPDATE stolen_phones
-                        SET case_status = %s,
-                            officer_name = %s
-                        WHERE id = %s
-                    """, (case_status, officer_name, int(record_id)))
+                    record_id = int(record_id)
 
-                    if cur.rowcount:
-                        conn.commit()
-                        message = "Stolen-phone report updated."
+                    if source == "case":
+                        cur.execute("""
+                            SELECT case_number, imei, case_status
+                            FROM cases
+                            WHERE id = %s
+                        """, (record_id,))
                     else:
-                        conn.rollback()
-                        error = "Stolen-phone report not found."
+                        cur.execute("""
+                            SELECT
+                                'STOLEN-' || id::text,
+                                imei,
+                                case_status
+                            FROM stolen_phones
+                            WHERE id = %s
+                        """, (record_id,))
+
+                    old_record = cur.fetchone()
+
+                    if not old_record:
+                        error = "Case or stolen-phone report not found."
+
+                    else:
+                        case_number = old_record[0]
+                        imei = old_record[1]
+                        previous_status = old_record[2] or "Reported"
+
+                        if source == "case":
+                            cur.execute("""
+                                UPDATE cases
+                                SET case_status = %s,
+                                    officer_name = %s
+                                WHERE id = %s
+                            """, (
+                                case_status, officer_name, record_id
+                            ))
+                        else:
+                            cur.execute("""
+                                UPDATE stolen_phones
+                                SET case_status = %s,
+                                    officer_name = %s
+                                WHERE id = %s
+                            """, (
+                                case_status, officer_name, record_id
+                            ))
+
+                        # Save history only when the status changes
+                        if previous_status != case_status:
+                            cur.execute("""
+                                INSERT INTO case_history (
+                                    source,
+                                    record_id,
+                                    case_number,
+                                    imei,
+                                    previous_status,
+                                    new_status,
+                                    officer_name,
+                                    changed_by
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                            """, (
+                                source,
+                                record_id,
+                                case_number,
+                                imei,
+                                previous_status,
+                                case_status,
+                                officer_name,
+                                session.get("username", "unknown")
+                            ))
+
+                        conn.commit()
+                        message = "Case updated successfully."
+
 
             # Create a new case
             elif action == "create_case":
