@@ -1187,6 +1187,77 @@ def location():
         error=error
     )
 
+# =================================================
+# CASE HISTORY
+# =================================================
+
+@app.route("/case_history")
+@login_required
+def case_history():
+
+    history_list = []
+    error = None
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                id,
+                source,
+                record_id,
+                case_number,
+                imei,
+                previous_status,
+                new_status,
+                officer_name,
+                changed_by,
+                changed_at
+            FROM case_history
+            ORDER BY changed_at DESC
+            LIMIT 200
+        """)
+
+        rows = cur.fetchall()
+
+        for row in rows:
+            history_list.append({
+                "id": row[0],
+                "source": row[1],
+                "record_id": row[2],
+                "case_number": row[3] or "",
+                "imei": row[4] or "",
+                "previous_status": row[5] or "",
+                "new_status": row[6] or "",
+                "officer_name": row[7] or "",
+                "changed_by": row[8] or "",
+                "changed_at": row[9]
+            })
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        print("Case history error:", repr(e))
+        error = "Could not load case history. Check Render Logs."
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+    return render_template(
+        "case_history.html",
+        history_list=history_list,
+        error=error
+    )
+
+
+
 
 # =================================================
 # REPORTS
