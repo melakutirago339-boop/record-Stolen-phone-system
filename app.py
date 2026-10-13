@@ -70,10 +70,13 @@ def create_tables():
                 phone_model VARCHAR(150),
                 last_location VARCHAR(255),
                 report_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                status VARCHAR(50) DEFAULT 'Stolen'
+                status VARCHAR(50) DEFAULT 'Stolen',
+                case_status VARCHAR(50) DEFAULT 'Reported',
+                officer_name VARCHAR(150)
             )
         """)
 
+        # Add missing columns without deleting existing records
         cur.execute("""
             ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
@@ -91,7 +94,17 @@ def create_tables():
             VARCHAR(50) DEFAULT 'Stolen'
         """)
 
-        
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS case_status
+            VARCHAR(50) DEFAULT 'Reported'
+        """)
+
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS officer_name VARCHAR(150)
+        """)
+
         # Cases
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cases (
@@ -100,13 +113,13 @@ def create_tables():
                 imei VARCHAR(100),
                 owner_name VARCHAR(150),
                 officer_name VARCHAR(150),
-                case_status VARCHAR(50) DEFAULT 'Open',
+                case_status VARCHAR(50) DEFAULT 'Reported',
                 description TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
 
-        # Add missing columns to an existing cases table
+        # Ensure required columns exist in an older cases table
         cur.execute("""
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS owner_name VARCHAR(150)
@@ -119,7 +132,8 @@ def create_tables():
 
         cur.execute("""
             ALTER TABLE cases
-            ADD COLUMN IF NOT EXISTS case_status VARCHAR(50) DEFAULT 'Open'
+            ADD COLUMN IF NOT EXISTS case_status
+            VARCHAR(50) DEFAULT 'Reported'
         """)
 
         cur.execute("""
@@ -142,7 +156,6 @@ def create_tables():
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
-
 
         # Authorized locations
         cur.execute("""
