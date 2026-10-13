@@ -685,53 +685,122 @@ def search_imei():
 # CASE MANAGEMENT
 # =================================================
 
+
 @app.route("/cases", methods=["GET", "POST"])
 @login_required
 def cases():
-
     message = None
     error = None
     conn = None
     cur = None
     case_list = []
+    selected_case = None
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Create a new case when the form is submitted
         if request.method == "POST":
-            case_number = request.form.get("case_number", "").strip()
-            imei = request.form.get("imei", "").strip()
-            owner_name = request.form.get("owner_name", "").strip()
-            officer_name = request.form.get("officer_name", "").strip()
-            case_status = request.form.get("case_status", "Open").strip()
-            description = request.form.get("description", "").strip()
+            action = request.form.get("action", "").strip()
 
-            if not case_number or not imei:
-                error = "Case number and IMEI are required."
-            else:
-                cur.execute("""
-                    INSERT INTO cases (
+            # Update an existing case or stolen-phone report
+            if action == "update_case":
+                source = request.form.get("source", "").strip()
+                record_id = request.form.get("record_id", "").strip()
+                case_status = request.form.get("case_status", "Reported").strip()
+                officer_name = request.form.get("officer_name", "").strip()
+
+                allowed_statuses = [
+                    "Reported", "Investigation", "Recovered"
+                ]
+
+                if (
+                    not record_id.isdigit()
+                    or case_status not in allowed_statuses
+                    or source not in ["case", "report"]
+                ):
+                    error = "Invalid case update details."
+                elif source == "case":
+                    cur.execute("""
+                        UPDATE cases
+                        SET case_status = %s,
+                            officer_name = %s
+                        WHERE id = %s
+                    """, (case_status, officer_name, int(record_id)))
+
+                    if cur.rowcount:
+                        conn.commit()
+                        message = "Case status and officer updated."
+                    else:
+                        conn.rollback()
+                        error = "Case not found."
+
+                else:
+                    cur.execute("""
+                        UPDATE stolen_phones
+                        SET case_status = %s,
+                            officer_name = %s
+                        WHERE id = %s
+                    """, (case_status, officer_name, int(record_id)))
+
+                    if cur.rowcount:
+                        conn.commit()
+                        message = "Stolen-phone report updated."
+                    else:
+                        conn.rollback()
+                        error = "Stolen-phone report not found."
+
+            # Create a new case
+            elif action == "create_case":
+                case_number = request.form.get(
+                    "case_number", ""
+                ).strip()
+                imei = request.form.get("imei", "").strip()
+                owner_name = request.form.get(
+                    "owner_name", ""
+                ).strip()
+                officer_name = request.form.get(
+                    "officer_name", ""
+                ).strip()
+                case_status = request.form.get(
+                    "case_status", "Reported"
+                ).strip()
+                description = request.form.get(
+                    "description", ""
+                ).strip()
+
+                allowed_statuses = [
+                    "Reported", "Investigation", "Recovered"
+                ]
+
+                if not case_number or not imei:
+                    error = "Case number and IMEI are required."
+                elif case_status not in allowed_statuses:
+                    error = "Please select a valid case status."
+                else:
+                    cur.execute("""
+                        INSERT INTO cases (
+                            case_number, imei, owner_name,
+                            officer_name, case_status, description
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (case_number) DO NOTHING
+                        RETURNING id
+                    """, (
                         case_number, imei, owner_name,
                         officer_name, case_status, description
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (case_number) DO NOTHING
-                    RETURNING id
-                """, (
-                    case_number, imei, owner_name,
-                    officer_name, case_status, description
-                ))
-                inserted = cur.fetchone()
-                conn.commit()
+                    ))
 
-                if inserted:
-                    message = "Case created successfully."
-                else:
-                    error = "This case number already exists."
+                    inserted = cur.fetchone()
 
-        # Load cases already created
+                    if inserted:
+                        conn.commit()
+                        message = "Case created successfully."
+                    else:
+                        conn.rollback()
+                        error = "This case number already exists."
+
+        # Load cases created in the cases table
         cur.execute("""
             SELECT id, case_number, imei, owner_name,
                    officer_name, case_status, description, created_at
@@ -747,7 +816,7 @@ def cases():
                 "imei": row[2],
                 "owner_name": row[3] or "",
                 "officer_name": row[4] or "",
-                "case_status": row[5] or "Open",
+                "case_status": row[5] or "Reported",
                 "description": row[6] or "",
                 "created_at": row[7],
                 "phone_model": "",
@@ -759,7 +828,7 @@ def cases():
         cur.execute("""
             SELECT s.id, s.imei, s.owner_name,
                    s.phone_model, s.last_location,
-                   s.report_date, s.status
+                   s.report_date, s.case_status, s.officer_name
             FROM stolen_phones AS s
             WHERE NOT EXISTS (
                 SELECT 1
@@ -778,26 +847,77 @@ def cases():
                 "owner_name": row[2] or "",
                 "phone_model": row[3] or "",
                 "last_location": row[4] or "",
-                "officer_name": "",
-                "case_status": row[6] or "Reported",
-                "description": "Stolen phone report",
                 "created_at": row[5],
+                "case_status": row[6] or "Reported",
+                "officer_name": row[7] or "",
+                "description": "Stolen phone report",
                 "source": "report"
             })
 
-        # Sort newest first
         case_list.sort(
             key=lambda item: str(item["created_at"] or ""),
             reverse=True
         )
+
+        # Load one case for viewing details
+        view_source = request.args.get("source", "").strip()
+        view_id = request.args.get("view_id", "").strip()
+
+        if view_id.isdigit() and view_source in ["case", "report"]:
+            if view_source == "case":
+                cur.execute("""
+                    SELECT id, case_number, imei, owner_name,
+                           officer_name, case_status,
+                           description, created_at
+                    FROM cases
+                    WHERE id = %s
+                """, (int(view_id),))
+                row = cur.fetchone()
+
+                if row:
+                    selected_case = {
+                        "id": row[0],
+                        "case_number": row[1],
+                        "imei": row[2] or "",
+                        "owner_name": row[3] or "",
+                        "officer_name": row[4] or "",
+                        "case_status": row[5] or "Reported",
+                        "description": row[6] or "",
+                        "created_at": row[7],
+                        "source": "case"
+                    }
+
+            else:
+                cur.execute("""
+                    SELECT id, imei, owner_name, phone_model,
+                           last_location, report_date,
+                           case_status, officer_name
+                    FROM stolen_phones
+                    WHERE id = %s
+                """, (int(view_id),))
+                row = cur.fetchone()
+
+                if row:
+                    selected_case = {
+                        "id": row[0],
+                        "case_number": "STOLEN-" + str(row[0]),
+                        "imei": row[1] or "",
+                        "owner_name": row[2] or "",
+                        "phone_model": row[3] or "",
+                        "last_location": row[4] or "",
+                        "created_at": row[5],
+                        "case_status": row[6] or "Reported",
+                        "officer_name": row[7] or "",
+                        "description": "Stolen phone report",
+                        "source": "report"
+                    }
 
     except Exception as e:
         if conn:
             conn.rollback()
 
         print("Case management error:", repr(e))
-        error = "Could not load cases. Check Render Logs."
-        case_list = []
+        error = "Could not process cases. Check Render Logs."
 
     finally:
         if cur:
@@ -808,9 +928,11 @@ def cases():
     return render_template(
         "cases.html",
         cases=case_list,
+        selected_case=selected_case,
         success=message,
         error=error
     )
+
 
 # =================================================
 # AUTHORIZED LOCATION
