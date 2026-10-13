@@ -675,6 +675,9 @@ def search_imei():
 
 @app.route("/cases", methods=["GET", "POST"])
 @login_required
+
+@app.route("/cases", methods=["GET", "POST"])
+@login_required
 def cases():
     message = None
     error = None
@@ -686,93 +689,54 @@ def cases():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Create a case
+        # Create a new case when the form is submitted
         if request.method == "POST":
-            case_number = request.form.get(
-                "case_number", ""
-            ).strip()
+            case_number = request.form.get("case_number", "").strip()
             imei = request.form.get("imei", "").strip()
-            owner_name = request.form.get(
-                "owner_name", ""
-            ).strip()
-            officer_name = request.form.get(
-                "officer_name", ""
-            ).strip()
-            case_status = request.form.get(
-                "case_status", "Open"
-            ).strip()
-            description = request.form.get(
-                "description", ""
-            ).strip()
+            owner_name = request.form.get("owner_name", "").strip()
+            officer_name = request.form.get("officer_name", "").strip()
+            case_status = request.form.get("case_status", "Open").strip()
+            description = request.form.get("description", "").strip()
 
             if not case_number or not imei:
                 error = "Case number and IMEI are required."
             else:
                 cur.execute("""
                     INSERT INTO cases (
-                        case_number,
-                        imei,
-                        owner_name,
-                        officer_name,
-                        case_status,
-                        description
+                        case_number, imei, owner_name,
+                        officer_name, case_status, description
                     )
                     VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (case_number) DO NOTHING
+                    RETURNING id
                 """, (
-                    case_number,
-                    imei,
-                    owner_name,
-                    officer_name,
-                    case_status,
-                    description
+                    case_number, imei, owner_name,
+                    officer_name, case_status, description
                 ))
+                inserted = cur.fetchone()
                 conn.commit()
-                message = "Case created successfully."
 
-        # Load existing cases
+                if inserted:
+                    message = "Case created successfully."
+                else:
+                    error = "This case number already exists."
+
+        # Load cases already created
         cur.execute("""
-            SELECT
-                id,
-                case_number,
-                imei,
-                owner_name,
-                officer_name,
-                case_status,
-                description,
-                created_at
+            SELECT id, case_number, imei, owner_name,
+                   officer_name, case_status, description, created_at
             FROM cases
             ORDER BY created_at DESC
         """)
         existing_cases = cur.fetchall()
 
-        # Load stolen-phone reports not yet linked to a case
-        cur.execute("""
-            SELECT
-                s.id,
-                s.imei,
-                s.owner_name,
-                s.phone_model,
-                s.last_location,
-                s.report_date,
-                s.status
-            FROM stolen_phones s
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM cases c
-                WHERE c.imei = s.imei
-            )
-            ORDER BY s.report_date DESC
-        """)
-        unlinked_reports = cur.fetchall()
-
-        # Add existing cases to the list
         for row in existing_cases:
             case_list.append({
                 "id": row[0],
                 "case_number": row[1],
                 "imei": row[2],
-                "owner_name": row[3],
-                "officer_name": row[4],
+                "owner_name": row[3] or "",
+                "officer_name": row[4] or "",
                 "case_status": row[5] or "Open",
                 "description": row[6] or "",
                 "created_at": row[7],
@@ -781,15 +745,29 @@ def cases():
                 "source": "case"
             })
 
-        # Add stolen reports to the list
+        # Load stolen-phone reports not yet linked to a case
+        cur.execute("""
+            SELECT s.id, s.imei, s.owner_name,
+                   s.phone_model, s.last_location,
+                   s.report_date, s.status
+            FROM stolen_phones AS s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cases AS c
+                WHERE c.imei = s.imei
+            )
+            ORDER BY s.report_date DESC
+        """)
+        unlinked_reports = cur.fetchall()
+
         for row in unlinked_reports:
             case_list.append({
                 "id": row[0],
                 "case_number": "STOLEN-" + str(row[0]),
                 "imei": row[1],
-                "owner_name": row[2],
-                "phone_model": row[3],
-                "last_location": row[4],
+                "owner_name": row[2] or "",
+                "phone_model": row[3] or "",
+                "last_location": row[4] or "",
                 "officer_name": "",
                 "case_status": row[6] or "Reported",
                 "description": "Stolen phone report",
@@ -809,6 +787,7 @@ def cases():
 
         print("Case management error:", repr(e))
         error = "Could not load cases. Check Render Logs."
+        case_list = []
 
     finally:
         if cur:
