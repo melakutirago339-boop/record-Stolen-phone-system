@@ -547,18 +547,24 @@ def report_stolen():
                 error="Owner name and IMEI are required."
             )
 
-        allowed_statuses = {
-            "Reported",
-            "Under Investigation",
-            "Recovered",
-            "Closed"
+        
+allowed_statuses = [
+    "Reported",
+    "Under Investigation",
+    "Recovered",
+    "Closed"
+]
+
         }
 
-        if status not in allowed_statuses:
-            status = "Reported"
+       
+allowed_statuses = [
+    "Reported",
+    "Under Investigation",
+    "Recovered",
+    "Closed"
+]
 
-        conn = None
-        cur = None
 
         try:
             conn = get_db_connection()
