@@ -1,249 +1,111 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Search IMEI - Stolen Phone System</title>
-
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        body {
-            background: #f4f7fb;
-            color: #222;
-        }
-
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { margin: 0; background: #f4f7fb; color: #222; }
         .navbar {
-            background: #071e3d;
-            color: white;
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background: #071e3d; color: white; padding: 18px 25px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .navbar h2 {
-            font-size: 20px;
-        }
-
         .back {
-            color: white;
-            text-decoration: none;
-            background: #1261a0;
-            padding: 9px 15px;
-            border-radius: 7px;
+            color: white; text-decoration: none; background: #1261a0;
+            padding: 9px 15px; border-radius: 7px;
         }
-
-        .container {
-            max-width: 850px;
-            margin: 45px auto;
-            padding: 0 20px;
-        }
-
+        .container { max-width: 850px; margin: 40px auto; padding: 0 18px; }
         .card {
-            background: white;
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            background: white; padding: 30px; border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
         }
-
-        h1 {
-            color: #071e3d;
-            margin-bottom: 8px;
-        }
-
-        .description {
-            color: #777;
-            margin-bottom: 30px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-
+        h1 { color: #071e3d; }
+        .description { color: #666; }
+        label { display: block; font-weight: bold; margin: 22px 0 8px; }
         input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
+            width: 100%; padding: 14px; border: 1px solid #ccc;
+            border-radius: 8px; font-size: 16px;
         }
-
-        input:focus {
-            border-color: #1261a0;
+        button {
+            width: 100%; margin-top: 15px; padding: 14px;
+            border: 0; border-radius: 8px; background: #1261a0;
+            color: white; font-size: 16px; font-weight: bold; cursor: pointer;
         }
-
-        .search-button {
-            width: 100%;
-            margin-top: 15px;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            background: #1261a0;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .search-button:hover {
-            background: #0b4f87;
-        }
-
         .result {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 10px;
-            background: #f7f9fc;
-            border-left: 5px solid #1261a0;
+            margin-top: 25px; padding: 20px; border-radius: 10px;
+            background: #f7f9fc; border-left: 5px solid #1261a0;
+            overflow-wrap: anywhere;
         }
-
-        .result h2 {
-            color: #071e3d;
-            margin-bottom: 20px;
-        }
-
-        .result-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .result-row:last-child {
-            border-bottom: none;
-        }
-
-        .result-label {
-            font-weight: bold;
-            color: #555;
-        }
-
-        .status {
-            color: #d32f2f;
-            font-weight: bold;
-        }
-
-        .note {
-            margin-top: 20px;
-            color: #888;
-            font-size: 13px;
-        }
-
-        footer {
-            text-align: center;
-            color: #888;
-            font-size: 13px;
-            margin: 35px 0;
-        }
+        .result-row { padding: 11px 0; border-bottom: 1px solid #ddd; }
+        .result-row:last-child { border-bottom: 0; }
+        .error { margin-top: 20px; color: #b42318; font-weight: bold; }
+        .success { color: #187744; font-weight: bold; }
+        footer { text-align: center; color: #888; font-size: 13px; margin: 30px 0; }
     </style>
 </head>
-
 <body>
-
     <div class="navbar">
-
-        <h2>📱 Stolen Phone System</h2>
-
-        <a href="{{ url_for('dashboard') }}" class="back">
-            ← Dashboard
-        </a>
-
+        <strong>📱 Stolen Phone System</strong>
+        <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
     </div>
 
-
     <div class="container">
-
         <div class="card">
-
             <h1>🔎 Search Phone by IMEI</h1>
+            <p class="description">Enter the 15-digit IMEI number to search the system.</p>
 
-            <p class="description">
-                Enter the 15-digit IMEI number to search the system.
-            </p>
-
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
 
             <form method="POST" action="{{ url_for('search_imei') }}">
-
-                <label for="imei">
-                    IMEI Number
-                </label>
-
+                <label for="imei">IMEI Number</label>
                 <input
                     type="text"
                     id="imei"
                     name="imei"
                     placeholder="Enter 15-digit IMEI"
-                    maxlength="15"
+                    inputmode="numeric"
                     pattern="[0-9]{15}"
+                    minlength="15"
+                    maxlength="15"
+                    value="{{ searched_imei or '' }}"
                     required
                 >
-
-                <button type="submit" class="search-button">
-                    🔎 Search IMEI
-                </button>
-
+                <button type="submit">🔎 Search IMEI</button>
             </form>
 
-
-            {% if result %}
-
-            <div class="result">
-
-                <h2>Search Result</h2>
-
-                <div class="result-row">
-
-                    <span class="result-label">
-                        IMEI
-                    </span>
-
-                    <span>
-                        {{ result.imei }}
-                    </span>
-
+            {% if searched_imei and not results and not error %}
+                <div class="result">
+                    No phone found for IMEI {{ searched_imei }}.
+                    Please check the number and try again.
                 </div>
-
-
-                <div class="result-row">
-
-                    <span class="result-label">
-                        Status
-                    </span>
-
-                    <span class="status">
-                        {{ result.status }}
-                    </span>
-
-                </div>
-
-                <p class="note">
-                    Database search will be connected in the next step.
-                </p>
-
-            </div>
-
             {% endif %}
 
-        </div>
+            {% if results %}
+                <div class="result">
+                    <h2>Search Results</h2>
+                    <p class="success">Found {{ results|length }} matching record(s).</p>
 
+                    {% for result in results %}
+                        <div style="margin-top:20px; padding-top:15px; border-top:1px solid #ddd;">
+                            <h3>{{ result.type }}</h3>
+                            <div class="result-row"><strong>Owner:</strong> {{ result.owner_name or 'N/A' }}</div>
+                            <div class="result-row"><strong>Phone Number:</strong> {{ result.phone_number or 'N/A' }}</div>
+                            <div class="result-row"><strong>IMEI:</strong> {{ result.imei }}</div>
+                            <div class="result-row"><strong>Model:</strong> {{ result.phone_model or 'N/A' }}</div>
+                            <div class="result-row"><strong>Location / Color:</strong> {{ result.location or 'N/A' }}</div>
+                            <div class="result-row"><strong>Date:</strong> {{ result.date or 'N/A' }}</div>
+                            <div class="result-row"><strong>Status:</strong> {{ result.status or 'N/A' }}</div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </div>
 
-
-    <footer>
-        © 2026 Stolen Phone Recording System
-    </footer>
-
+    <footer>© 2026 Stolen Phone Recovery System</footer>
 </body>
 </html>
-```
