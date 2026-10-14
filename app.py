@@ -769,6 +769,7 @@ def cases():
         conn = get_db_connection()
         cur = conn.cursor()
 
+     
         if request.method == "POST":
             action = request.form.get("action", "").strip()
 
@@ -1053,14 +1054,15 @@ def cases():
         if conn:
             conn.close()
 
-   
-return render_template(
-    "cases.html",
-    cases=case_list,
-    selected_case=selected_case,
-    message=message,
-    error=error
 )
+
+    return render_template(
+        "cases.html",
+        cases=case_list,
+        selected_case=selected_case,
+        message=message,
+        error=error
+    )
 
 
 # =================================================
