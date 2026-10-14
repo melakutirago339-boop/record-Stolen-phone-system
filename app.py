@@ -291,39 +291,68 @@ def dashboard():
         """)
         registered_count = cur.fetchone()[0]
 
-        # Total stolen-phone reports
+        # Total stolen phone reports
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
         """)
         stolen_count = cur.fetchone()[0]
 
-        # Recovered phones from either status column
+        # Recovered stolen-phone reports
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
-            WHERE LOWER(COALESCE(status, '')) = 'recovered'
-               OR LOWER(COALESCE(case_status, '')) = 'recovered'
+            WHERE LOWER(TRIM(COALESCE(status, ''))) = 'recovered'
+               OR LOWER(TRIM(COALESCE(case_status, ''))) = 'recovered'
         """)
-        recovered_count = cur.fetchone()[0]
+        recovered_reports = cur.fetchone()[0]
 
-        # Open cases: reported or under investigation
+        # Recovered cases not already represented by a stolen-phone report
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM cases AS c
+            WHERE LOWER(TRIM(COALESCE(c.case_status, ''))) = 'recovered'
+              AND NOT EXISTS (
+                  SELECT 1
+                  FROM stolen_phones AS s
+                  WHERE s.imei = c.imei
+              )
+        """)
+        recovered_cases = cur.fetchone()[0]
+
+        recovered_count = recovered_reports + recovered_cases
+
+        # Open cases from both tables, avoiding duplicate IMEIs
         cur.execute("""
             SELECT
-                (SELECT COUNT(*)
-                 FROM cases
-                 WHERE LOWER(COALESCE(case_status, 'reported'))
-                       IN ('reported', 'investigation'))
+                (
+                    SELECT COUNT(*)
+                    FROM cases
+                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
+                          IN (
+                              'reported',
+                              'investigation',
+                              'under investigation',
+                              'in progress'
+                          )
+                )
                 +
-                (SELECT COUNT(*)
-                 FROM stolen_phones AS s
-                 WHERE LOWER(COALESCE(s.case_status, 'reported'))
-                       IN ('reported', 'investigation')
-                   AND NOT EXISTS (
-                       SELECT 1
-                       FROM cases AS c
-                       WHERE c.imei = s.imei
-                   ))
+                (
+                    SELECT COUNT(*)
+                    FROM stolen_phones AS s
+                    WHERE LOWER(TRIM(COALESCE(s.case_status, 'reported')))
+                          IN (
+                              'reported',
+                              'investigation',
+                              'under investigation',
+                              'in progress'
+                          )
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM cases AS c
+                          WHERE c.imei = s.imei
+                      )
+                )
         """)
         active_cases = cur.fetchone()[0]
 
@@ -347,6 +376,7 @@ def dashboard():
         recovered_count=recovered_count,
         active_cases=active_cases
     )
+
     
 # -------------------------------------------------
 # DATABASE TEST
@@ -1260,12 +1290,9 @@ def case_history():
 
 
 
-
 # =================================================
 # REPORTS
 # =================================================
-
-
 
 
 @app.route("/reports")
