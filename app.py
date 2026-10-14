@@ -508,10 +508,14 @@ def register_phone():
 # =================================================
 
 
+
 @app.route("/report_stolen", methods=["GET", "POST"])
 @app.route("/report", methods=["GET", "POST"])
 @login_required
 def report_stolen():
+    conn = None
+    cur = None
+
     if request.method == "POST":
         owner_name = request.form.get("owner_name", "").strip()
         phone_number = request.form.get("phone_number", "").strip()
@@ -541,37 +545,26 @@ def report_stolen():
         status = request.form.get("case_status", "Reported").strip()
         description = request.form.get("description", "").strip()
 
+        allowed_statuses = [
+            "Reported",
+            "Under Investigation",
+            "Recovered",
+            "Closed"
+        ]
+
+        if status not in allowed_statuses:
+            status = "Reported"
+
         if not owner_name or not imei:
             return render_template(
                 "report_stolen.html",
                 error="Owner name and IMEI are required."
             )
 
-        
-allowed_statuses = [
-    "Reported",
-    "Under Investigation",
-    "Recovered",
-    "Closed"
-]
-
-        }
-
-       
-allowed_statuses = [
-    "Reported",
-    "Under Investigation",
-    "Recovered",
-    "Closed"
-]
-
-
         try:
             conn = get_db_connection()
             cur = conn.cursor()
 
-            # Keep the existing table structure.
-            # Store the incident details in existing columns.
             cur.execute("""
                 INSERT INTO stolen_phones (
                     owner_name,
@@ -603,14 +596,13 @@ allowed_statuses = [
 
             return render_template(
                 "report_stolen.html",
-                error=(
-                    "Report failed. Check the IMEI and database logs."
-                )
+                error="Report failed. Check the IMEI and database logs."
             )
 
         finally:
             if cur:
                 cur.close()
+
             if conn:
                 conn.close()
 
