@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -227,58 +227,30 @@
         </div>
 
 
-        <!-- SUMMARY CARDS -->
-        <div class="cards">
+<!-- SUMMARY CARDS -->
+<div class="cards">
 
-            <div class="card">
+    <div class="card">
+        <div class="card-title">REGISTERED PHONES</div>
+        <div class="number">{{ registered_count }}</div>
+    </div>
 
-                <div class="card-title">
-                    REGISTERED PHONES
-                </div>
+    <div class="card">
+        <div class="card-title">STOLEN PHONES</div>
+        <div class="number">{{ stolen_count }}</div>
+    </div>
 
-               <div class="number">
-    {{ registered_count }}
+    <div class="card">
+        <div class="card-title">RECOVERED PHONES</div>
+        <div class="number">{{ recovered_count }}</div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">ACTIVE CASES</div>
+        <div class="number">{{ active_cases_count }}</div>
+    </div>
+
 </div>
-            </div>
-
-
-            <div class="card">
-
-                {{ stolen_count }}
-                </div>
-
-               <div class="number">
-    {{ registered_count }}
-</div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    RECOVERED PHONES
-                </div>
-
-                <div class="number">
-                    0
-                </div>
-
-            </div>
-
-
-            <div class="card">
-
-                <div class="card-title">
-                    ACTIVE CASES
-                </div>
-
-               {{ cases_count }}
-
-            </div>
-
-        </div>
-
 
         <!-- CASE STATUS -->
         <div class="report-card">
@@ -387,4 +359,4 @@
 
 </body>
 </html>
-```
+
