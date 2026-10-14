@@ -334,27 +334,71 @@
         {% endif %}
     {% endfor %}
 
-    <div class="stats">
-        <div class="stat">
-            <div class="stat-title">TOTAL CASES</div>
-            <div class="stat-number">{{ ns.total }}</div>
+<!-- Create New Case -->
+<div class="panel">
+    <h2>➕ Create New Case</h2>
+
+    <form method="POST" action="{{ url_for('cases') }}">
+        <input type="hidden" name="action" value="create_case">
+
+        <div class="details">
+            <div>
+                <label>Case Number *</label>
+                <input type="text" name="case_number"
+                       placeholder="Example: CASE-2026-001"
+                       required maxlength="100"
+                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Phone IMEI *</label>
+                <input type="text" name="imei"
+                       placeholder="Enter IMEI"
+                       required maxlength="20"
+                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Owner Name</label>
+                <input type="text" name="owner_name"
+                       placeholder="Phone owner's name"
+                       maxlength="150"
+                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Assigned Officer</label>
+                <input type="text" name="officer_name"
+                       placeholder="Officer name"
+                       maxlength="150"
+                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+            </div>
+
+            <div>
+                <label>Case Status</label>
+                <select name="case_status"
+                        style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                    <option value="Reported">Reported</option>
+                    <option value="Investigation">Investigation</option>
+                    <option value="Recovered">Recovered</option>
+                </select>
+            </div>
+
+            <div>
+                <label>Case Description</label>
+                <textarea name="description"
+                          placeholder="Describe the case and investigation details"
+                          rows="3"
+                          style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;"></textarea>
+            </div>
         </div>
 
-        <div class="stat">
-            <div class="stat-title">REPORTED</div>
-            <div class="stat-number">{{ ns.reported }}</div>
-        </div>
+        <button class="btn" type="submit">
+            Save New Case
+        </button>
+    </form>
+</div>
 
-        <div class="stat">
-            <div class="stat-title">INVESTIGATION</div>
-            <div class="stat-number">{{ ns.investigation }}</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-title">RECOVERED</div>
-            <div class="stat-number">{{ ns.recovered }}</div>
-        </div>
-    </div>
 
     {% if selected_case %}
     <div class="panel" id="case-details">
