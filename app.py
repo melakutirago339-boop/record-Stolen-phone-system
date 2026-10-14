@@ -661,8 +661,8 @@ def search_imei():
 
             stolen_results = cur.fetchall()
 
+           
             for row in stolen_results:
-
                 results.append({
                     "type": "Stolen Phone",
                     "id": row[0],
@@ -693,7 +693,6 @@ def search_imei():
             registered_results = cur.fetchall()
 
             for row in registered_results:
-
                 results.append({
                     "type": "Registered Phone",
                     "id": row[0],
@@ -707,7 +706,6 @@ def search_imei():
                 })
 
         except Exception as e:
-
             return render_template(
                 "search_imei.html",
                 error=f"Search failed: {e}",
@@ -716,7 +714,6 @@ def search_imei():
             )
 
         finally:
-
             if cur:
                 cur.close()
 
@@ -728,6 +725,7 @@ def search_imei():
         results=results,
         searched_imei=searched_imei
     )
+
 
 
 # =================================================
