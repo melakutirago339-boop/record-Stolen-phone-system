@@ -297,43 +297,37 @@
 
 <body>
 
+
 <div class="navbar">
     <h2>📱 Stolen Phone System</h2>
-    <a href="{{ url_for('report_stolen') }}">
-    + Report Stolen Phone
-</a>
+    <a class="new-case" href="{{ url_for('report_stolen') }}">
+        + Report Stolen Phone
     </a>
 </div>
 
-<div class="container">
 
-    <div class="header">
-        <h1>📂 Case Management</h1>
-        <p>View cases, assign officers, and update investigation status.</p>
+<div class="stats">
+    <div class="stat">
+        <div class="stat-title">Total Cases</div>
+        <div class="stat-number">{{ ns.total }}</div>
     </div>
 
-    {% if success %}
-        <div class="message success">{{ success }}</div>
-    {% endif %}
+    <div class="stat">
+        <div class="stat-title">Reported</div>
+        <div class="stat-number">{{ ns.reported }}</div>
+    </div>
 
-    {% if error %}
-        <div class="message error">{{ error }}</div>
-    {% endif %}
+    <div class="stat">
+        <div class="stat-title">Under Investigation</div>
+        <div class="stat-number">{{ ns.investigation }}</div>
+    </div>
 
-    {% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
+    <div class="stat">
+        <div class="stat-title">Recovered</div>
+        <div class="stat-number">{{ ns.recovered }}</div>
+    </div>
+</div>
 
-    {% for case in cases %}
-        {% set ns.total = ns.total + 1 %}
-        {% set status = (case.case_status or 'Reported')|lower %}
-
-        {% if status == 'reported' %}
-            {% set ns.reported = ns.reported + 1 %}
-        {% elif status in ['investigation', 'in progress', 'under investigation'] %}
-            {% set ns.investigation = ns.investigation + 1 %}
-        {% elif status == 'recovered' %}
-            {% set ns.recovered = ns.recovered + 1 %}
-        {% endif %}
-    {% endfor %}
 
 <!-- Create New Case -->
 <div class="panel">
