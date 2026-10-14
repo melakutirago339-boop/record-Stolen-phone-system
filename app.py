@@ -813,44 +813,40 @@ def cases():
                                 case_status, officer_name, record_id
                             ))
 
+                       
                         # Save history only when the status changes
                         if previous_status != case_status:
                             cur.execute("""
-                               
-                          
+                                INSERT INTO case_history (
+                                    source,
+                                    record_id,
+                                    case_number,
+                                    imei,
+                                    previous_status,
+                                    new_status,
+                                    officer_name,
+                                    changed_by
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                ON CONFLICT DO NOTHING
+                                RETURNING id
+                            """, (
+                                source,
+                                record_id,
+                                case_number,
+                                imei,
+                                previous_status,
+                                case_status,
+                                officer_name,
+                                session.get("username", "unknown")
+                            ))
 
-cur.execute("""
-    INSERT INTO case_history (
-        source,
-        record_id,
-        case_number,
-        imei,
-        previous_status,
-        new_status,
-        officer_name,
-        changed_by
-    )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT DO NOTHING
-    RETURNING id
-""", (
-    source,
-    record_id,
-    case_number,
-    imei,
-    previous_status,
-    case_status,
-    officer_name,
-    session.get("username", "unknown")
-))
-
-history_row = cur.fetchone()
- 
-                               
+                            history_row = cur.fetchone()
 
                         conn.commit()
                         message = "Case updated successfully."
 
+ 
 
             # Create a new case
             elif action == "create_case":
