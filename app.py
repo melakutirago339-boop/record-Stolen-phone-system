@@ -817,17 +817,30 @@ def cases():
                         if previous_status != case_status:
                             cur.execute("""
                                
-                            cur.execute("""
-                                INSERT INTO case_history (
-                                    source,
-                                    record_id,
-                                    case_number,
-                                    imei,
-                                    previous_status,
-                                    new_status,
-                                    officer_name,
-                                    changed_by
-                                )
+                          
+cur.execute("""
+    INSERT INTO case_history (
+        source,
+        record_id,
+        case_number,
+        imei,
+        previous_status,
+        new_status,
+        officer_name,
+        changed_by
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+""", (
+    source,
+    record_id,
+    case_number,
+    imei,
+    previous_status,
+    new_status,
+    officer_name,
+    changed_by
+))
+
                                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                                 ON CONFLICT DO NOTHING
                                 RETURNING id
