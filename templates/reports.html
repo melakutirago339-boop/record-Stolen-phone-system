@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Reports - Stolen Phone System</title>
 
     <style>
@@ -27,6 +26,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
         }
 
         .navbar h2 {
@@ -39,6 +40,10 @@
             background: #1261a0;
             padding: 9px 15px;
             border-radius: 7px;
+        }
+
+        .back:hover {
+            background: #1878bd;
         }
 
         .container {
@@ -58,11 +63,12 @@
 
         .header p {
             color: #777;
+            line-height: 1.6;
         }
 
         .cards {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -78,6 +84,7 @@
             color: #777;
             font-size: 13px;
             margin-bottom: 12px;
+            font-weight: bold;
         }
 
         .number {
@@ -103,6 +110,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 15px;
             padding: 15px 0;
             border-bottom: 1px solid #eee;
         }
@@ -113,16 +121,19 @@
 
         .report-name {
             font-weight: bold;
+            min-width: 145px;
         }
 
         .report-value {
             font-size: 20px;
             font-weight: bold;
             color: #1261a0;
+            min-width: 25px;
+            text-align: right;
         }
 
         .bar-container {
-            width: 55%;
+            flex: 1;
             height: 10px;
             background: #e5e7eb;
             border-radius: 10px;
@@ -133,30 +144,29 @@
             height: 100%;
             background: #1261a0;
             border-radius: 10px;
-        }
-
-        .bar-1 {
-            width: 70%;
-        }
-
-        .bar-2 {
-            width: 45%;
-        }
-
-        .bar-3 {
-            width: 25%;
-        }
-
-        .bar-4 {
-            width: 15%;
+            transition: width 0.4s ease;
         }
 
         .info {
             background: #f8fafc;
             padding: 20px;
             border-radius: 10px;
-            line-height: 1.7;
+            line-height: 1.8;
             color: #666;
+        }
+
+        .info p + p {
+            margin-top: 8px;
+        }
+
+        .error {
+            color: #b91c1c;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            padding: 14px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow-wrap: anywhere;
         }
 
         footer {
@@ -164,11 +174,12 @@
             color: #888;
             font-size: 13px;
             margin: 35px 0;
+            padding: 0 15px;
         }
 
         @media (max-width: 900px) {
             .cards {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
@@ -185,12 +196,17 @@
                 margin-top: 25px;
             }
 
-            .report-row {
-                gap: 15px;
+            .report-card {
+                padding: 20px;
             }
 
-            .bar-container {
-                width: 40%;
+            .report-row {
+                gap: 10px;
+            }
+
+            .report-name {
+                min-width: 105px;
+                font-size: 13px;
             }
         }
     </style>
@@ -198,165 +214,134 @@
 
 <body>
 
-    <!-- NAVBAR -->
     <div class="navbar">
-
         <h2>📱 Stolen Phone System</h2>
 
-        <a
-            href="{{ url_for('dashboard') }}"
-            class="back"
-        >
+        <a href="{{ url_for('dashboard') }}" class="back">
             ← Dashboard
         </a>
-
     </div>
 
-
-    <!-- MAIN CONTENT -->
     <div class="container">
 
         <div class="header">
-
             <h1>📊 System Reports</h1>
-
             <p>
                 Stolen phone records and case management statistics.
             </p>
-
         </div>
 
+        {% if error %}
+        <div class="error">
+            <strong>Reports error:</strong> {{ error }}
+        </div>
+        {% endif %}
 
-<!-- SUMMARY CARDS -->
-<div class="cards">
+        <!-- SUMMARY CARDS -->
+        <div class="cards">
 
-    <div class="card">
-        <div class="card-title">REGISTERED PHONES</div>
-        <div class="number">{{ registered_count }}</div>
-    </div>
+            <div class="card">
+                <div class="card-title">REGISTERED PHONES</div>
+                <div class="number">{{ registered_count }}</div>
+            </div>
 
-    <div class="card">
-        <div class="card-title">STOLEN PHONES</div>
-        <div class="number">{{ stolen_count }}</div>
-    </div>
+            <div class="card">
+                <div class="card-title">STOLEN PHONES</div>
+                <div class="number">{{ stolen_count }}</div>
+            </div>
 
-    <div class="card">
-        <div class="card-title">RECOVERED PHONES</div>
-        <div class="number">{{ recovered_count }}</div>
-    </div>
+            <div class="card">
+                <div class="card-title">RECOVERED PHONES</div>
+                <div class="number">{{ recovered_count }}</div>
+            </div>
 
-    <div class="card">
-        <div class="card-title">ACTIVE CASES</div>
-        <div class="number">{{ active_cases_count }}</div>
-    </div>
+            <div class="card">
+                <div class="card-title">ACTIVE CASES</div>
+                <div class="number">{{ active_cases_count }}</div>
+            </div>
 
-</div>
+        </div>
 
         <!-- CASE STATUS -->
         <div class="report-card">
-
             <h2>Case Status</h2>
 
-
             <div class="report-row">
-
-                <span class="report-name">
-                    Reported
-                </span>
+                <span class="report-name">Reported</span>
 
                 <div class="bar-container">
-                    <div class="bar bar-1"></div>
+                    <div class="bar"
+                         style="width: {{ (reported_count * 100 / cases_count) if cases_count else 0 }}%">
+                    </div>
                 </div>
 
-                <span class="report-value">
-                    0
-                </span>
-
+                <span class="report-value">{{ reported_count }}</span>
             </div>
-
 
             <div class="report-row">
-
-                <span class="report-name">
-                    Under Investigation
-                </span>
+                <span class="report-name">Under Investigation</span>
 
                 <div class="bar-container">
-                    <div class="bar bar-2"></div>
+                    <div class="bar"
+                         style="width: {{ (investigation_count * 100 / cases_count) if cases_count else 0 }}%">
+                    </div>
                 </div>
 
-                <span class="report-value">
-                    0
-                </span>
-
+                <span class="report-value">{{ investigation_count }}</span>
             </div>
-
 
             <div class="report-row">
-
-                <span class="report-name">
-                    Recovered
-                </span>
+                <span class="report-name">Recovered</span>
 
                 <div class="bar-container">
-                    <div class="bar bar-3"></div>
+                    <div class="bar"
+                         style="width: {{ (recovered_cases_count * 100 / cases_count) if cases_count else 0 }}%">
+                    </div>
                 </div>
 
-                <span class="report-value">
-                    0
-                </span>
-
+                <span class="report-value">{{ recovered_cases_count }}</span>
             </div>
-
 
             <div class="report-row">
-
-                <span class="report-name">
-                    Closed
-                </span>
+                <span class="report-name">Closed</span>
 
                 <div class="bar-container">
-                    <div class="bar bar-4"></div>
+                    <div class="bar"
+                         style="width: {{ (closed_count * 100 / cases_count) if cases_count else 0 }}%">
+                    </div>
                 </div>
 
-                <span class="report-value">
-                    0
-                </span>
-
+                <span class="report-value">{{ closed_count }}</span>
             </div>
-
         </div>
-
 
         <!-- INFORMATION -->
         <div class="report-card">
-
             <h2>Report Information</h2>
 
             <div class="info">
-
                 <p>
-                    This report page will display real statistics
-                    after the PostgreSQL database is connected.
+                    This page displays statistics from the system database.
                 </p>
 
                 <p>
-                    The system will calculate registered phones,
-                    stolen phones, recovered phones and active cases
-                    automatically.
+                    Registered phones: {{ registered_count }}.
+                    Stolen phones: {{ stolen_count }}.
+                    Recovered phones: {{ recovered_count }}.
+                    Active cases: {{ active_cases_count }}.
                 </p>
 
+                <p>
+                    Case status statistics are calculated from the case records.
+                </p>
             </div>
-
         </div>
 
     </div>
 
-
     <footer>
-        © 2026 Stolen Phone Recording System
+        © 2026 Stolen Phone Recovery System
     </footer>
 
 </body>
 </html>
-
