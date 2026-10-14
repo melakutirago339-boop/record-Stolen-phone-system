@@ -1054,8 +1054,6 @@ def cases():
         if conn:
             conn.close()
 
-)
-
     return render_template(
         "cases.html",
         cases=case_list,
