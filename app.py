@@ -818,6 +818,7 @@ def cases():
                             cur.execute("""
                                
                           
+
 cur.execute("""
     INSERT INTO case_history (
         source,
@@ -830,43 +831,22 @@ cur.execute("""
         changed_by
     )
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    ON CONFLICT DO NOTHING
+    RETURNING id
 """, (
     source,
     record_id,
     case_number,
     imei,
     previous_status,
-    new_status,
+    case_status,
     officer_name,
-    changed_by
+    session.get("username", "unknown")
 ))
 
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                                ON CONFLICT DO NOTHING
-                                RETURNING id
-                            """, (
-                                source,
-                                record_id,
-                                case_number,
-                                imei,
-                                previous_status,
-                                case_status,
-                                officer_name,
-                                session.get("username", "unknown")
-                            ))
-
-                                )
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                            """, (
-                                source,
-                                record_id,
-                                case_number,
-                                imei,
-                                previous_status,
-                                case_status,
-                                officer_name,
-                                session.get("username", "unknown")
-                            ))
+history_row = cur.fetchone()
+ 
+                               
 
                         conn.commit()
                         message = "Case updated successfully."
