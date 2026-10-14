@@ -1263,77 +1263,108 @@ def case_history():
 # REPORTS
 # =================================================
 
+
 @app.route("/reports")
 @login_required
 def reports():
-
-    stolen_count = 0
-    registered_count = 0
-    cases_count = 0
-    locations_count = 0
-
-    recent_stolen = []
-
     conn = None
     cur = None
 
-    try:
+    registered_count = 0
+    stolen_count = 0
+    recovered_count = 0
+    cases_count = 0
+    locations_count = 0
 
+    reported_count = 0
+    investigation_count = 0
+    recovered_cases_count = 0
+    closed_count = 0
+    recent_stolen = []
+    error = None
+
+    try:
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Total stolen phones
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
-        """)
-
-        stolen_count = cur.fetchone()[0]
-
-        # Total registered phones
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM registered_phones
-        """)
-
+        # Registered phones
+        cur.execute("SELECT COUNT(*) FROM registered_phones")
         registered_count = cur.fetchone()[0]
 
-        # Total cases
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM cases
-        """)
+        # All stolen-phone reports
+        cur.execute("SELECT COUNT(*) FROM stolen_phones")
+        stolen_count = cur.fetchone()[0]
 
-        cases_count = cur.fetchone()[0]
-
-        # Total authorized locations
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM authorized_locations
-        """)
-
-        locations_count = cur.fetchone()[0]
-
-        # Recent stolen phone reports
+        # Count statuses in stolen-phone reports
         cur.execute("""
             SELECT
-                id,
-                owner_name,
-                phone_number,
-                imei,
-                phone_model,
-                last_location,
-                report_date,
-                status
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, 'Reported')) = 'reported'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) IN
+                    ('investigation', 'under investigation')
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) = 'recovered'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) = 'closed'
+                )
+            FROM stolen_phones
+        """)
+        row = cur.fetchone()
+        reported_count = row[0]
+        investigation_count = row[1]
+        recovered_count = row[2]
+        closed_count = row[3]
+
+        # Count cases in the separate cases table
+        cur.execute("""
+            SELECT
+                COUNT(*),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, 'Reported')) = 'reported'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) IN
+                    ('investigation', 'under investigation')
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) = 'recovered'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(COALESCE(case_status, '')) = 'closed'
+                )
+            FROM cases
+        """)
+        row = cur.fetchone()
+        cases_count = row[0]
+        reported_count += row[1]
+        investigation_count += row[2]
+        recovered_cases_count = row[3]
+        closed_count += row[4]
+
+        recovered_count += recovered_cases_count
+
+        # Active cases exclude recovered and closed cases
+        active_cases_count = (
+            reported_count + investigation_count
+        )
+
+        # Authorized locations
+        cur.execute("SELECT COUNT(*) FROM authorized_locations")
+        locations_count = cur.fetchone()[0]
+
+        # Latest stolen-phone reports
+        cur.execute("""
+            SELECT id, owner_name, phone_number, imei,
+                   phone_model, last_location, report_date, case_status
             FROM stolen_phones
             ORDER BY report_date DESC
             LIMIT 20
         """)
-
-        rows = cur.fetchall()
-
-        for row in rows:
-
+        for row in cur.fetchall():
             recent_stolen.append({
                 "id": row[0],
                 "owner_name": row[1],
@@ -1346,32 +1377,31 @@ def reports():
             })
 
     except Exception as e:
-
-        return render_template(
-            "reports.html",
-            error=f"Reports error: {e}",
-            stolen_count=stolen_count,
-            registered_count=registered_count,
-            cases_count=cases_count,
-            locations_count=locations_count,
-            recent_stolen=recent_stolen
-        )
+        if conn:
+            conn.rollback()
+        print("Reports error:", repr(e))
+        error = f"Reports error: {e}"
 
     finally:
-
         if cur:
             cur.close()
-
         if conn:
             conn.close()
 
     return render_template(
         "reports.html",
-        stolen_count=stolen_count,
         registered_count=registered_count,
+        stolen_count=stolen_count,
+        recovered_count=recovered_count,
         cases_count=cases_count,
+        active_cases_count=active_cases_count if not error else 0,
         locations_count=locations_count,
-        recent_stolen=recent_stolen
+        reported_count=reported_count,
+        investigation_count=investigation_count,
+        recovered_cases_count=recovered_cases_count,
+        closed_count=closed_count,
+        recent_stolen=recent_stolen,
+        error=error
     )
 
 
