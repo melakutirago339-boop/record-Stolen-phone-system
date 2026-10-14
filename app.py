@@ -1265,6 +1265,7 @@ def case_history():
 
 
 
+
 @app.route("/reports")
 @login_required
 def reports():
@@ -1288,22 +1289,33 @@ def reports():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) FROM registered_phones")
+        # 1. Registered phones
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM registered_phones
+        """)
         registered_count = cur.fetchone()[0]
 
-        cur.execute("SELECT COUNT(*) FROM stolen_phones")
+        # 2. Total stolen phone reports
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+        """)
         stolen_count = cur.fetchone()[0]
 
-        # Count each case once. If a stolen report is
-        # already linked to a case by IMEI, count the case row.
+        # 3. Count cases without counting linked reports twice
         cur.execute("""
             WITH all_cases AS (
-                SELECT case_status
+                SELECT
+                    case_status,
+                    imei
                 FROM cases
 
                 UNION ALL
 
-                SELECT s.case_status
+                SELECT
+                    s.case_status,
+                    s.imei
                 FROM stolen_phones AS s
                 WHERE NOT EXISTS (
                     SELECT 1
@@ -1313,22 +1325,34 @@ def reports():
             )
             SELECT
                 COUNT(*),
+
                 COUNT(*) FILTER (
-                    WHERE LOWER(COALESCE(case_status, 'Reported'))
-                          = 'reported'
+                    WHERE LOWER(
+                        TRIM(COALESCE(case_status, 'Reported'))
+                    ) = 'reported'
                 ),
+
                 COUNT(*) FILTER (
-                    WHERE LOWER(COALESCE(case_status, ''))
-                          IN ('investigation', 'under investigation')
+                    WHERE LOWER(
+                        TRIM(COALESCE(case_status, ''))
+                    ) IN (
+                        'investigation',
+                        'under investigation'
+                    )
                 ),
+
                 COUNT(*) FILTER (
-                    WHERE LOWER(COALESCE(case_status, ''))
-                          = 'recovered'
+                    WHERE LOWER(
+                        TRIM(COALESCE(case_status, ''))
+                    ) = 'recovered'
                 ),
+
                 COUNT(*) FILTER (
-                    WHERE LOWER(COALESCE(case_status, ''))
-                          = 'closed'
+                    WHERE LOWER(
+                        TRIM(COALESCE(case_status, ''))
+                    ) = 'closed'
                 )
+
             FROM all_cases
         """)
 
@@ -1340,18 +1364,32 @@ def reports():
         recovered_cases_count = row[3]
         closed_count = row[4]
 
+        # Recovered phones
         recovered_count = recovered_cases_count
 
+        # Active cases exclude recovered and closed cases
         active_cases_count = (
             reported_count + investigation_count
         )
 
-        cur.execute("SELECT COUNT(*) FROM authorized_locations")
+        # 4. Authorized locations
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM authorized_locations
+        """)
         locations_count = cur.fetchone()[0]
 
+        # 5. Recent stolen phone reports
         cur.execute("""
-            SELECT id, owner_name, phone_number, imei,
-                   phone_model, last_location, report_date, case_status
+            SELECT
+                id,
+                owner_name,
+                phone_number,
+                imei,
+                phone_model,
+                last_location,
+                report_date,
+                case_status
             FROM stolen_phones
             ORDER BY report_date DESC
             LIMIT 20
@@ -1372,12 +1410,14 @@ def reports():
     except Exception as e:
         if conn:
             conn.rollback()
+
         print("Reports error:", repr(e))
         error = f"Reports error: {e}"
 
     finally:
         if cur:
             cur.close()
+
         if conn:
             conn.close()
 
@@ -1396,6 +1436,7 @@ def reports():
         recent_stolen=recent_stolen,
         error=error
     )
+
 
 
 # =================================================
