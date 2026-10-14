@@ -816,6 +816,8 @@ def cases():
                         # Save history only when the status changes
                         if previous_status != case_status:
                             cur.execute("""
+                               
+                            cur.execute("""
                                 INSERT INTO case_history (
                                     source,
                                     record_id,
@@ -825,8 +827,20 @@ def cases():
                                     new_status,
                                     officer_name,
                                     changed_by
-                                    ON CONFLICT DO NOTHING
-                                    RETURNING id
+                                )
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                ON CONFLICT DO NOTHING
+                                RETURNING id
+                            """, (
+                                source,
+                                record_id,
+                                case_number,
+                                imei,
+                                previous_status,
+                                case_status,
+                                officer_name,
+                                session.get("username", "unknown")
+                            ))
 
                                 )
                                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
