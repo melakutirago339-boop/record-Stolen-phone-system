@@ -27,6 +27,7 @@
             justify-content: space-between;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .navbar h2 {
@@ -67,7 +68,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 18px;
             margin-bottom: 25px;
         }
@@ -148,6 +149,7 @@
             align-items: center;
             gap: 12px;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         .table-header h2 {
@@ -254,9 +256,13 @@
             margin: 35px 0;
         }
 
+        input, select, textarea {
+            max-width: 100%;
+        }
+
         @media (max-width: 850px) {
             .stats {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .navbar {
@@ -282,7 +288,7 @@
                 font-size: 15px;
             }
 
-            .back {
+            .back, .new-case {
                 padding: 8px;
                 font-size: 12px;
             }
@@ -297,7 +303,6 @@
 
 <body>
 
-
 <div class="navbar">
     <h2>📱 Stolen Phone System</h2>
     <a class="new-case" href="{{ url_for('report_stolen') }}">
@@ -305,95 +310,121 @@
     </a>
 </div>
 
+<div class="container">
 
-<div class="stats">
-    <div class="stat">
-        <div class="stat-title">Total Cases</div>
-        <div class="stat-number">{{ ns.total }}</div>
+    <div class="header">
+        <h1>Case Management</h1>
+        <p>Manage stolen phone cases, assigned officers and recovery status.</p>
     </div>
 
-    <div class="stat">
-        <div class="stat-title">Reported</div>
-        <div class="stat-number">{{ ns.reported }}</div>
-    </div>
+    {% if message %}
+        <div class="message success">{{ message }}</div>
+    {% endif %}
 
-    <div class="stat">
-        <div class="stat-title">Under Investigation</div>
-        <div class="stat-number">{{ ns.investigation }}</div>
-    </div>
+    {% if error %}
+        <div class="message error">{{ error }}</div>
+    {% endif %}
 
-    <div class="stat">
-        <div class="stat-title">Recovered</div>
-        <div class="stat-number">{{ ns.recovered }}</div>
-    </div>
-</div>
+    {# Calculate statistics before displaying the cards #}
+    {% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
 
+    {% for case in cases %}
+        {% set ns.total = ns.total + 1 %}
+        {% set status = case.case_status|default('Reported', true)|lower|trim %}
 
-<!-- Create New Case -->
-<div class="panel">
-    <h2>➕ Create New Case</h2>
+        {% if status == 'reported' %}
+            {% set ns.reported = ns.reported + 1 %}
+        {% elif status in ['investigation', 'under investigation', 'in progress'] %}
+            {% set ns.investigation = ns.investigation + 1 %}
+        {% elif status == 'recovered' %}
+            {% set ns.recovered = ns.recovered + 1 %}
+        {% endif %}
+    {% endfor %}
 
-    <form method="POST" action="{{ url_for('cases') }}">
-        <input type="hidden" name="action" value="create_case">
-
-        <div class="details">
-            <div>
-                <label>Case Number *</label>
-                <input type="text" name="case_number"
-                       placeholder="Example: CASE-2026-001"
-                       required maxlength="100"
-                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Phone IMEI *</label>
-                <input type="text" name="imei"
-                       placeholder="Enter IMEI"
-                       required maxlength="20"
-                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Owner Name</label>
-                <input type="text" name="owner_name"
-                       placeholder="Phone owner's name"
-                       maxlength="150"
-                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Assigned Officer</label>
-                <input type="text" name="officer_name"
-                       placeholder="Officer name"
-                       maxlength="150"
-                       style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
-            </div>
-
-            <div>
-                <label>Case Status</label>
-                <select name="case_status"
-                        style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
-                    <option value="Reported">Reported</option>
-                    <option value="Investigation">Investigation</option>
-                    <option value="Recovered">Recovered</option>
-                </select>
-            </div>
-
-            <div>
-                <label>Case Description</label>
-                <textarea name="description"
-                          placeholder="Describe the case and investigation details"
-                          rows="3"
-                          style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;"></textarea>
-            </div>
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-title">Total Cases</div>
+            <div class="stat-number">{{ ns.total }}</div>
         </div>
 
-        <button class="btn" type="submit">
-            Save New Case
-        </button>
-    </form>
-</div>
+        <div class="stat">
+            <div class="stat-title">Reported</div>
+            <div class="stat-number">{{ ns.reported }}</div>
+        </div>
 
+        <div class="stat">
+            <div class="stat-title">Under Investigation</div>
+            <div class="stat-number">{{ ns.investigation }}</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-title">Recovered</div>
+            <div class="stat-number">{{ ns.recovered }}</div>
+        </div>
+    </div>
+
+    <!-- Create New Case -->
+    <div class="panel">
+        <h2>➕ Create New Case</h2>
+
+        <form method="POST" action="{{ url_for('cases') }}">
+            <input type="hidden" name="action" value="create_case">
+
+            <div class="details">
+                <div>
+                    <label for="case_number">Case Number *</label>
+                    <input id="case_number" type="text" name="case_number"
+                           placeholder="Example: CASE-2026-001"
+                           required maxlength="100"
+                           style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                </div>
+
+                <div>
+                    <label for="imei">Phone IMEI *</label>
+                    <input id="imei" type="text" name="imei"
+                           placeholder="Enter IMEI"
+                           required maxlength="20"
+                           style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                </div>
+
+                <div>
+                    <label for="owner_name">Owner Name</label>
+                    <input id="owner_name" type="text" name="owner_name"
+                           placeholder="Phone owner's name"
+                           maxlength="150"
+                           style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                </div>
+
+                <div>
+                    <label for="officer_name">Assigned Officer</label>
+                    <input id="officer_name" type="text" name="officer_name"
+                           placeholder="Officer name"
+                           maxlength="150"
+                           style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                </div>
+
+                <div>
+                    <label for="case_status">Case Status</label>
+                    <select id="case_status" name="case_status"
+                            style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;">
+                        <option value="Reported">Reported</option>
+                        <option value="Investigation">Investigation</option>
+                        <option value="Recovered">Recovered</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="description">Case Description</label>
+                    <textarea id="description" name="description"
+                              placeholder="Describe the case and investigation details"
+                              rows="3"
+                              style="width:100%;padding:12px;margin-top:8px;margin-bottom:14px;border:1px solid #cbd5e1;border-radius:6px;"></textarea>
+                </div>
+            </div>
+
+            <button class="btn" type="submit">Save New Case</button>
+        </form>
+    </div>
 
     {% if selected_case %}
     <div class="panel" id="case-details">
@@ -402,7 +433,7 @@
         <div class="details">
             <div class="detail">
                 <strong>Case ID</strong>
-                {{ selected_case.case_number }}
+                {{ selected_case.case_number or selected_case.id }}
             </div>
 
             <div class="detail">
@@ -457,7 +488,6 @@
     <div class="table-card">
         <div class="table-header">
             <h2>Phone Cases</h2>
-
             <a href="{{ url_for('report_stolen') }}" class="new-case">
                 + Report Stolen Phone
             </a>
@@ -497,7 +527,7 @@
                     </td>
 
                     <td>
-                        {% set status = (case.case_status or 'Reported')|lower %}
+                        {% set status = (case.case_status or 'Reported')|lower|trim %}
                         <span class="status {% if status == 'recovered' %}recovered{% elif status in ['investigation', 'in progress', 'under investigation'] %}investigation{% elif status == 'closed' %}closed{% else %}reported{% endif %}">
                             {{ case.case_status or 'Reported' }}
                         </span>
@@ -513,7 +543,6 @@
 
                         <form class="update-form" method="POST"
                               action="{{ url_for('cases') }}">
-
                             <input type="hidden" name="action" value="update_case">
                             <input type="hidden" name="source" value="{{ case.source }}">
                             <input type="hidden" name="record_id" value="{{ case.id }}">
@@ -525,17 +554,17 @@
 
                                 <select name="case_status" required>
                                     <option value="Reported"
-                                        {% if (case.case_status or 'Reported')|lower == 'reported' %}selected{% endif %}>
+                                        {% if (case.case_status or 'Reported')|lower|trim == 'reported' %}selected{% endif %}>
                                         Reported
                                     </option>
 
                                     <option value="Investigation"
-                                        {% if (case.case_status or '')|lower in ['investigation', 'in progress', 'under investigation'] %}selected{% endif %}>
+                                        {% if (case.case_status or '')|lower|trim in ['investigation', 'in progress', 'under investigation'] %}selected{% endif %}>
                                         Investigation
                                     </option>
 
                                     <option value="Recovered"
-                                        {% if (case.case_status or '')|lower == 'recovered' %}selected{% endif %}>
+                                        {% if (case.case_status or '')|lower|trim == 'recovered' %}selected{% endif %}>
                                         Recovered
                                     </option>
                                 </select>
@@ -553,9 +582,7 @@
                                        value="{{ case.officer_name or '' }}">
                             </label>
 
-                            <button class="btn" type="submit">
-                                Save Update
-                            </button>
+                            <button class="btn" type="submit">Save Update</button>
                         </form>
                     </td>
                 </tr>
@@ -574,6 +601,7 @@
             </tbody>
         </table>
     </div>
+
 </div>
 
 <footer>
