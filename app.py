@@ -829,6 +829,9 @@ def cases():
                                     new_status,
                                     officer_name,
                                     changed_by
+                                    ON CONFLICT DO NOTHING
+                                    RETURNING id
+
                                 )
                                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                             """, (
@@ -880,7 +883,7 @@ def cases():
                             officer_name, case_status, description
                         )
                         VALUES (%s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (case_number) DO NOTHING
+                        ON CONFLICT DO NOTHING
                         RETURNING id
                     """, (
                         case_number, imei, owner_name,
