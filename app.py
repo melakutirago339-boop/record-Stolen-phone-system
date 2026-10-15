@@ -14,7 +14,6 @@ app.secret_key = os.environ.get(
     "stolen-phone-demo-secret-key"
 )
 
-
 # -------------------------------------------------
 # DATABASE CONNECTION
 # -------------------------------------------------
@@ -27,11 +26,9 @@ def get_db_connection():
 
     return psycopg2.connect(database_url)
 
-
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
-
 
 def create_tables():
     conn = None
@@ -161,7 +158,6 @@ def create_tables():
             )
         """)
 
-
         # Authorized locations
         cur.execute("""
             CREATE TABLE IF NOT EXISTS authorized_locations (
@@ -220,7 +216,6 @@ def login_required(func):
 def home():
     return redirect("/login")
 
-
 # -------------------------------------------------
 # LOGIN
 # -------------------------------------------------
@@ -266,10 +261,6 @@ def login():
 # -------------------------------------------------
 # DASHBOARD
 # -------------------------------------------------
-
-# DASHBOARD
-# -------------------------------------------------
-
 
 @app.route("/dashboard")
 @login_required
@@ -378,8 +369,7 @@ def dashboard():
         recovered_count=recovered_count,
         active_cases=active_cases
     )
-
-    
+   
 # -------------------------------------------------
 # DATABASE TEST
 # -------------------------------------------------
@@ -412,8 +402,6 @@ def db_test():
         <p>{e}</p>
         <a href="/dashboard">Back to Dashboard</a>
         """
-
-
 
 # -------------------------------------------------
 # USER REGISTRATION
@@ -539,7 +527,6 @@ def register_phone():
 # REPORT STOLEN PHONE
 # =================================================
 
-
 @app.route("/report_stolen", methods=["GET", "POST"])
 @app.route("/report", methods=["GET", "POST"])
 @login_required
@@ -593,10 +580,11 @@ def report_stolen():
             )
 
         try:
+                    try:
             conn = get_db_connection()
             cur = conn.cursor()
 
-                      cur.execute("""
+            cur.execute("""
                 INSERT INTO stolen_phones (
                     owner_name,
                     phone_number,
