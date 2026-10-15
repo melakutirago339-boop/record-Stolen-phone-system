@@ -76,7 +76,7 @@ def create_tables():
             )
         """)
 
-        # Add missing columns without deleting existing records
+                    # Add missing columns without deleting existing records
         cur.execute("""
             ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
@@ -84,25 +84,13 @@ def create_tables():
 
         cur.execute("""
             ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS date_stolen DATE
+        """)
+
+        cur.execute("""
+            ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS report_date
             TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        """)
-
-        cur.execute("""
-            ALTER TABLE stolen_phones
-            ADD COLUMN IF NOT EXISTS status
-            VARCHAR(50) DEFAULT 'Stolen'
-        """)
-
-        cur.execute("""
-            ALTER TABLE stolen_phones
-            ADD COLUMN IF NOT EXISTS case_status
-            VARCHAR(50) DEFAULT 'Reported'
-        """)
-
-        cur.execute("""
-            ALTER TABLE stolen_phones
-            ADD COLUMN IF NOT EXISTS officer_name VARCHAR(150)
         """)
 
         # Cases
@@ -231,12 +219,6 @@ def login_required(func):
 @app.route("/")
 def home():
     return redirect("/login")
-
-
-
-# -------------------------------------------------
-# LOGIN
-# -------------------------------------------------
 
 
 # -------------------------------------------------
@@ -558,7 +540,6 @@ def register_phone():
 # =================================================
 
 
-
 @app.route("/report_stolen", methods=["GET", "POST"])
 @app.route("/report", methods=["GET", "POST"])
 @login_required
@@ -615,22 +596,26 @@ def report_stolen():
             conn = get_db_connection()
             cur = conn.cursor()
 
-            cur.execute("""
+                      cur.execute("""
                 INSERT INTO stolen_phones (
                     owner_name,
                     phone_number,
                     imei,
                     phone_model,
                     last_location,
-                    status
+                    date_stolen,
+                    status,
+                    case_status
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 owner_name,
                 phone_number,
                 imei,
                 (brand + " " + phone_model).strip(),
                 location,
+                date_stolen or None,
+                status,
                 status
             ))
 
