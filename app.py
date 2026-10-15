@@ -5,7 +5,6 @@ import psycopg2
 from functools import wraps
 from werkzeug.security import check_password_hash
 
-
 app = Flask(__name__)
 
 # -------------------------------------------------
