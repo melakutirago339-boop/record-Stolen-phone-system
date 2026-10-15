@@ -1,7 +1,10 @@
+
 from flask import Flask, render_template, request, redirect, session, url_for
 import os
 import psycopg2
 from functools import wraps
+from werkzeug.security import check_password_hash
+
 
 app = Flask(__name__)
 
@@ -227,13 +230,18 @@ def login():
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
 
-        # Temporary admin-only login.
-        # We will improve password storage in the next step.
-        if username == "admin" and password == "admin123":
+        admin_username = os.environ.get("ADMIN_USERNAME")
+        admin_password_hash = os.environ.get("ADMIN_PASSWORD_HASH")
+
+        if (
+            admin_username
+            and admin_password_hash
+            and username == admin_username
+            and check_password_hash(admin_password_hash, password)
+        ):
             session.clear()
             session["username"] = username
             session["role"] = "admin"
-
             return redirect(url_for("dashboard"))
 
         return render_template(
