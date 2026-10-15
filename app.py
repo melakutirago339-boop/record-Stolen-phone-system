@@ -233,6 +233,7 @@ def home():
     return redirect("/login")
 
 
+
 # -------------------------------------------------
 # LOGIN
 # -------------------------------------------------
@@ -241,16 +242,14 @@ def home():
 def login():
 
     if request.method == "POST":
-
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
-        role = request.form.get("role", "admin").strip()
 
+        # Admin login
         if username == "admin" and password == "admin123":
-
-            session["username"] = username
-            session["role"] = role
-
+            session.clear()
+            session["username"] = "admin"
+            session["role"] = "admin"
             return redirect("/dashboard")
 
         return render_template(
@@ -259,7 +258,6 @@ def login():
         )
 
     return render_template("login.html")
-
 
 # -------------------------------------------------
 # DASHBOARD
