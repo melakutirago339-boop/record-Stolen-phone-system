@@ -407,7 +407,6 @@ def db_test():
 # USER REGISTRATION
 # -------------------------------------------------
 
-
 @app.route("/register_phone", methods=["GET", "POST"])
 @app.route("/register", methods=["GET", "POST"])
 @login_required
@@ -580,7 +579,7 @@ def report_stolen():
             )
 
         try:
-                    try:
+                
             conn = get_db_connection()
             cur = conn.cursor()
 
