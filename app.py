@@ -238,23 +238,45 @@ def home():
 # LOGIN
 # -------------------------------------------------
 
+
+# -------------------------------------------------
+# LOGIN
+# -------------------------------------------------
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "").strip()
+        role = request.form.get("role", "").strip().lower()
 
         # Admin login
-        if username == "admin" and password == "admin123":
+        if (
+            username == "admin"
+            and password == "admin123"
+            and role == "admin"
+        ):
             session.clear()
             session["username"] = "admin"
             session["role"] = "admin"
             return redirect("/dashboard")
 
+        # Temporary demo officer login
+        # Replace these credentials before real deployment.
+        if (
+            username == "officer1"
+            and password == "officer123"
+            and role == "officer"
+        ):
+            session.clear()
+            session["username"] = "officer1"
+            session["role"] = "officer"
+            return redirect("/dashboard")
+
         return render_template(
             "login.html",
-            error="Invalid username or password"
+            error="Invalid username, password, or role"
         )
 
     return render_template("login.html")
