@@ -160,12 +160,15 @@ def create_tables():
             )
         """)
         
+       
         # Phone location history
         cur.execute("""
             CREATE TABLE IF NOT EXISTS phone_location_history (
                 id SERIAL PRIMARY KEY,
                 imei VARCHAR(100) NOT NULL,
                 location VARCHAR(255) NOT NULL,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
                 source VARCHAR(150),
                 notes TEXT,
                 permission_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
@@ -173,6 +176,18 @@ def create_tables():
                 recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Add GPS columns to an existing table without deleting records
+        cur.execute("""
+            ALTER TABLE phone_location_history
+            ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
+        """)
+
+        cur.execute("""
+            ALTER TABLE phone_location_history
+            ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
+        """)
+
 
         # Authorized locations
         cur.execute("""
