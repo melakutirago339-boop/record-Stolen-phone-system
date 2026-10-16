@@ -222,33 +222,51 @@ def home():
 # LOGIN
 # -------------------------------------------------
 
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
 
-        admin_username = os.environ.get("ADMIN_USERNAME")
-        admin_password_hash = os.environ.get("ADMIN_PASSWORD_HASH")
+        admin_username = os.environ.get(
+            "ADMIN_USERNAME", "admin"
+        ).strip()
 
-        if (
-            admin_username
-            and admin_password_hash
-            and username == admin_username
-            and check_password_hash(admin_password_hash, password)
-        ):
-            session.clear()
-            session["username"] = username
-            session["role"] = "admin"
-            return redirect(url_for("dashboard"))
+        admin_password_hash = os.environ.get(
+            "ADMIN_PASSWORD_HASH", ""
+        ).strip()
+
+        # Remove accidental whitespace around the hash
+        admin_password_hash = "".join(
+            admin_password_hash.split()
+        )
+
+        if admin_username and admin_password_hash:
+            try:
+                if (
+                    username == admin_username
+                    and check_password_hash(
+                        admin_password_hash, password
+                    )
+                ):
+                    session.clear()
+                    session["username"] = username
+                    session["role"] = "admin"
+                    return redirect(url_for("dashboard"))
+
+            except (ValueError, TypeError) as error:
+                app.logger.error(
+                    "ADMIN_PASSWORD_HASH is invalid: %s",
+                    error
+                )
 
         return render_template(
             "login.html",
-            error="Invalid username or password"
+            error="Invalid username or password. Check admin settings."
         )
 
     return render_template("login.html")
+
 
 # -------------------------------------------------
 # DASHBOARD
