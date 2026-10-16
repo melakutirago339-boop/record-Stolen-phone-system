@@ -5,92 +5,153 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stolen Phone System Dashboard</title>
+
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
+
         header {
             background: #0f172a;
             color: white;
             padding: 20px;
         }
+
+        header h1 {
+            margin-top: 0;
+        }
+
         main {
             max-width: 1000px;
             margin: 25px auto;
             padding: 20px;
         }
+
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 18px;
         }
+
         .card {
             background: white;
             padding: 22px;
             border-radius: 12px;
             box-shadow: 0 3px 10px #00000010;
         }
+
         .number {
             font-size: 30px;
             font-weight: bold;
             color: #2563eb;
         }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
         nav a {
             display: inline-block;
-            margin: 8px 8px 8px 0;
             padding: 12px 15px;
             background: #2563eb;
             color: white;
             text-decoration: none;
             border-radius: 7px;
         }
+
         nav a:hover {
             background: #1d4ed8;
         }
+
+        .location-link {
+            background: #15803d;
+        }
+
+        .location-link:hover {
+            background: #166534;
+        }
+
+        @media (max-width: 600px) {
+            main {
+                padding: 12px;
+            }
+
+            header {
+                padding: 16px;
+            }
+        }
     </style>
 </head>
+
 <body>
+
 <header>
     <h1>Stolen Phone Recovery System</h1>
     <p>Welcome, {{ username }} | Role: {{ role }}</p>
 </header>
 
 <main>
+
     <h2>Dashboard</h2>
 
     <section class="cards">
+
         <div class="card">
             <h3>Registered Phones</h3>
             <p class="number">{{ registered_count }}</p>
         </div>
+
         <div class="card">
             <h3>Stolen Phones</h3>
             <p class="number">{{ stolen_count }}</p>
         </div>
+
         <div class="card">
             <h3>Recovered Phones</h3>
             <p class="number">{{ recovered_count }}</p>
         </div>
+
         <div class="card">
             <h3>Open Cases</h3>
             <p class="number">{{ active_cases }}</p>
         </div>
+
     </section>
 
     <h2>System Menu</h2>
+
     <nav>
         <a href="/register_phone">Register Phone</a>
+
         <a href="/report_stolen">Report Stolen Phone</a>
+
         <a href="/search_imei">Search IMEI</a>
+
         <a href="/cases">Case Management</a>
+
         <a href="/case_history">Case History</a>
+
         <a href="/location">Authorized Locations</a>
+
+        <a href="/phone_locations" class="location-link">
+            Phone Location History
+        </a>
+
         <a href="/reports">Reports</a>
+
         <a href="/logout">Logout</a>
     </nav>
+
 </main>
+
 </body>
 </html>
