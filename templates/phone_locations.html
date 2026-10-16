@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phone Location History</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+        .panel {
+            background: white;
+            padding: 22px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px #00000010;
+        }
+        h1, h2 { color: #17365d; }
+        label {
+            display: block;
+            margin-top: 14px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 11px;
+            margin-top: 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+        button {
+            margin-top: 18px;
+            padding: 12px 18px;
+            background: #17365d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .success { color: #15803d; }
+        .error { color: #b91c1c; }
+        .check {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-top: 16px;
+        }
+        .check input { width: auto; margin-top: 3px; }
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        th { background: #eaf0f8; }
+        a { color: #17365d; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+
+    <div class="panel">
+        <h1>Phone Location History</h1>
+        <p>
+            Record location information obtained through a lawful,
+            authorized source. This page does not track GPS automatically.
+        </p>
+
+        {% if success %}
+            <p class="success">{{ success }}</p>
+        {% endif %}
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('phone_locations') }}">
+            <label for="imei">Phone IMEI *</label>
+            <input id="imei" name="imei" type="text"
+                   maxlength="100" required>
+
+            <label for="location">Known Location *</label>
+            <input id="location" name="location" type="text"
+                   maxlength="255" required
+                   placeholder="Enter the verified location">
+
+            <label for="source">Information Source</label>
+            <input id="source" name="source" type="text"
+                   maxlength="150"
+                   placeholder="e.g. authorized report">
+
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3"
+                      placeholder="Additional information"></textarea>
+
+            <label class="check">
+                <input type="checkbox" name="permission_confirmed"
+                       value="yes" required>
+                <span>
+                    I confirm this information was obtained with
+                    appropriate permission or legal authorization.
+                </span>
+            </label>
+
+            <button type="submit">Save Location Record</button>
+        </form>
+    </div>
+
+    <div class="panel">
+        <h2>Recorded Location History</h2>
+
+        {% if locations %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>IMEI</th>
+                        <th>Location</th>
+                        <th>Source</th>
+                        <th>Notes</th>
+                        <th>Recorded By</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in locations %}
+                    <tr>
+                        <td>{{ item.imei }}</td>
+                        <td>{{ item.location }}</td>
+                        <td>{{ item.source or '-' }}</td>
+                        <td>{{ item.notes or '-' }}</td>
+                        <td>{{ item.recorded_by or '-' }}</td>
+                        <td>{{ item.recorded_at or '-' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p>No location records have been saved yet.</p>
+        {% endif %}
+    </div>
+
+</div>
+</body>
+</html>
