@@ -1111,6 +1111,7 @@ def cases():
 # AUTHORIZED LOCATION
 # =================================================
 
+
 @app.route("/phone_locations", methods=["GET", "POST"])
 @login_required
 def phone_locations():
@@ -1123,13 +1124,46 @@ def phone_locations():
         location = request.form.get("location", "").strip()
         source = request.form.get("source", "").strip()
         notes = request.form.get("notes", "").strip()
-        permission = request.form.get("permission_confirmed") == "yes"
+        permission = (
+            request.form.get("permission_confirmed") == "yes"
+        )
 
-        if not imei or not location:
+        latitude_text = request.form.get("latitude", "").strip()
+        longitude_text = request.form.get("longitude", "").strip()
+
+        latitude = None
+        longitude = None
+
+        try:
+            if latitude_text:
+                latitude = float(latitude_text)
+            if longitude_text:
+                longitude = float(longitude_text)
+        except ValueError:
+            error = "Latitude and Longitude must be valid numbers."
+
+        if not error and (not imei or not location):
             error = "IMEI and location are required."
-        elif not permission:
+
+        elif not error and not permission:
             error = "Confirm legal authorization before saving."
-        else:
+
+        elif not error and (
+            (latitude is None) != (longitude is None)
+        ):
+            error = "Enter both Latitude and Longitude, or leave both empty."
+
+        elif not error and latitude is not None and not (
+            -90 <= latitude <= 90
+        ):
+            error = "Latitude must be between -90 and 90."
+
+        elif not error and longitude is not None and not (
+            -180 <= longitude <= 180
+        ):
+            error = "Longitude must be between -180 and 180."
+
+        if not error:
             conn = None
             cur = None
 
@@ -1139,12 +1173,17 @@ def phone_locations():
 
                 cur.execute("""
                     INSERT INTO phone_location_history
-                    (imei, location, source, notes,
-                     permission_confirmed, recorded_by)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    (
+                        imei, location, latitude, longitude,
+                        source, notes, permission_confirmed,
+                        recorded_by
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     imei,
                     location,
+                    latitude,
+                    longitude,
                     source or None,
                     notes or None,
                     True,
@@ -1154,10 +1193,10 @@ def phone_locations():
                 conn.commit()
                 message = "Phone location record saved successfully."
 
-            except Exception as e:
+            except Exception:
                 if conn:
                     conn.rollback()
-                error = f"Save failed: {e}"
+                error = "Save failed. Check the Render logs and database."
 
             finally:
                 if cur:
@@ -1173,28 +1212,32 @@ def phone_locations():
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT id, imei, location, source, notes,
-                   permission_confirmed, recorded_by, recorded_at
+            SELECT id, imei, location, latitude, longitude,
+                   source, notes, permission_confirmed,
+                   recorded_by, recorded_at
             FROM phone_location_history
             ORDER BY recorded_at DESC
         """)
 
-        rows = cur.fetchall()
-
-        for row in rows:
+        for row in cur.fetchall():
             locations.append({
                 "id": row[0],
                 "imei": row[1],
                 "location": row[2],
-                "source": row[3],
-                "notes": row[4],
-                "permission_confirmed": row[5],
-                "recorded_by": row[6],
-                "recorded_at": row[7]
+                "latitude": row[3],
+                "longitude": row[4],
+                "source": row[5],
+                "notes": row[6],
+                "permission_confirmed": row[7],
+                "recorded_by": row[8],
+                "recorded_at": row[9]
             })
 
-    except Exception as e:
-        error = error or f"Could not load location history: {e}"
+    except Exception:
+        error = error or (
+            "Could not load location history. "
+            "Check the database columns and Render logs."
+        )
 
     finally:
         if cur:
