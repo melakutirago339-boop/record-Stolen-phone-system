@@ -764,11 +764,9 @@ def search_imei():
     )
 
 
-
 # =================================================
 # CASE MANAGEMENT
 # =================================================
-
 
 @app.route("/cases", methods=["GET", "POST"])
 @login_required
@@ -1084,156 +1082,105 @@ def cases():
 
 @app.route("/location", methods=["GET", "POST"])
 @login_required
-def location():
 
+@app.route("/phone_locations", methods=["GET", "POST"])
+@login_required
+def phone_locations():
     message = None
     error = None
+    locations = []
 
     if request.method == "POST":
+        imei = request.form.get("imei", "").strip()
+        location = request.form.get("location", "").strip()
+        source = request.form.get("source", "").strip()
+        notes = request.form.get("notes", "").strip()
+        permission = request.form.get("permission_confirmed") == "yes"
 
-        location_name = request.form.get(
-            "location_name", ""
-        ).strip()
-
-        city = request.form.get(
-            "city", ""
-        ).strip()
-
-        latitude = request.form.get(
-            "latitude", ""
-        ).strip()
-
-        longitude = request.form.get(
-            "longitude", ""
-        ).strip()
-
-        location_type = request.form.get(
-            "location_type", "Other"
-        ).strip()
-
-        address = request.form.get(
-            "address", ""
-        ).strip()
-
-        status = request.form.get(
-            "status", "Authorized"
-        ).strip()
-
-        if not location_name:
-
-            error = "Location name is required."
-
+        if not imei or not location:
+            error = "IMEI and location are required."
+        elif not permission:
+            error = "Confirm legal authorization before saving."
         else:
-
             conn = None
             cur = None
 
             try:
-
                 conn = get_db_connection()
                 cur = conn.cursor()
 
                 cur.execute("""
-                    INSERT INTO authorized_locations
-                    (
-                        location_name,
-                        city,
-                        latitude,
-                        longitude,
-                        location_type,
-                        address,
-                        status
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO phone_location_history
+                    (imei, location, source, notes,
+                     permission_confirmed, recorded_by)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                 """, (
-                    location_name,
-                    city,
-                    latitude,
-                    longitude,
-                    location_type,
-                    address,
-                    status
+                    imei,
+                    location,
+                    source or None,
+                    notes or None,
+                    True,
+                    str(session.get("username", "admin"))
                 ))
 
                 conn.commit()
-
-                message = "Authorized location saved successfully"
+                message = "Phone location record saved successfully."
 
             except Exception as e:
-
                 if conn:
                     conn.rollback()
-
-                error = f"Location save failed: {e}"
+                error = f"Save failed: {e}"
 
             finally:
-
                 if cur:
                     cur.close()
-
                 if conn:
                     conn.close()
-
-    # Get locations
-    locations = []
 
     conn = None
     cur = None
 
     try:
-
         conn = get_db_connection()
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT
-                id,
-                location_name,
-                city,
-                latitude,
-                longitude,
-                location_type,
-                address,
-                status,
-                created_at
-            FROM authorized_locations
-            ORDER BY created_at DESC
+            SELECT id, imei, location, source, notes,
+                   permission_confirmed, recorded_by, recorded_at
+            FROM phone_location_history
+            ORDER BY recorded_at DESC
         """)
 
         rows = cur.fetchall()
 
         for row in rows:
-
             locations.append({
                 "id": row[0],
-                "location_name": row[1],
-                "city": row[2],
-                "latitude": row[3],
-                "longitude": row[4],
-                "location_type": row[5],
-                "address": row[6],
-                "status": row[7],
-                "created_at": row[8]
+                "imei": row[1],
+                "location": row[2],
+                "source": row[3],
+                "notes": row[4],
+                "permission_confirmed": row[5],
+                "recorded_by": row[6],
+                "recorded_at": row[7]
             })
 
     except Exception as e:
-
-        error = str(e)
+        error = error or f"Could not load location history: {e}"
 
     finally:
-
         if cur:
             cur.close()
-
         if conn:
             conn.close()
 
     return render_template(
-        "location.html",
+        "phone_locations.html",
         locations=locations,
         success=message,
         error=error
     )
+
 
 # =================================================
 # CASE HISTORY
