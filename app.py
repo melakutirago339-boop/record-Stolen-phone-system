@@ -662,100 +662,51 @@ def report_stolen():
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def search_imei():
+    # Load saved location history for the searched IMEI
+    location_history = []
+    location_history_error = None
 
-    results = []
-    searched_imei = ""
-
-    if request.method == "POST":
-
-        searched_imei = request.form.get(
-            "imei", ""
-        ).strip()
-
-        conn = None
-        cur = None
+    if searched_imei:
+        loc_conn = None
+        loc_cur = None
 
         try:
+            loc_conn = get_db_connection()
+            loc_cur = loc_conn.cursor()
 
-            conn = get_db_connection()
-            cur = conn.cursor()
-
-            # Search stolen phones
-            cur.execute("""
+            loc_cur.execute("""
                 SELECT
-                    id,
-                    owner_name,
-                    phone_number,
-                    imei,
-                    phone_model,
-                    last_location,
-                    report_date,
-                    status
-                FROM stolen_phones
+                    location,
+                    source,
+                    notes,
+                    recorded_by,
+                    recorded_at
+                FROM phone_location_history
                 WHERE imei = %s
-                ORDER BY report_date DESC
+                ORDER BY recorded_at DESC
             """, (searched_imei,))
 
-            stolen_results = cur.fetchall()
+            rows = loc_cur.fetchall()
 
-           
-            for row in stolen_results:
-                results.append({
-                    "type": "Stolen Phone",
-                    "id": row[0],
-                    "owner_name": row[1],
-                    "phone_number": row[2],
-                    "imei": row[3],
-                    "phone_model": row[4],
-                    "location": row[5],
-                    "date": row[6],
-                    "status": row[7]
-                })
-
-            # Search registered phones
-            cur.execute("""
-                SELECT
-                    id,
-                    owner_name,
-                    phone_number,
-                    imei,
-                    phone_model,
-                    color,
-                    registration_date
-                FROM registered_phones
-                WHERE imei = %s
-                ORDER BY registration_date DESC
-            """, (searched_imei,))
-
-            registered_results = cur.fetchall()
-
-            for row in registered_results:
-                results.append({
-                    "type": "Registered Phone",
-                    "id": row[0],
-                    "owner_name": row[1],
-                    "phone_number": row[2],
-                    "imei": row[3],
-                    "phone_model": row[4],
-                    "location": row[5],
-                    "date": row[6],
-                    "status": "Registered"
+            for row in rows:
+                location_history.append({
+                    "location": row[0],
+                    "source": row[1],
+                    "notes": row[2],
+                    "recorded_by": row[3],
+                    "recorded_at": row[4]
                 })
 
         except Exception as e:
-            return render_template(
-                "search_imei.html",
-                error=f"Search failed: {e}",
-                results=[],
-                searched_imei=searched_imei
+            location_history_error = (
+                f"Could not load location history: {e}"
             )
 
         finally:
-            if cur:
-                cur.close()
-
-            if conn:
-                conn.close()
+            if loc_cur:
+                loc_cur.close()
+            if loc_conn:
+                loc_conn.close()
 
     return render_template(
         "search_imei.html",
