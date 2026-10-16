@@ -5,56 +5,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search IMEI - Stolen Phone System</title>
+
     <style>
-        * { box-sizing: border-box; font-family: Arial, sans-serif; }
-        body { margin: 0; background: #f4f7fb; color: #222; }
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            color: #222;
+        }
+
         .navbar {
-            background: #071e3d; color: white; padding: 18px 25px;
-            display: flex; justify-content: space-between; align-items: center;
+            background: #071e3d;
+            color: white;
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
+
         .back {
-            color: white; text-decoration: none; background: #1261a0;
-            padding: 9px 15px; border-radius: 7px;
+            color: white;
+            text-decoration: none;
+            background: #1261a0;
+            padding: 9px 15px;
+            border-radius: 7px;
         }
-        .container { max-width: 850px; margin: 40px auto; padding: 0 18px; }
+
+        .container {
+            max-width: 950px;
+            margin: 35px auto;
+            padding: 0 18px;
+        }
+
         .card {
-            background: white; padding: 30px; border-radius: 15px;
+            background: white;
+            padding: 28px;
+            border-radius: 15px;
             box-shadow: 0 5px 20px rgba(0,0,0,.08);
+            margin-bottom: 22px;
         }
-        h1 { color: #071e3d; }
-        .description { color: #666; }
-        label { display: block; font-weight: bold; margin: 22px 0 8px; }
+
+        h1, h2 {
+            color: #071e3d;
+        }
+
+        .description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 22px 0 8px;
+        }
+
         input {
-            width: 100%; padding: 14px; border: 1px solid #ccc;
-            border-radius: 8px; font-size: 16px;
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
         }
+
         button {
-            width: 100%; margin-top: 15px; padding: 14px;
-            border: 0; border-radius: 8px; background: #1261a0;
-            color: white; font-size: 16px; font-weight: bold; cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            padding: 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #1261a0;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
         }
+
+        button:hover {
+            background: #0b477b;
+        }
+
         .result {
-            margin-top: 25px; padding: 20px; border-radius: 10px;
-            background: #f7f9fc; border-left: 5px solid #1261a0;
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f7f9fc;
+            border-left: 5px solid #1261a0;
             overflow-wrap: anywhere;
         }
-        .result-row { padding: 11px 0; border-bottom: 1px solid #ddd; }
-        .result-row:last-child { border-bottom: 0; }
-        .error { margin-top: 20px; color: #b42318; font-weight: bold; }
-        .success { color: #187744; font-weight: bold; }
-        footer { text-align: center; color: #888; font-size: 13px; margin: 30px 0; }
+
+        .result-row {
+            padding: 11px 0;
+            border-bottom: 1px solid #ddd;
+            line-height: 1.5;
+        }
+
+        .result-row:last-child {
+            border-bottom: 0;
+        }
+
+        .error {
+            margin-top: 20px;
+            color: #b42318;
+            font-weight: bold;
+            overflow-wrap: anywhere;
+        }
+
+        .success {
+            color: #187744;
+            font-weight: bold;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+            overflow-wrap: anywhere;
+        }
+
+        th {
+            background: #071e3d;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f4f7fb;
+        }
+
+        .empty {
+            background: #fff8e6;
+            border-left-color: #c58b12;
+        }
+
+        footer {
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            margin: 30px 0;
+        }
+
+        @media (max-width: 600px) {
+            .card {
+                padding: 18px;
+            }
+
+            .container {
+                margin-top: 20px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="navbar">
         <strong>📱 Stolen Phone System</strong>
-        <a href="{{ url_for('dashboard') }}" class="back">← Dashboard</a>
+        <a href="{{ url_for('dashboard') }}" class="back">
+            ← Dashboard
+        </a>
     </div>
 
     <div class="container">
+
+        <!-- IMEI SEARCH -->
         <div class="card">
             <h1>🔎 Search Phone by IMEI</h1>
-            <p class="description">Enter the 15-digit IMEI number to search the system.</p>
+
+            <p class="description">
+                Enter the 15-digit IMEI number to search the system.
+                Saved location history will also be displayed.
+            </p>
 
             {% if error %}
                 <p class="error">{{ error }}</p>
@@ -62,6 +201,7 @@
 
             <form method="POST" action="{{ url_for('search_imei') }}">
                 <label for="imei">IMEI Number</label>
+
                 <input
                     type="text"
                     id="imei"
@@ -74,38 +214,126 @@
                     value="{{ searched_imei or '' }}"
                     required
                 >
+
                 <button type="submit">🔎 Search IMEI</button>
             </form>
 
             {% if searched_imei and not results and not error %}
                 <div class="result">
-                    No phone found for IMEI {{ searched_imei }}.
-                    Please check the number and try again.
+                    No phone found in the phone records for IMEI
+                    <strong>{{ searched_imei }}</strong>.
+                    Check the location history below as well.
                 </div>
             {% endif %}
 
             {% if results %}
                 <div class="result">
                     <h2>Search Results</h2>
-                    <p class="success">Found {{ results|length }} matching record(s).</p>
+
+                    <p class="success">
+                        Found {{ results|length }} matching record(s).
+                    </p>
 
                     {% for result in results %}
-                        <div style="margin-top:20px; padding-top:15px; border-top:1px solid #ddd;">
+                        <div style="margin-top:20px; padding-top:15px;
+                                    border-top:1px solid #ddd;">
+
                             <h3>{{ result.type }}</h3>
-                            <div class="result-row"><strong>Owner:</strong> {{ result.owner_name or 'N/A' }}</div>
-                            <div class="result-row"><strong>Phone Number:</strong> {{ result.phone_number or 'N/A' }}</div>
-                            <div class="result-row"><strong>IMEI:</strong> {{ result.imei }}</div>
-                            <div class="result-row"><strong>Model:</strong> {{ result.phone_model or 'N/A' }}</div>
-                            <div class="result-row"><strong>Location / Color:</strong> {{ result.location or 'N/A' }}</div>
-                            <div class="result-row"><strong>Date:</strong> {{ result.date or 'N/A' }}</div>
-                            <div class="result-row"><strong>Status:</strong> {{ result.status or 'N/A' }}</div>
+
+                            <div class="result-row">
+                                <strong>Owner:</strong>
+                                {{ result.owner_name or 'N/A' }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>Phone Number:</strong>
+                                {{ result.phone_number or 'N/A' }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>IMEI:</strong>
+                                {{ result.imei }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>Model:</strong>
+                                {{ result.phone_model or 'N/A' }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>Location / Color:</strong>
+                                {{ result.location or 'N/A' }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>Date:</strong>
+                                {{ result.date or 'N/A' }}
+                            </div>
+
+                            <div class="result-row">
+                                <strong>Status:</strong>
+                                {{ result.status or 'N/A' }}
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
             {% endif %}
         </div>
+
+        <!-- PHONE LOCATION HISTORY -->
+        {% if searched_imei %}
+        <div class="card">
+            <h2>📍 Phone Location History</h2>
+
+            <p class="description">
+                Previously saved location records for this IMEI.
+                These records are not live GPS tracking.
+            </p>
+
+            {% if location_history_error %}
+                <p class="error">
+                    {{ location_history_error }}
+                </p>
+
+            {% elif location_history %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Known Location</th>
+                                <th>Source</th>
+                                <th>Notes</th>
+                                <th>Recorded By</th>
+                                <th>Date Recorded</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in location_history %}
+                            <tr>
+                                <td>{{ item.location }}</td>
+                                <td>{{ item.source or 'Not provided' }}</td>
+                                <td>{{ item.notes or 'None' }}</td>
+                                <td>{{ item.recorded_by or 'Unknown' }}</td>
+                                <td>{{ item.recorded_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            {% else %}
+                <div class="result empty">
+                    No saved location history found for this IMEI.
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
     </div>
 
-    <footer>© 2026 Stolen Phone Recovery System</footer>
+    <footer>
+        © 2026 Stolen Phone Recovery System
+    </footer>
 </body>
 </html>
