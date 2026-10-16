@@ -1080,9 +1080,6 @@ def cases():
 # AUTHORIZED LOCATION
 # =================================================
 
-@app.route("/location", methods=["GET", "POST"])
-@login_required
-
 @app.route("/phone_locations", methods=["GET", "POST"])
 @login_required
 def phone_locations():
