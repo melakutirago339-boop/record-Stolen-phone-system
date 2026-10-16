@@ -159,6 +159,20 @@ def create_tables():
                 changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        
+        # Phone location history
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS phone_location_history (
+                id SERIAL PRIMARY KEY,
+                imei VARCHAR(100) NOT NULL,
+                location VARCHAR(255) NOT NULL,
+                source VARCHAR(150),
+                notes TEXT,
+                permission_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+                recorded_by VARCHAR(150),
+                recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
         # Authorized locations
         cur.execute("""
