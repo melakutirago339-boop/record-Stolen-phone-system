@@ -658,60 +658,125 @@ def report_stolen():
 # SEARCH PHONE BY IMEI
 # =================================================
 
+
 @app.route("/search_imei", methods=["GET", "POST"])
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def search_imei():
-    # Load saved location history for the searched IMEI
+    results = []
+    searched_imei = ""
+    error = None
     location_history = []
     location_history_error = None
 
-    if searched_imei:
-        loc_conn = None
-        loc_cur = None
+    if request.method == "POST":
+        searched_imei = request.form.get("imei", "").strip()
 
-        try:
-            loc_conn = get_db_connection()
-            loc_cur = loc_conn.cursor()
+        if not searched_imei.isdigit() or len(searched_imei) != 15:
+            error = "Please enter a valid 15-digit IMEI number."
 
-            loc_cur.execute("""
-                SELECT
-                    location,
-                    source,
-                    notes,
-                    recorded_by,
-                    recorded_at
-                FROM phone_location_history
-                WHERE imei = %s
-                ORDER BY recorded_at DESC
-            """, (searched_imei,))
+        else:
+            conn = None
+            cur = None
 
-            rows = loc_cur.fetchall()
+            try:
+                conn = get_db_connection()
+                cur = conn.cursor()
 
-            for row in rows:
-                location_history.append({
-                    "location": row[0],
-                    "source": row[1],
-                    "notes": row[2],
-                    "recorded_by": row[3],
-                    "recorded_at": row[4]
-                })
+                # Search registered phones
+                cur.execute("""
+                    SELECT *
+                    FROM registered_phones
+                    WHERE imei = %s
+                """, (searched_imei,))
 
-        except Exception as e:
-            location_history_error = (
-                f"Could not load location history: {e}"
-            )
+                registered_rows = cur.fetchall()
+                registered_columns = [
+                    desc[0] for desc in cur.description
+                ]
 
-        finally:
-            if loc_cur:
-                loc_cur.close()
-            if loc_conn:
-                loc_conn.close()
+                for row in registered_rows:
+                    phone = dict(zip(registered_columns, row))
+                    results.append({
+                        "type": "Registered Phone",
+                        "owner_name": phone.get("owner_name"),
+                        "phone_number": phone.get("phone_number"),
+                        "imei": phone.get("imei"),
+                        "phone_model": phone.get("phone_model"),
+                        "location": phone.get("location"),
+                        "date": phone.get("created_at"),
+                        "status": phone.get("status", "Registered")
+                    })
+
+                # Search stolen phone records
+                cur.execute("""
+                    SELECT *
+                    FROM stolen_phones
+                    WHERE imei = %s
+                """, (searched_imei,))
+
+                stolen_rows = cur.fetchall()
+                stolen_columns = [
+                    desc[0] for desc in cur.description
+                ]
+
+                for row in stolen_rows:
+                    phone = dict(zip(stolen_columns, row))
+                    results.append({
+                        "type": "Stolen Phone",
+                        "owner_name": phone.get("owner_name"),
+                        "phone_number": phone.get("phone_number"),
+                        "imei": phone.get("imei"),
+                        "phone_model": phone.get("phone_model"),
+                        "location": phone.get("location"),
+                        "date": phone.get("created_at"),
+                        "status": phone.get("status", "Reported Stolen")
+                    })
+
+                # Search saved location history
+                cur.execute("""
+                    SELECT location, source, notes,
+                           recorded_by, recorded_at
+                    FROM phone_location_history
+                    WHERE imei = %s
+                    ORDER BY recorded_at DESC
+                """, (searched_imei,))
+
+                for row in cur.fetchall():
+                    location_history.append({
+                        "location": row[0],
+                        "source": row[1],
+                        "notes": row[2],
+                        "recorded_by": row[3],
+                        "recorded_at": row[4]
+                    })
+
+            except Exception:
+                if conn:
+                    conn.rollback()
+
+                error = (
+                    "Search failed. Check the database table "
+                    "and column names in app.py."
+                )
+                location_history_error = (
+                    "Could not load location history. "
+                    "Check the Render logs for details."
+                )
+
+            finally:
+                if cur:
+                    cur.close()
+                if conn:
+                    conn.close()
 
     return render_template(
         "search_imei.html",
         results=results,
-        searched_imei=searched_imei
+        searched_imei=searched_imei,
+        error=error,
+        location_history=location_history,
+        location_history_error=location_history_error
     )
 
 
