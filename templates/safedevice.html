@@ -1,0 +1,543 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SafeDevice | Phone Security System</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            color: #172033;
+        }
+
+        header {
+            background: #10213d;
+            color: white;
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        header h1 {
+            font-size: 25px;
+        }
+
+        header p {
+            color: #cbd5e1;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .header-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header-links a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 7px;
+            background: #243d60;
+            font-size: 14px;
+        }
+
+        .header-links a:hover {
+            background: #365782;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 25px auto;
+            padding: 0 18px;
+        }
+
+        .notice {
+            background: #fff7ed;
+            border-left: 5px solid #f59e0b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 22px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 23px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0f172a0c;
+            border-top: 4px solid #2563eb;
+        }
+
+        .stat-card h3 {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+
+        .stat-card strong {
+            font-size: 30px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 23px;
+            box-shadow: 0 3px 12px #0f172a0c;
+            margin-bottom: 22px;
+        }
+
+        .panel h2 {
+            font-size: 19px;
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin: 13px 0 7px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
+        button, .button {
+            display: inline-block;
+            border: none;
+            border-radius: 7px;
+            padding: 12px 17px;
+            background: #2563eb;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+
+        button:hover, .button:hover {
+            background: #1d4ed8;
+        }
+
+        .button-green {
+            background: #15803d;
+        }
+
+        .button-green:hover {
+            background: #166534;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 7px;
+            margin: 12px 0;
+            display: none;
+            line-height: 1.5;
+            font-size: 14px;
+        }
+
+        .message.info {
+            display: block;
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .message.error {
+            display: block;
+            background: #fef2f2;
+            color: #b91c1c;
+        }
+
+        .message.success {
+            display: block;
+            background: #f0fdf4;
+            color: #166534;
+        }
+
+        .result {
+            margin-top: 17px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow-wrap: anywhere;
+            line-height: 1.8;
+        }
+
+        .result p {
+            margin: 5px 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .badge.stolen {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge.clean {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 13px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        th {
+            color: #475569;
+            background: #f8fafc;
+        }
+
+        .empty {
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            color: #64748b;
+            padding: 25px 15px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 760px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                padding: 18px;
+            }
+
+            header h1 {
+                font-size: 21px;
+            }
+
+            .panel {
+                padding: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div>
+        <h1>SafeDevice</h1>
+        <p>Phone Registration, IMEI Search & Recovery Support</p>
+    </div>
+
+    <nav class="header-links">
+        <a href="{{ url_for('dashboard') }}">Main Dashboard</a>
+        <a href="{{ url_for('register_phone') }}">Register Phone</a>
+        <a href="{{ url_for('report_stolen') }}">Report Stolen</a>
+        <a href="{{ url_for('search_imei') }}">Existing IMEI Search</a>
+        <a href="{{ url_for('phone_locations') }}">Location Records</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </nav>
+</header>
+
+<main class="container">
+
+    <div class="notice">
+        <strong>Security notice:</strong>
+        This page uses your existing Flask and PostgreSQL records.
+        IMEI validation checks the number's format and checksum only.
+        It does not prove ownership or locate a phone. Location records
+        must come from a consented or otherwise legally authorized source.
+    </div>
+
+    <section class="stats">
+        <div class="stat-card">
+            <h3>Registered Phones</h3>
+            <strong>{{ registered_count }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <h3>Stolen Phone Reports</h3>
+            <strong>{{ stolen_count }}</strong>
+        </div>
+
+        <div class="stat-card">
+            <h3>Location Records</h3>
+            <strong>{{ location_count }}</strong>
+        </div>
+    </section>
+
+    <section class="content-grid">
+
+        <div class="panel">
+            <h2>IMEI Check</h2>
+
+            <p class="empty">
+                Enter a 15-digit IMEI to check the existing system's
+                registration and stolen-report records.
+            </p>
+
+            <form id="imeiForm">
+                <label for="imei">IMEI Number</label>
+                <input
+                    type="text"
+                    id="imei"
+                    name="imei"
+                    inputmode="numeric"
+                    maxlength="15"
+                    minlength="15"
+                    pattern="[0-9]{15}"
+                    placeholder="Enter 15-digit IMEI"
+                    required
+                >
+
+                <button type="submit">Check IMEI</button>
+            </form>
+
+            <div id="imeiMessage" class="message"></div>
+            <div id="imeiResult" aria-live="polite"></div>
+        </div>
+
+        <div class="panel">
+            <h2>Register a Phone</h2>
+
+            <p class="empty">
+                This form sends the information to your existing
+                protected Flask registration page.
+            </p>
+
+            <form action="{{ url_for('register_phone') }}" method="get">
+                <button type="submit" class="button-green">
+                    Open Phone Registration
+                </button>
+            </form>
+
+            <hr style="margin: 22px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+            <h2>Report a Stolen Phone</h2>
+
+            <p class="empty">
+                Record a stolen-phone incident using the existing
+                system's protected report form.
+            </p>
+
+            <a class="button" href="{{ url_for('report_stolen') }}">
+                Open Stolen Phone Report
+            </a>
+        </div>
+
+    </section>
+
+    <section class="panel">
+        <h2>Recent Location Records</h2>
+
+        <p class="empty" style="margin-bottom: 15px;">
+            These are saved location records, not automatic live GPS.
+        </p>
+
+        {% if locations %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>IMEI</th>
+                        <th>Location</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Source</th>
+                        <th>Recorded At</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in locations %}
+                    <tr>
+                        <td>{{ item.imei }}</td>
+                        <td>{{ item.location }}</td>
+                        <td>
+                            {{ item.latitude if item.latitude is not none else 'N/A' }}
+                        </td>
+                        <td>
+                            {{ item.longitude if item.longitude is not none else 'N/A' }}
+                        </td>
+                        <td>{{ item.source or 'Not specified' }}</td>
+                        <td>{{ item.recorded_at or 'N/A' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="empty">
+            No location records are available yet.
+            Use the existing Location Records page to add an authorized record.
+        </p>
+        {% endif %}
+
+        <a class="button" href="{{ url_for('phone_locations') }}">
+            Manage Location Records
+        </a>
+    </section>
+
+</main>
+
+<footer>
+    SafeDevice &copy; {{ current_year }} |
+    Authorized device records and recovery support
+</footer>
+
+<script>
+    const imeiForm = document.getElementById("imeiForm");
+    const imeiInput = document.getElementById("imei");
+    const imeiMessage = document.getElementById("imeiMessage");
+    const imeiResult = document.getElementById("imeiResult");
+
+    function showMessage(text, type) {
+        imeiMessage.textContent = text;
+        imeiMessage.className = "message " + type;
+    }
+
+    imeiForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const imei = imeiInput.value.trim();
+
+        imeiResult.replaceChildren();
+
+        if (!/^[0-9]{15}$/.test(imei)) {
+            showMessage("Please enter exactly 15 digits.", "error");
+            return;
+        }
+
+        showMessage("Checking the existing database...", "info");
+
+        try {
+            const response = await fetch(
+                "{{ url_for('safedevice_imei_api') }}",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ imei: imei })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                showMessage(
+                    data.error || "IMEI search failed.",
+                    "error"
+                );
+                return;
+            }
+
+            showMessage("Database search completed.", "success");
+
+            const card = document.createElement("div");
+            card.className = "result";
+
+            const heading = document.createElement("h3");
+            heading.textContent = "Search Result";
+            card.appendChild(heading);
+
+            const status = document.createElement("p");
+            status.textContent = "Status: " + data.status;
+            card.appendChild(status);
+
+            const registered = document.createElement("p");
+            registered.textContent =
+                "Registered in system: " +
+                (data.registered ? "Yes" : "No");
+            card.appendChild(registered);
+
+            const stolen = document.createElement("p");
+            stolen.textContent =
+                "Stolen report exists: " +
+                (data.stolen_report ? "Yes" : "No");
+            card.appendChild(stolen);
+
+            const note = document.createElement("p");
+            note.textContent =
+                "This result is based on records in the existing database. " +
+                "It does not provide live phone location.";
+            card.appendChild(note);
+
+            imeiResult.appendChild(card);
+
+        } catch (error) {
+            showMessage(
+                "Could not contact the server. Please try again.",
+                "error"
+            );
+        }
+    });
+</script>
+
+</body>
+</html>
+```
