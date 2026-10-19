@@ -1516,6 +1516,76 @@ def reports():
         error=error
     )
 
+@app.route("/reports/export")
+@login_required
+def export_reports():
+    import csv
+    import io
+    from flask import Response
+
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                owner_name,
+                phone_number,
+                imei,
+                phone_model,
+                last_location,
+                report_date,
+                COALESCE(
+                    NULLIF(case_status, ''),
+                    status,
+                    'Reported'
+                )
+            FROM stolen_phones
+            ORDER BY report_date DESC
+        """)
+
+        output = io.StringIO()
+        output.write("\ufeff")
+        writer = csv.writer(output)
+
+        writer.writerow([
+            "Owner Name",
+            "Phone Number",
+            "IMEI",
+            "Phone Model",
+            "Last Location",
+            "Report Date",
+            "Status"
+        ])
+
+        for row in cur.fetchall():
+            writer.writerow([
+                value if value is not None else ""
+                for value in row
+            ])
+
+        return Response(
+            output.getvalue(),
+            mimetype="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition":
+                    "attachment; filename=stolen_phone_reports.csv"
+            }
+        )
+
+    except Exception:
+        app.logger.exception("Report export failed")
+        return "Report export failed. Check server logs.", 500
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
 
 
 # =================================================
