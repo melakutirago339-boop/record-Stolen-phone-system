@@ -1525,13 +1525,11 @@ def reports():
 # LOGOUT
 # =================================================
 
-@app.route("/logout")
+@app.route("/logout", methods=["GET"])
+@login_required
 def logout():
-
     session.clear()
-
-    return redirect("/login")
-
+    return redirect(url_for("login"))
 
 # =================================================
 # START APPLICATION
