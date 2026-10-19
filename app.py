@@ -250,6 +250,7 @@ def home():
 # LOGIN
 # -------------------------------------------------
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -260,37 +261,33 @@ def login():
             "ADMIN_USERNAME", "admin"
         ).strip()
 
-        admin_password_hash = os.environ.get(
-            "ADMIN_PASSWORD_HASH", ""
-        ).strip()
-
-        # Remove accidental whitespace around the hash
         admin_password_hash = "".join(
-            admin_password_hash.split()
+            os.environ.get("ADMIN_PASSWORD_HASH", "").split()
         )
 
-        if admin_username and admin_password_hash:
-            try:
-                if (
-                    username == admin_username
-                    and check_password_hash(
-                        admin_password_hash, password
-                    )
-                ):
-                    session.clear()
-                    session["username"] = username
-                    session["role"] = "admin"
-                    return redirect(url_for("dashboard"))
-
-            except (ValueError, TypeError) as error:
-                app.logger.error(
-                    "ADMIN_PASSWORD_HASH is invalid: %s",
-                    error
+        try:
+            if (
+                admin_username
+                and admin_password_hash
+                and username == admin_username
+                and check_password_hash(
+                    admin_password_hash, password
                 )
+            ):
+                session.clear()
+                session["username"] = username
+                session["role"] = "admin"
+                return redirect(url_for("dashboard"))
+
+        except (ValueError, TypeError) as error:
+            app.logger.error(
+                "Admin password hash validation failed: %s",
+                error
+            )
 
         return render_template(
             "login.html",
-            error="Invalid username or password. Check admin settings."
+            error="Invalid username or password."
         )
 
     return render_template("login.html")
