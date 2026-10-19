@@ -1527,6 +1527,136 @@ def reports():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+    
+
+# =================================================
+# SAFEDEVICE PAGE AND IMEI API
+# =================================================
+
+from flask import jsonify
+from datetime import datetime
+
+
+@app.route("/safedevice")
+@login_required
+def safedevice():
+    conn = None
+    cur = None
+
+    registered_count = 0
+    stolen_count = 0
+    location_count = 0
+    locations = []
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("SELECT COUNT(*) FROM registered_phones")
+        registered_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM stolen_phones")
+        stolen_count = cur.fetchone()[0]
+
+        cur.execute("SELECT COUNT(*) FROM phone_location_history")
+        location_count = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT imei, location, latitude, longitude,
+                   source, recorded_at
+            FROM phone_location_history
+            ORDER BY recorded_at DESC
+            LIMIT 20
+        """)
+
+        for row in cur.fetchall():
+            locations.append({
+                "imei": row[0],
+                "location": row[1],
+                "latitude": row[2],
+                "longitude": row[3],
+                "source": row[4],
+                "recorded_at": row[5]
+            })
+
+    except Exception:
+        app.logger.exception("SafeDevice page database error")
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+    return render_template(
+        "safedevice.html",
+        registered_count=registered_count,
+        stolen_count=stolen_count,
+        location_count=location_count,
+        locations=locations,
+        current_year=datetime.now().year
+    )
+
+
+@app.route("/api/safedevice/imei", methods=["POST"])
+@login_required
+def safedevice_imei_api():
+    data = request.get_json(silent=True) or {}
+    imei = str(data.get("imei", "")).strip()
+
+    if not imei.isdigit() or len(imei) != 15:
+        return jsonify({
+            "error": "IMEI must contain exactly 15 digits."
+        }), 400
+
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT 1 FROM registered_phones
+                WHERE imei = %s
+            )
+        """, (imei,))
+        registered = cur.fetchone()[0]
+
+        cur.execute("""
+            SELECT EXISTS (
+                SELECT 1 FROM stolen_phones
+                WHERE imei = %s
+            )
+        """, (imei,))
+        stolen_report = cur.fetchone()[0]
+
+        if stolen_report:
+            status = "Stolen report found"
+        elif registered:
+            status = "Registered; no stolen report found"
+        else:
+            status = "No matching record"
+
+        return jsonify({
+            "registered": registered,
+            "stolen_report": stolen_report,
+            "status": status
+        })
+
+    except Exception:
+        app.logger.exception("SafeDevice IMEI API error")
+        return jsonify({
+            "error": "Database search failed. Check Render logs."
+        }), 500
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
 
 # =================================================
 # START APPLICATION
