@@ -232,6 +232,18 @@ def create_tables():
 
         if conn:
             conn.close()
+        # -------------------------------------------------
+# LOGIN REQUIRED DECORATOR
+# -------------------------------------------------
+
+def login_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if "username" not in session:
+            return redirect("/login")
+        return func(*args, **kwargs)
+    return wrapper
+    
 # -------------------------------------------------
 # CREATE OFFICER ACCOUNT
 # -------------------------------------------------
@@ -296,17 +308,6 @@ def create_officer():
         error=error
     )
             
-# -------------------------------------------------
-# LOGIN REQUIRED DECORATOR
-# -------------------------------------------------
-
-def login_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if "username" not in session:
-            return redirect("/login")
-        return func(*args, **kwargs)
-    return wrapper
 
 # -------------------------------------------------
 # HOME
