@@ -301,17 +301,12 @@ def create_officer():
 # -------------------------------------------------
 
 def login_required(func):
-
     @wraps(func)
     def wrapper(*args, **kwargs):
-
         if "username" not in session:
             return redirect("/login")
-
         return func(*args, **kwargs)
-
     return wrapper
-
 
 # -------------------------------------------------
 # HOME
