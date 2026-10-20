@@ -1107,7 +1107,6 @@ def cases():
 # AUTHORIZED LOCATION
 # =================================================
 
-
 @app.route("/phone_locations", methods=["GET", "POST"])
 @login_required
 def phone_locations():
@@ -1248,6 +1247,12 @@ def phone_locations():
         error=error
     )
 
+
+# Redirect the old Authorized Locations link
+@app.route("/location")
+@login_required
+def location_redirect():
+    return redirect(url_for("phone_locations"))
 
 # =================================================
 # CASE HISTORY
