@@ -1072,55 +1072,61 @@ def cases():
 
  
 
-            # Create a new case
+            
+            # Create a new case - Admin only
             elif action == "create_case":
-                case_number = request.form.get(
-                    "case_number", ""
-                ).strip()
-                imei = request.form.get("imei", "").strip()
-                owner_name = request.form.get(
-                    "owner_name", ""
-                ).strip()
-                officer_name = request.form.get(
-                    "officer_name", ""
-                ).strip()
-                case_status = request.form.get(
-                    "case_status", "Reported"
-                ).strip()
-                description = request.form.get(
-                    "description", ""
-                ).strip()
+                role = session.get("role", "").strip().lower()
 
-                allowed_statuses = [
-                    "Reported", "Investigation", "Recovered"
-                ]
-
-                if not case_number or not imei:
-                    error = "Case number and IMEI are required."
-                elif case_status not in allowed_statuses:
-                    error = "Please select a valid case status."
+                if role != "admin":
+                    error = "Access denied. Only admins can create cases."
                 else:
-                    cur.execute("""
-                        INSERT INTO cases (
+                    case_number = request.form.get(
+                        "case_number", ""
+                    ).strip()
+                    imei = request.form.get("imei", "").strip()
+                    owner_name = request.form.get(
+                        "owner_name", ""
+                    ).strip()
+                    officer_name = request.form.get(
+                        "officer_name", ""
+                    ).strip()
+                    case_status = request.form.get(
+                        "case_status", "Reported"
+                    ).strip()
+                    description = request.form.get(
+                        "description", ""
+                    ).strip()
+
+                    allowed_statuses = [
+                        "Reported", "Investigation", "Recovered"
+                    ]
+
+                    if not case_number or not imei:
+                        error = "Case number and IMEI are required."
+                    elif case_status not in allowed_statuses:
+                        error = "Please select a valid case status."
+                    else:
+                        cur.execute("""
+                            INSERT INTO cases (
+                                case_number, imei, owner_name,
+                                officer_name, case_status, description
+                            )
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                            ON CONFLICT DO NOTHING
+                            RETURNING id
+                        """, (
                             case_number, imei, owner_name,
                             officer_name, case_status, description
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        ON CONFLICT DO NOTHING
-                        RETURNING id
-                    """, (
-                        case_number, imei, owner_name,
-                        officer_name, case_status, description
-                    ))
+                        ))
 
-                    inserted = cur.fetchone()
+                        inserted = cur.fetchone()
 
-                    if inserted:
-                        conn.commit()
-                        message = "Case created successfully."
-                    else:
-                        conn.rollback()
-                        error = "This case number already exists."
+                        if inserted:
+                            conn.commit()
+                            message = "Case created successfully."
+                        else:
+                            conn.rollback()
+                            error = "This case number already exists."
 
         # Load cases created in the cases table
         cur.execute("""
