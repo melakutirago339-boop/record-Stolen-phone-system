@@ -482,48 +482,69 @@
             color: #475569;
         }
 
-        .actions-cell {
-            min-width: 210px;
-        }
+        
+.actions-cell {
+    min-width: 260px;
+    width: 260px;
+    vertical-align: top;
+}
 
-        .small-link {
-            display: inline-flex;
-            align-items: center;
-            color: var(--blue);
-            font-size: 12px;
-            font-weight: 800;
-            margin-bottom: 13px;
-        }
+.actions-cell .small-link {
+    display: inline-flex;
+    margin-bottom: 12px;
+}
 
-        .small-link:hover {
-            color: var(--blue-hover);
-            text-decoration: underline;
-        }
+.update-form {
+    width: 100%;
+    min-width: 240px;
+    padding: 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
 
-        .update-form {
-            width: 100%;
-            min-width: 190px;
-            padding: 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            background: #f8fafc;
-        }
+.update-form label {
+    display: block;
+    margin-bottom: 14px;
+    color: #334155;
+    font-size: 12px;
+    font-weight: 700;
+}
 
-        .update-form label {
-            margin-bottom: 12px;
-        }
+.update-form select,
+.update-form input {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    margin-top: 6px;
+    padding: 10px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #fff;
+    color: #1e293b;
+    font-size: 13px;
+}
 
-        .update-form select, .update-form input {
-            margin-top: 5px;
-            padding: 9px 10px;
-            font-size: 12px;
-        }
+.update-form .btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: 8px;
+    font-size: 13px;
+}
 
-        .update-form .btn {
-            width: 100%;
-            padding: 9px 10px;
-            font-size: 12px;
-        }
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+table {
+    width: 100%;
+    min-width: 1350px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
 
         .empty {
             text-align: center;
