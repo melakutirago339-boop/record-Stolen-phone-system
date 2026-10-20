@@ -232,6 +232,69 @@ def create_tables():
 
         if conn:
             conn.close()
+# -------------------------------------------------
+# CREATE OFFICER ACCOUNT
+# -------------------------------------------------
+
+@app.route("/admin/create-officer", methods=["GET", "POST"])
+@login_required
+def create_officer():
+    if session.get("role") != "admin":
+        return "Access denied", 403
+
+    message = None
+    error = None
+
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        if len(username) < 3:
+            error = "Username must be at least 3 characters."
+        elif len(password) < 10:
+            error = "Password must be at least 10 characters."
+        else:
+            conn = None
+            cur = None
+            try:
+                conn = get_db_connection()
+                cur = conn.cursor()
+
+                password_hash = generate_password_hash(password)
+
+                cur.execute("""
+                    INSERT INTO system_users
+                        (username, password_hash, role, is_active)
+                    VALUES (%s, %s, 'officer', TRUE)
+                    ON CONFLICT (username) DO NOTHING
+                    RETURNING id
+                """, (username, password_hash))
+
+                created = cur.fetchone()
+                conn.commit()
+
+                if created:
+                    message = "Officer account created successfully."
+                else:
+                    error = "That username already exists."
+
+            except Exception:
+                if conn:
+                    conn.rollback()
+                app.logger.exception("Could not create officer account")
+                error = "Could not create account. Check the server logs."
+
+            finally:
+                if cur:
+                    cur.close()
+                if conn:
+                    conn.close()
+
+    return render_template(
+        "create_officer.html",
+        message=message,
+        error=error
+    )
             
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
