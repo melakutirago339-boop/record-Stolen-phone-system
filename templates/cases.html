@@ -535,16 +535,44 @@
 .table-scroll {
     width: 100%;
     overflow-x: auto;
+    overflow-y: visible;
     -webkit-overflow-scrolling: touch;
 }
 
-table {
-    width: 100%;
-    min-width: 1350px;
-    border-collapse: separate;
-    border-spacing: 0;
+.actions-cell {
+    min-width: 280px;
+    width: 280px;
 }
 
+.update-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+    min-width: 250px;
+    padding: 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.update-form label {
+    display: block;
+    margin: 0;
+}
+
+.update-form select,
+.update-form input {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px;
+}
+
+.update-form .btn {
+    width: 100%;
+    margin-top: 2px;
+}
 
         .empty {
             text-align: center;
