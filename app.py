@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, session, url_for
 import os
 import psycopg2
 from functools import wraps
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 
