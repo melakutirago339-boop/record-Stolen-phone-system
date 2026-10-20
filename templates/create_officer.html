@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Officer Account</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #eef2f7;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 420px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px #00000018;
+        }
+
+        h2 {
+            text-align: center;
+            color: #17365d;
+        }
+
+        label {
+            display: block;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-top: 7px;
+            border: 1px solid #bbb;
+            border-radius: 6px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 22px;
+            background: #17365d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background: #24558c;
+        }
+
+        .success {
+            color: green;
+            text-align: center;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+        }
+
+        .back {
+            display: block;
+            text-align: center;
+            margin-top: 18px;
+            color: #17365d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Create Officer Account</h2>
+        <p>Create a secure account for an authorized officer.</p>
+
+        {% if message %}
+            <p class="success">{{ message }}</p>
+        {% endif %}
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <label for="username">Officer Username</label>
+            <input
+                type="text"
+                id="username"
+                name="username"
+                minlength="3"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                minlength="10"
+                required
+            >
+
+            <button type="submit">Create Officer Account</button>
+        </form>
+
+        <a class="back" href="{{ url_for('dashboard') }}">
+            Back to Dashboard
+        </a>
+    </div>
+</body>
+</html>
