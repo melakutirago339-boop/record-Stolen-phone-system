@@ -226,10 +226,18 @@
 
         <div class="header">
             <h1>📊 System Reports</h1>
-            <p>
-                Stolen phone records and case management statistics.
-            </p>
-        </div>
+            
+<div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+    <a href="{{ url_for('export_reports') }}"
+       style="display: inline-block; background: #16803c; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+        ⬇ Export CSV
+    </a>
+
+    <button onclick="window.print()"
+       style="background: #1261a0; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold;">
+        🖨 Print Reports
+    </button>
+</div>
 
         {% if error %}
         <div class="error">
