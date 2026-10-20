@@ -1017,27 +1017,7 @@ def cases():
                                         SET case_status = %s
                                         WHERE id = %s
                                     """, (case_status, record_id))
-
-                            # Record history only when status changes.
-                            if previous_status != case_status:
-                                cur.execute("""
-                                    INSERT INTO case_history (
-                                        source, record_id, case_number, imei,
-                                        previous_status, new_status,
-                                        officer_name, changed_by
-                                    )
-                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                                """, (
-                                    source, record_id, case_number, imei,
-                                    previous_status, case_status,
-                                    officer_name,
-                                    session.get("username", "unknown")
-                                ))
-
-                            conn.commit()
-                            message = "Case updated successfully."
-
-                       
+                                    
                         # Save history only when the status changes
                         if previous_status != case_status:
                             cur.execute("""
@@ -1071,8 +1051,6 @@ def cases():
                         message = "Case updated successfully."
 
  
-
-            
             # Create a new case - Admin only
             elif action == "create_case":
                 role = session.get("role", "").strip().lower()
