@@ -916,77 +916,126 @@ def cases():
      
         if request.method == "POST":
             action = request.form.get("action", "").strip()
+            role = session.get("role", "").strip().lower()
 
          
+           
             # Update an existing case or stolen-phone report
             if action == "update_case":
-                source = request.form.get("source", "").strip()
-                record_id = request.form.get("record_id", "").strip()
-                case_status = request.form.get(
-                    "case_status", "Reported"
-                ).strip()
-                officer_name = request.form.get(
-                    "officer_name", ""
-                ).strip()
+                role = session.get("role", "").strip().lower()
 
-                allowed_statuses = [
-                    "Reported", "Investigation", "Recovered"
-                ]
-
-                if (
-                    not record_id.isdigit()
-                    or case_status not in allowed_statuses
-                    or source not in ["case", "report"]
-                ):
-                    error = "Invalid case update details."
+                if role not in ["admin", "officer"]:
+                    error = "Access denied."
 
                 else:
-                    record_id = int(record_id)
+                    source = request.form.get("source", "").strip()
+                    record_id = request.form.get("record_id", "").strip()
+                    case_status = request.form.get(
+                        "case_status", "Reported"
+                    ).strip()
+                    requested_officer = request.form.get(
+                        "officer_name", ""
+                    ).strip()
 
-                    if source == "case":
-                        cur.execute("""
-                            SELECT case_number, imei, case_status
-                            FROM cases
-                            WHERE id = %s
-                        """, (record_id,))
-                    else:
-                        cur.execute("""
-                            SELECT
-                                'STOLEN-' || id::text,
-                                imei,
-                                case_status
-                            FROM stolen_phones
-                            WHERE id = %s
-                        """, (record_id,))
+                    allowed_statuses = [
+                        "Reported", "Investigation", "Recovered"
+                    ]
 
-                    old_record = cur.fetchone()
-
-                    if not old_record:
-                        error = "Case or stolen-phone report not found."
+                    if (
+                        not record_id.isdigit()
+                        or case_status not in allowed_statuses
+                        or source not in ["case", "report"]
+                    ):
+                        error = "Invalid case update details."
 
                     else:
-                        case_number = old_record[0]
-                        imei = old_record[1]
-                        previous_status = old_record[2] or "Reported"
+                        record_id = int(record_id)
 
                         if source == "case":
                             cur.execute("""
-                                UPDATE cases
-                                SET case_status = %s,
-                                    officer_name = %s
+                                SELECT case_number, imei,
+                                       case_status, officer_name
+                                FROM cases
                                 WHERE id = %s
-                            """, (
-                                case_status, officer_name, record_id
-                            ))
+                            """, (record_id,))
                         else:
                             cur.execute("""
-                                UPDATE stolen_phones
-                                SET case_status = %s,
-                                    officer_name = %s
+                                SELECT
+                                    'STOLEN-' || id::text,
+                                    imei, case_status, officer_name
+                                FROM stolen_phones
                                 WHERE id = %s
-                            """, (
-                                case_status, officer_name, record_id
-                            ))
+                            """, (record_id,))
+
+                        old_record = cur.fetchone()
+
+                        if not old_record:
+                            error = "Case or stolen-phone report not found."
+
+                        else:
+                            case_number = old_record[0]
+                            imei = old_record[1]
+                            previous_status = old_record[2] or "Reported"
+                            existing_officer = old_record[3] or ""
+
+                            # Officers may change status only.
+                            # Admins may also change officer assignment.
+                            if role == "officer":
+                                officer_name = existing_officer
+                            else:
+                                officer_name = requested_officer
+
+                            if source == "case":
+                                if role == "admin":
+                                    cur.execute("""
+                                        UPDATE cases
+                                        SET case_status = %s,
+                                            officer_name = %s
+                                        WHERE id = %s
+                                    """, (
+                                        case_status, officer_name, record_id
+                                    ))
+                                else:
+                                    cur.execute("""
+                                        UPDATE cases
+                                        SET case_status = %s
+                                        WHERE id = %s
+                                    """, (case_status, record_id))
+                            else:
+                                if role == "admin":
+                                    cur.execute("""
+                                        UPDATE stolen_phones
+                                        SET case_status = %s,
+                                            officer_name = %s
+                                        WHERE id = %s
+                                    """, (
+                                        case_status, officer_name, record_id
+                                    ))
+                                else:
+                                    cur.execute("""
+                                        UPDATE stolen_phones
+                                        SET case_status = %s
+                                        WHERE id = %s
+                                    """, (case_status, record_id))
+
+                            # Record history only when status changes.
+                            if previous_status != case_status:
+                                cur.execute("""
+                                    INSERT INTO case_history (
+                                        source, record_id, case_number, imei,
+                                        previous_status, new_status,
+                                        officer_name, changed_by
+                                    )
+                                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                                """, (
+                                    source, record_id, case_number, imei,
+                                    previous_status, case_status,
+                                    officer_name,
+                                    session.get("username", "unknown")
+                                ))
+
+                            conn.commit()
+                            message = "Case updated successfully."
 
                        
                         # Save history only when the status changes
