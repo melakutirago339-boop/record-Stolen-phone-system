@@ -188,7 +188,19 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
         """)
 
-
+        # System users for Admin and Officer login
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS system_users (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role VARCHAR(20) NOT NULL
+                    CHECK (role IN ('officer', 'user')),
+                is_active BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+        
         # Authorized locations
         cur.execute("""
             CREATE TABLE IF NOT EXISTS authorized_locations (
