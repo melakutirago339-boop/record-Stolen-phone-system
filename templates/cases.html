@@ -1068,43 +1068,7 @@
     <input type="hidden" name="record_id" value="{{ case.id }}">
 
     <label for="case_status_{{ case.source }}_{{ case.id }}">
-        Case Status
-    </label>
-    <select
-        id="case_status_{{ case.source }}_{{ case.id }}"
-        name="case_status"
-        required>
-        <option value="Reported"
-            {% if case.case_status|default(case.status, true)|lower == 'reported' %}selected{% endif %}>
-            Reported
-        </option>
-        <option value="Investigation"
-            {% if case.case_status|default(case.status, true)|lower in ['investigation', 'under investigation', 'in progress'] %}selected{% endif %}>
-            Investigation
-        </option>
-        <option value="Recovered"
-            {% if case.case_status|default(case.status, true)|lower == 'recovered' %}selected{% endif %}>
-            Recovered
-        </option>
-    </select>
-
-    <label for="officer_name_{{ case.source }}_{{ case.id }}">
-        Officer Name
-    </label>
-    <input
-        id="officer_name_{{ case.source }}_{{ case.id }}"
-        type="text"
-        name="officer_name"
-        maxlength="150"
-        placeholder="Enter officer name"
-        value="{{ case.officer_name or '' }}">
-
-    <button class="btn" type="submit">
-        Save Update
-    </button>
-
-</form>
-
+      
                                     Case Status
                                     <select name="case_status" required>
                                         <option value="Reported"
