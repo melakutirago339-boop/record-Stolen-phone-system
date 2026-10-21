@@ -1702,11 +1702,52 @@ def export_reports():
             "Status"
         ])
 
-        for row in cur.fetchall():
-            writer.writerow([
-                value if value is not None else ""
-                for value in row
-            ])
+      
+def excel_safe_text(value):
+    text = "" if value is None else str(value)
+
+    # Prevent spreadsheet formulas in user-provided text.
+    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text
+
+    return text
+
+
+for row in cur.fetchall():
+    owner_name, phone_number, imei, phone_model, last_location, report_date, status = row
+
+    # Keep IMEI and phone numbers as text in Excel.
+    imei_text = str(imei or "").strip()
+    if imei_text.isdigit():
+        imei_cell = '="' + imei_text + '"'
+    else:
+        imei_cell = excel_safe_text(imei_text)
+
+    phone_text = str(phone_number or "").strip()
+    if phone_text.isdigit() or (
+        phone_text.startswith("+") and phone_text[1:].isdigit()
+    ):
+        phone_cell = '="' + phone_text + '"'
+    else:
+        phone_cell = excel_safe_text(phone_text)
+
+    # Export the complete date and time as text.
+    if report_date is not None and hasattr(report_date, "strftime"):
+        date_text = report_date.strftime("%Y-%m-%d %H:%M:%S")
+        date_cell = '="' + date_text + '"'
+    else:
+        date_cell = excel_safe_text(report_date)
+
+    writer.writerow([
+        excel_safe_text(owner_name),
+        phone_cell,
+        imei_cell,
+        excel_safe_text(phone_model),
+        excel_safe_text(last_location),
+        date_cell,
+        excel_safe_text(status)
+    ])
+
 
         return Response(
             output.getvalue(),
