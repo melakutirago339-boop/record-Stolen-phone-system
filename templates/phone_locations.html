@@ -33,7 +33,7 @@
             box-shadow: 0 3px 12px #00000010;
         }
 
-        h1, h2 { color: #17365d; }
+        h1, h2, h3 { color: #17365d; }
 
         .field { margin-bottom: 18px; }
 
@@ -97,6 +97,8 @@
         .permission input {
             margin-top: 4px;
             flex-shrink: 0;
+            width: 17px;
+            height: 17px;
         }
 
         .success, .error, .hint {
@@ -110,7 +112,7 @@
         .error { background: #fee2e2; color: #991b1b; }
         .hint { background: #eff6ff; color: #1e40af; }
 
-        #map {
+        #map, #recordedLocationsMap {
             width: 100%;
             height: 420px;
             border-radius: 9px;
@@ -131,7 +133,6 @@
             flex-wrap: wrap;
             gap: 12px;
             margin-top: 10px;
-            font-size: 14px;
         }
 
         .coordinate-box {
@@ -164,16 +165,11 @@
 
         a { color: #1d4ed8; }
 
-        .permission input {
-            width: 17px;
-            height: 17px;
-        }
-
         @media (max-width: 650px) {
             body { padding: 10px; }
             .panel { padding: 16px; }
             .grid { grid-template-columns: 1fr; }
-            #map { height: 320px; }
+            #map, #recordedLocationsMap { height: 320px; }
             button, .action-link { max-width: 100%; }
         }
     </style>
@@ -182,7 +178,11 @@
 <body>
 <div class="container">
 
-    <p><a href="{{ url_for('dashboard') }}">← Back to Dashboard</a></p>
+    <p>
+        <a href="{{ url_for('dashboard') }}">
+            ← Back to Dashboard
+        </a>
+    </p>
 
     <section class="panel">
         <h1>Phone GPS Location History</h1>
@@ -207,30 +207,44 @@
 
             <div class="field">
                 <label for="imei">Phone IMEI *</label>
-                <input type="text" id="imei" name="imei"
-                       maxlength="100" required
+                <input type="text"
+                       id="imei"
+                       name="imei"
+                       maxlength="100"
+                       required
                        placeholder="Enter the phone IMEI">
             </div>
 
             <div class="field">
                 <label for="location">Known Location / Address *</label>
-                <input type="text" id="location" name="location"
-                       maxlength="255" required
+                <input type="text"
+                       id="location"
+                       name="location"
+                       maxlength="255"
+                       required
                        placeholder="Enter a verified location">
             </div>
 
             <div class="grid">
                 <div class="field">
                     <label for="latitude">Latitude</label>
-                    <input type="number" id="latitude" name="latitude"
-                           step="any" min="-90" max="90"
+                    <input type="number"
+                           id="latitude"
+                           name="latitude"
+                           step="any"
+                           min="-90"
+                           max="90"
                            placeholder="e.g. 8.9806">
                 </div>
 
                 <div class="field">
                     <label for="longitude">Longitude</label>
-                    <input type="number" id="longitude" name="longitude"
-                           step="any" min="-180" max="180"
+                    <input type="number"
+                           id="longitude"
+                           name="longitude"
+                           step="any"
+                           min="-180"
+                           max="180"
                            placeholder="e.g. 38.7578">
                 </div>
             </div>
@@ -241,12 +255,14 @@
             </p>
 
             <div class="field">
-                <button type="button" class="secondary"
+                <button type="button"
+                        class="secondary"
                         id="previewButton">
                     Preview Coordinates on Map
                 </button>
 
-                <button type="button" class="dark-button"
+                <button type="button"
+                        class="dark-button"
                         id="resetMapButton">
                     Reset Map
                 </button>
@@ -258,14 +274,19 @@
 
                 <div class="coordinates">
                     <div class="coordinate-box">
-                        Latitude: <strong id="previewLat">—</strong>
+                        Latitude:
+                        <strong id="previewLat">—</strong>
                     </div>
+
                     <div class="coordinate-box">
-                        Longitude: <strong id="previewLon">—</strong>
+                        Longitude:
+                        <strong id="previewLon">—</strong>
                     </div>
                 </div>
 
-                <p id="mapMessage" class="hint" role="status"
+                <p id="mapMessage"
+                   class="hint"
+                   role="status"
                    aria-live="polite">
                     Enter latitude and longitude to preview a location.
                 </p>
@@ -283,20 +304,26 @@
 
             <div class="field">
                 <label for="source">Information Source</label>
-                <input type="text" id="source" name="source"
+                <input type="text"
+                       id="source"
+                       name="source"
                        maxlength="150"
                        placeholder="e.g. authorized GPS report">
             </div>
 
             <div class="field">
                 <label for="notes">Additional Notes</label>
-                <textarea id="notes" name="notes" rows="4"
+                <textarea id="notes"
+                          name="notes"
+                          rows="4"
                           placeholder="Enter additional information"></textarea>
             </div>
 
             <label class="permission">
-                <input type="checkbox" name="permission_confirmed"
-                       value="yes" required>
+                <input type="checkbox"
+                       name="permission_confirmed"
+                       value="yes"
+                       required>
                 <span>
                     I confirm this information was obtained with
                     appropriate permission or legal authorization.
@@ -309,6 +336,24 @@
 
     <section class="panel">
         <h2>Recorded Location History</h2>
+
+        <div class="field">
+            <h3>Recorded Locations Map</h3>
+
+            <p class="hint">
+                Click a marker to view the saved location details.
+                Only saved records with valid GPS coordinates appear.
+            </p>
+
+            <div id="recordedLocationsMap"></div>
+
+            <p id="historyMapMessage"
+               class="hint"
+               role="status"
+               aria-live="polite">
+                Loading saved GPS locations...
+            </p>
+        </div>
 
         {% if locations %}
         <div class="table-wrap">
@@ -326,17 +371,21 @@
                         <th>Date</th>
                     </tr>
                 </thead>
+
                 <tbody>
                 {% for item in locations %}
                     <tr>
                         <td>{{ item.imei }}</td>
                         <td>{{ item.location }}</td>
+
                         <td>
                             {{ item.latitude if item.latitude is not none else '-' }}
                         </td>
+
                         <td>
                             {{ item.longitude if item.longitude is not none else '-' }}
                         </td>
+
                         <td>
                             {% if item.latitude is not none and item.longitude is not none %}
                                 <a
@@ -349,6 +398,7 @@
                                 No GPS
                             {% endif %}
                         </td>
+
                         <td>{{ item.source or '-' }}</td>
                         <td>{{ item.notes or '-' }}</td>
                         <td>{{ item.recorded_by or '-' }}</td>
@@ -362,6 +412,7 @@
             <p>No location records have been saved yet.</p>
         {% endif %}
     </section>
+
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -390,6 +441,7 @@
             "Map library could not load. Check your internet connection and reload the page.";
         message.className = "error";
         previewButton.disabled = true;
+        resetButton.disabled = true;
         return;
     }
 
@@ -451,7 +503,8 @@
         title.textContent = place;
 
         const details = document.createElement("div");
-        details.textContent = "Latitude: " + lat + ", Longitude: " + lon;
+        details.textContent =
+            "Latitude: " + lat + ", Longitude: " + lon;
 
         popup.appendChild(title);
         popup.appendChild(document.createElement("br"));
@@ -539,12 +592,118 @@
             lon < -180 || lon > 180) {
             event.preventDefault();
             showError("Please correct the coordinates before saving.");
-            return;
         }
     });
 
     setTimeout(function () {
         map.invalidateSize();
+    }, 200);
+})();
+</script>
+
+<script>
+(function () {
+    "use strict";
+
+    const mapElement =
+        document.getElementById("recordedLocationsMap");
+
+    const message =
+        document.getElementById("historyMapMessage");
+
+    if (!mapElement || !message) {
+        return;
+    }
+
+    if (typeof L === "undefined") {
+        message.textContent =
+            "Map library could not load. Reload the page and try again.";
+        message.className = "error";
+        return;
+    }
+
+    const historyMap = L.map("recordedLocationsMap");
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(historyMap);
+
+    const markers = [];
+    const rows = document.querySelectorAll(".table-wrap tbody tr");
+
+    rows.forEach(function (row) {
+        const cells = row.querySelectorAll("td");
+
+        if (cells.length < 9) {
+            return;
+        }
+
+        const imei = cells[0].textContent.trim();
+        const place = cells[1].textContent.trim();
+        const latText = cells[2].textContent.trim();
+        const lonText = cells[3].textContent.trim();
+        const recordedAt = cells[8].textContent.trim();
+
+        if (!latText || !lonText ||
+            latText === "-" || lonText === "-") {
+            return;
+        }
+
+        const lat = Number(latText);
+        const lon = Number(lonText);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+            lat < -90 || lat > 90 ||
+            lon < -180 || lon > 180) {
+            return;
+        }
+
+        const marker = L.marker([lat, lon]).addTo(historyMap);
+        const popup = document.createElement("div");
+
+        function addDetail(label, value) {
+            const line = document.createElement("div");
+            const strong = document.createElement("strong");
+
+            strong.textContent = label + ": ";
+            line.appendChild(strong);
+            line.appendChild(
+                document.createTextNode(value || "-")
+            );
+            popup.appendChild(line);
+        }
+
+        addDetail("IMEI", imei);
+        addDetail("Location", place);
+        addDetail("Latitude", String(lat));
+        addDetail("Longitude", String(lon));
+        addDetail("Recorded at", recordedAt);
+
+        marker.bindPopup(popup);
+        markers.push(marker);
+    });
+
+    if (markers.length > 0) {
+        historyMap.fitBounds(
+            L.featureGroup(markers).getBounds(),
+            { padding: [25, 25], maxZoom: 15 }
+        );
+
+        message.textContent =
+            "Showing " + markers.length +
+            " saved GPS location(s). Click a marker to view details.";
+        message.className = "success";
+    } else {
+        historyMap.setView([8.9806, 38.7578], 11);
+
+        message.textContent =
+            "No valid GPS coordinates found in the saved history. Save an authorized location with both coordinates to display a marker.";
+        message.className = "hint";
+    }
+
+    setTimeout(function () {
+        historyMap.invalidateSize();
     }, 200);
 })();
 </script>
