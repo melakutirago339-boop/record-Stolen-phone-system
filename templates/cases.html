@@ -484,10 +484,13 @@
 
         
 
+.
+/* Case table layout */
 .actions-cell {
-    min-width: 280px;
-    width: 280px;
+    min-width: 270px;
+    width: 270px;
     vertical-align: top;
+    white-space: normal;
 }
 
 .actions-cell .small-link {
@@ -496,14 +499,20 @@
     margin-bottom: 12px;
     color: #2563eb;
     font-weight: 700;
+    text-decoration: none;
+}
+
+.actions-cell .small-link:hover {
+    text-decoration: underline;
 }
 
 .update-form {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 12px;
     width: 100%;
-    min-width: 250px;
+    min-width: 0;
     padding: 14px;
     border: 1px solid #dbe4f0;
     border-radius: 12px;
@@ -512,6 +521,7 @@
 
 .update-form label {
     display: block;
+    width: 100%;
     margin: 0;
     color: #334155;
     font-size: 12px;
@@ -540,10 +550,12 @@
 }
 
 .update-form .btn {
+    display: block;
     width: 100%;
     margin-top: 2px;
     padding: 11px;
     border-radius: 8px;
+    white-space: normal;
 }
 
 .table-scroll {
@@ -553,6 +565,24 @@
     -webkit-overflow-scrolling: touch;
 }
 
+.table-scroll table {
+    width: 100%;
+    min-width: 1500px;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+@media (max-width: 600px) {
+    .actions-cell {
+        min-width: 250px;
+        width: 250px;
+    }
+
+    .update-form {
+        padding: 11px;
+        gap: 10px;
+    }
+}
 
         .empty-icon {
             font-size: 43px;
