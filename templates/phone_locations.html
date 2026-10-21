@@ -6,10 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Phone GPS Location History</title>
 
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
     <style>
         * { box-sizing: border-box; }
@@ -22,7 +20,10 @@
             color: #1e293b;
         }
 
-        .container { max-width: 1100px; margin: auto; }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
 
         .panel {
             background: white;
@@ -53,6 +54,11 @@
             font-size: 16px;
         }
 
+        input:focus, textarea:focus {
+            outline: 2px solid #93c5fd;
+            border-color: #2563eb;
+        }
+
         textarea { resize: vertical; }
 
         .grid {
@@ -60,6 +66,25 @@
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 16px;
         }
+
+        button, .action-link {
+            display: inline-block;
+            padding: 12px 18px;
+            background: #15803d;
+            color: white;
+            border: none;
+            border-radius: 7px;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        button:hover, .action-link:hover {
+            filter: brightness(0.92);
+        }
+
+        .secondary { background: #1d4ed8; }
+        .dark-button { background: #334155; }
 
         .permission {
             display: flex;
@@ -69,26 +94,16 @@
             line-height: 1.5;
         }
 
-        .permission input { margin-top: 4px; }
-
-        button {
-            padding: 13px 20px;
-            background: #15803d;
-            color: white;
-            border: none;
-            border-radius: 7px;
-            font-size: 16px;
-            cursor: pointer;
+        .permission input {
+            margin-top: 4px;
+            flex-shrink: 0;
         }
-
-        button:hover { background: #166534; }
-
-        .secondary { background: #1d4ed8; }
 
         .success, .error, .hint {
             padding: 12px;
             border-radius: 6px;
             overflow-wrap: anywhere;
+            line-height: 1.5;
         }
 
         .success { background: #dcfce7; color: #166534; }
@@ -97,12 +112,40 @@
 
         #map {
             width: 100%;
-            height: 380px;
+            height: 420px;
             border-radius: 9px;
+            border: 1px solid #cbd5e1;
             background: #e2e8f0;
+            z-index: 1;
         }
 
-        .table-wrap { width: 100%; overflow-x: auto; }
+        .map-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .coordinates {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .coordinate-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px;
+            overflow-wrap: anywhere;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
 
         table {
             width: 100%;
@@ -121,11 +164,17 @@
 
         a { color: #1d4ed8; }
 
+        .permission input {
+            width: 17px;
+            height: 17px;
+        }
+
         @media (max-width: 650px) {
             body { padding: 10px; }
             .panel { padding: 16px; }
             .grid { grid-template-columns: 1fr; }
-            #map { height: 300px; }
+            #map { height: 320px; }
+            button, .action-link { max-width: 100%; }
         }
     </style>
 </head>
@@ -139,9 +188,9 @@
         <h1>Phone GPS Location History</h1>
 
         <p>
-            Save GPS coordinates only when the location information
-            was obtained with appropriate permission or legal authority.
-            IMEI alone cannot reveal a phone's live GPS position.
+            Record location information only when obtained with
+            appropriate permission or legal authority.
+            An IMEI alone cannot reveal a phone's live GPS position.
         </p>
 
         {% if success %}
@@ -152,7 +201,10 @@
             <p class="error">{{ error }}</p>
         {% endif %}
 
-        <form method="POST" action="{{ url_for('phone_locations') }}">
+        <form method="POST"
+              action="{{ url_for('phone_locations') }}"
+              id="locationForm">
+
             <div class="field">
                 <label for="imei">Phone IMEI *</label>
                 <input type="text" id="imei" name="imei"
@@ -164,7 +216,7 @@
                 <label for="location">Known Location / Address *</label>
                 <input type="text" id="location" name="location"
                        maxlength="255" required
-                       placeholder="Describe the verified location">
+                       placeholder="Enter a verified location">
             </div>
 
             <div class="grid">
@@ -184,7 +236,7 @@
             </div>
 
             <p class="hint">
-                Enter both coordinates from an authorized GPS source,
+                Enter both coordinates from an authorized source,
                 or leave both blank if coordinates are unavailable.
             </p>
 
@@ -193,14 +245,40 @@
                         id="previewButton">
                     Preview Coordinates on Map
                 </button>
+
+                <button type="button" class="dark-button"
+                        id="resetMapButton">
+                    Reset Map
+                </button>
             </div>
 
             <div class="field">
                 <label>Map Preview</label>
                 <div id="map"></div>
-                <p id="mapMessage" class="hint">
+
+                <div class="coordinates">
+                    <div class="coordinate-box">
+                        Latitude: <strong id="previewLat">—</strong>
+                    </div>
+                    <div class="coordinate-box">
+                        Longitude: <strong id="previewLon">—</strong>
+                    </div>
+                </div>
+
+                <p id="mapMessage" class="hint" role="status"
+                   aria-live="polite">
                     Enter latitude and longitude to preview a location.
                 </p>
+
+                <div class="map-actions">
+                    <a id="openMapLink"
+                       class="action-link secondary"
+                       href="https://www.openstreetmap.org/"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        Open Map
+                    </a>
+                </div>
             </div>
 
             <div class="field">
@@ -262,7 +340,7 @@
                         <td>
                             {% if item.latitude is not none and item.longitude is not none %}
                                 <a
-                                  href="https://www.openstreetmap.org/?mlat={{ item.latitude }}&mlon={{ item.longitude }}#map=16/{{ item.latitude }}/{{ item.longitude }}"
+                                  href="https://www.openstreetmap.org/?mlat={{ item.latitude }}&amp;mlon={{ item.longitude }}#map=16/{{ item.latitude }}/{{ item.longitude }}"
                                   target="_blank"
                                   rel="noopener noreferrer">
                                   Open Map
@@ -287,8 +365,37 @@
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script>
-    const map = L.map("map").setView([8.9806, 38.7578], 11);
+(function () {
+    "use strict";
+
+    const latitudeInput = document.getElementById("latitude");
+    const longitudeInput = document.getElementById("longitude");
+    const locationInput = document.getElementById("location");
+    const message = document.getElementById("mapMessage");
+    const previewLat = document.getElementById("previewLat");
+    const previewLon = document.getElementById("previewLon");
+    const openMapLink = document.getElementById("openMapLink");
+    const previewButton = document.getElementById("previewButton");
+    const resetButton = document.getElementById("resetMapButton");
+    const form = document.getElementById("locationForm");
+
+    const defaultLat = 8.9806;
+    const defaultLon = 38.7578;
+    const defaultZoom = 11;
+
+    if (typeof L === "undefined") {
+        message.textContent =
+            "Map library could not load. Check your internet connection and reload the page.";
+        message.className = "error";
+        previewButton.disabled = true;
+        return;
+    }
+
+    const map = L.map("map").setView(
+        [defaultLat, defaultLon], defaultZoom
+    );
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -297,38 +404,150 @@
 
     let marker = null;
 
+    function showError(text) {
+        message.textContent = text;
+        message.className = "error";
+    }
+
+    function showHint(text) {
+        message.textContent = text;
+        message.className = "hint";
+    }
+
     function previewCoordinates() {
-        const lat = Number(document.getElementById("latitude").value);
-        const lon = Number(document.getElementById("longitude").value);
-        const message = document.getElementById("mapMessage");
+        const latText = latitudeInput.value.trim();
+        const lonText = longitudeInput.value.trim();
 
-        const latText = document.getElementById("latitude").value.trim();
-        const lonText = document.getElementById("longitude").value.trim();
-
-        if (!latText || !lonText ||
-            !Number.isFinite(lat) || !Number.isFinite(lon) ||
-            lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-            message.textContent =
-                "Enter valid latitude and longitude to preview the map.";
-            return;
+        if (!latText || !lonText) {
+            showError(
+                "Please enter both latitude and longitude."
+            );
+            return false;
         }
+
+        const lat = Number(latText);
+        const lon = Number(lonText);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+            lat < -90 || lat > 90 ||
+            lon < -180 || lon > 180) {
+            showError(
+                "Invalid coordinates. Latitude must be -90 to 90 and longitude -180 to 180."
+            );
+            return false;
+        }
+
+        const coords = [lat, lon];
+        const place = locationInput.value.trim() || "Selected location";
 
         if (marker) {
             map.removeLayer(marker);
         }
 
-        marker = L.marker([lat, lon]).addTo(map);
-        marker.bindPopup(
-            "Recorded GPS coordinates<br>" + lat + ", " + lon
-        ).openPopup();
+        marker = L.marker(coords).addTo(map);
 
-        map.setView([lat, lon], 16);
-        message.textContent =
-            "Preview only. Save the record to store these coordinates.";
+        const popup = document.createElement("div");
+        const title = document.createElement("strong");
+        title.textContent = place;
+
+        const details = document.createElement("div");
+        details.textContent = "Latitude: " + lat + ", Longitude: " + lon;
+
+        popup.appendChild(title);
+        popup.appendChild(document.createElement("br"));
+        popup.appendChild(details);
+
+        marker.bindPopup(popup).openPopup();
+
+        map.flyTo(coords, 16, { duration: 0.5 });
+
+        previewLat.textContent = lat.toFixed(6);
+        previewLon.textContent = lon.toFixed(6);
+
+        openMapLink.href =
+            "https://www.openstreetmap.org/?mlat=" +
+            encodeURIComponent(lat) +
+            "&mlon=" + encodeURIComponent(lon) +
+            "#map=16/" + lat + "/" + lon;
+
+        showHint(
+            "Preview only. Verify that these coordinates match the authorized location before saving."
+        );
+
+        return true;
     }
 
-    document.getElementById("previewButton")
-        .addEventListener("click", previewCoordinates);
+    previewButton.addEventListener("click", previewCoordinates);
+
+    latitudeInput.addEventListener("change", function () {
+        if (latitudeInput.value.trim() &&
+            longitudeInput.value.trim()) {
+            previewCoordinates();
+        }
+    });
+
+    longitudeInput.addEventListener("change", function () {
+        if (latitudeInput.value.trim() &&
+            longitudeInput.value.trim()) {
+            previewCoordinates();
+        }
+    });
+
+    locationInput.addEventListener("change", function () {
+        if (marker) {
+            previewCoordinates();
+        }
+    });
+
+    resetButton.addEventListener("click", function () {
+        if (marker) {
+            map.removeLayer(marker);
+            marker = null;
+        }
+
+        map.setView([defaultLat, defaultLon], defaultZoom);
+        previewLat.textContent = "—";
+        previewLon.textContent = "—";
+        openMapLink.href = "https://www.openstreetmap.org/";
+
+        showHint(
+            "Map reset. Enter authorized coordinates to preview a location."
+        );
+    });
+
+    form.addEventListener("submit", function (event) {
+        const latText = latitudeInput.value.trim();
+        const lonText = longitudeInput.value.trim();
+
+        if (!latText && !lonText) {
+            return;
+        }
+
+        if (!latText || !lonText) {
+            event.preventDefault();
+            showError(
+                "Enter both coordinates, or clear both fields before saving."
+            );
+            return;
+        }
+
+        const lat = Number(latText);
+        const lon = Number(lonText);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+            lat < -90 || lat > 90 ||
+            lon < -180 || lon > 180) {
+            event.preventDefault();
+            showError("Please correct the coordinates before saving.");
+            return;
+        }
+    });
+
+    setTimeout(function () {
+        map.invalidateSize();
+    }, 200);
+})();
 </script>
+
 </body>
 </html>
