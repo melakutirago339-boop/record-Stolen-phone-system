@@ -1757,24 +1757,9 @@ def reports():
         error=error
     )
 
-@app.route("/reports/export")
-@login_required
 
 def excel_safe_text(value):
-    """Keep user-provided text safe when opened in a spreadsheet."""
-    text = "" if value is None else str(value)
-
-    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
-        return "'" + text
-
-    return text
-
-
-@app.route("/reports/export")
-@login_required
-
-def excel_safe_text(value):
-    """Keep user-provided text safe when opened in a spreadsheet."""
+    """Prepare text safely for spreadsheet export."""
     text = "" if value is None else str(value)
 
     if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
@@ -1841,9 +1826,8 @@ def export_reports():
                 status
             ) = row
 
-            # Preserve complete IMEI values as text in Excel.
+            # Keep IMEI as text in Excel.
             imei_text = str(imei or "").strip()
-
             if imei_text.isdigit():
                 imei_cell = '="' + imei_text + '"'
             else:
@@ -1851,8 +1835,9 @@ def export_reports():
 
             # Preserve leading zeros in phone numbers.
             phone_text = str(phone_number or "").strip()
-
-            if phone_text.isdigit() or (
+            if phone_text.isdigit():
+                phone_cell = '="' + phone_text + '"'
+            elif (
                 phone_text.startswith("+")
                 and phone_text[1:].isdigit()
             ):
@@ -1860,7 +1845,7 @@ def export_reports():
             else:
                 phone_cell = excel_safe_text(phone_text)
 
-            # Export the full date and time.
+            # Preserve the complete date and time.
             if report_date is not None and hasattr(
                 report_date, "strftime"
             ):
@@ -1899,7 +1884,6 @@ def export_reports():
             cur.close()
         if conn:
             conn.close()
-
 
 # =================================================
 # LOGOUT
