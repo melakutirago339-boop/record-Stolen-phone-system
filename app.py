@@ -660,6 +660,7 @@ def register_phone():
 
     return render_template("register_phone.html")
 
+
 # =================================================
 # REPORT STOLEN PHONE
 # =================================================
@@ -668,107 +669,181 @@ def register_phone():
 @app.route("/report", methods=["GET", "POST"])
 @login_required
 def report_stolen():
+    if request.method == "GET":
+        return render_template("report_stolen.html")
+
     conn = None
     cur = None
 
-    if request.method == "POST":
-        owner_name = request.form.get("owner_name", "").strip()
-        phone_number = request.form.get("phone_number", "").strip()
+    owner_name = request.form.get("owner_name", "").strip()
+    phone_number = request.form.get("phone_number", "").strip()
 
-        imei = (
-            request.form.get("imei", "").strip()
-            or request.form.get("imei1", "").strip()
+    imei = (
+        request.form.get("imei", "").strip()
+        or request.form.get("imei1", "").strip()
+    )
+
+    brand = request.form.get("brand", "").strip()
+    phone_model = (
+        request.form.get("phone_model", "").strip()
+        or request.form.get("model", "").strip()
+    )
+
+    date_stolen = (
+        request.form.get("date_stolen", "").strip()
+        or request.form.get("incident_date", "").strip()
+    )
+
+    location = (
+        request.form.get("location_stolen", "").strip()
+        or request.form.get("last_location", "").strip()
+        or request.form.get("location", "").strip()
+    )
+
+    status_input = (
+        request.form.get("case_status", "").strip()
+        or request.form.get("status", "Reported").strip()
+    )
+
+    description = request.form.get("description", "").strip()
+    officer_name = request.form.get("officer_name", "").strip()
+
+    # Accept common status names and normalize them.
+    status_map = {
+        "reported": "Reported",
+        "investigation": "Investigation",
+        "under investigation": "Investigation",
+        "in progress": "Investigation",
+        "recovered": "Recovered",
+        "closed": "Closed"
+    }
+
+    status = status_map.get(status_input.lower(), "Reported")
+
+    # Avoid repeating the brand if it is already in the model.
+    if brand and phone_model:
+        if brand.casefold() in phone_model.casefold():
+            full_model = phone_model
+        else:
+            full_model = f"{brand} {phone_model}"
+    else:
+        full_model = brand or phone_model
+
+    # Validate the required fields.
+    if not owner_name:
+        return render_template(
+            "report_stolen.html",
+            error="Owner name is required."
         )
 
-        brand = request.form.get("brand", "").strip()
-        phone_model = (
-            request.form.get("phone_model", "").strip()
-            or request.form.get("model", "").strip()
+    if not imei.isdigit() or len(imei) != 15:
+        return render_template(
+            "report_stolen.html",
+            error="Please enter a valid 15-digit IMEI number."
         )
 
-        date_stolen = (
-            request.form.get("date_stolen", "").strip()
-            or request.form.get("incident_date", "").strip()
-        )
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-        location = (
-            request.form.get("location_stolen", "").strip()
-            or request.form.get("last_location", "").strip()
-            or request.form.get("location", "").strip()
-        )
+        # Check the actual database columns before inserting.
+        cur.execute("""
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_schema = current_schema()
+              AND table_name = %s
+        """, ("stolen_phones",))
 
-        status = request.form.get("case_status", "Reported").strip()
-        description = request.form.get("description", "").strip()
+        db_columns = {
+            row[0] for row in cur.fetchall()
+        }
 
-        allowed_statuses = [
-            "Reported",
-            "Under Investigation",
-            "Recovered",
-            "Closed"
-        ]
-
-        if status not in allowed_statuses:
-            status = "Reported"
-
-        if not owner_name or not imei:
-            return render_template(
-                "report_stolen.html",
-                error="Owner name and IMEI are required."
+        if not db_columns:
+            raise RuntimeError(
+                "The stolen_phones table was not found."
             )
 
-        try:
-                
-            conn = get_db_connection()
-            cur = conn.cursor()
-
-            cur.execute("""
-                INSERT INTO stolen_phones (
-                    owner_name,
-                    phone_number,
-                    imei,
-                    phone_model,
-                    last_location,
-                    date_stolen,
-                    status,
-                    case_status
-                )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                owner_name,
-                phone_number,
-                imei,
-                (brand + " " + phone_model).strip(),
-                location,
-                date_stolen or None,
-                status,
-                status
-            ))
-
-            conn.commit()
-
-            return redirect(url_for("dashboard"))
-
-        except Exception as e:
-            if conn:
-                conn.rollback()
-
-            print("Stolen phone report error:", repr(e))
-
-            return render_template(
-                "report_stolen.html",
-                error="Report failed. Check the IMEI and database logs."
+        if not {"owner_name", "imei"}.issubset(db_columns):
+            raise RuntimeError(
+                "Required owner_name or imei column is missing."
             )
 
-        finally:
-            if cur:
-                cur.close()
+        # Only insert fields that actually exist in the table.
+        data = {
+            "owner_name": owner_name,
+            "phone_number": phone_number,
+            "imei": imei,
+            "phone_model": full_model,
+            "last_location": location,
+            "status": status,
+            "case_status": status,
+        }
 
-            if conn:
-                conn.close()
+        if date_stolen and "date_stolen" in db_columns:
+            data["date_stolen"] = date_stolen
 
-    return render_template("report_stolen.html")
+        if "description" in db_columns:
+            data["description"] = description
 
+        if officer_name and "officer_name" in db_columns:
+            data["officer_name"] = officer_name
 
+        insert_columns = []
+        placeholders = []
+        values = []
+
+        for column, value in data.items():
+            if column in db_columns:
+                insert_columns.append(column)
+                placeholders.append("%s")
+                values.append(value)
+
+        # Record the submission time when these columns exist.
+        for timestamp_column in ("report_date", "created_at"):
+            if (
+                timestamp_column in db_columns
+                and timestamp_column not in insert_columns
+            ):
+                insert_columns.append(timestamp_column)
+                placeholders.append("CURRENT_TIMESTAMP")
+
+        if not insert_columns:
+            raise RuntimeError(
+                "No compatible columns found for the insert."
+            )
+
+        sql = (
+            "INSERT INTO stolen_phones ("
+            + ", ".join(insert_columns)
+            + ") VALUES ("
+            + ", ".join(placeholders)
+            + ")"
+        )
+
+        cur.execute(sql, values)
+        conn.commit()
+
+        return redirect(url_for("dashboard"))
+
+    except Exception:
+        if conn:
+            conn.rollback()
+
+        app.logger.exception("Stolen phone report failed")
+
+        return render_template(
+            "report_stolen.html",
+            error=(
+                "Report failed. Check the Render logs "
+                "for the exact database error."
+            )
+        )
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 
 # =================================================
 # SEARCH PHONE BY IMEI
