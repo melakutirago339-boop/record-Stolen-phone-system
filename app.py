@@ -1684,6 +1684,32 @@ def reports():
 
 @app.route("/reports/export")
 @login_required
+
+def excel_safe_text(value):
+    """Keep user-provided text safe when opened in a spreadsheet."""
+    text = "" if value is None else str(value)
+
+    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text
+
+    return text
+
+
+@app.route("/reports/export")
+@login_required
+
+def excel_safe_text(value):
+    """Keep user-provided text safe when opened in a spreadsheet."""
+    text = "" if value is None else str(value)
+
+    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+        return "'" + text
+
+    return text
+
+
+@app.route("/reports/export")
+@login_required
 def export_reports():
     import csv
     import io
@@ -1713,9 +1739,11 @@ def export_reports():
             ORDER BY report_date DESC
         """)
 
-        output = io.StringIO()
+        rows = cur.fetchall()
+
+        output = io.StringIO(newline="")
         output.write("\ufeff")
-        writer = csv.writer(output)
+        writer = csv.writer(output, lineterminator="\r\n")
 
         writer.writerow([
             "Owner Name",
@@ -1727,59 +1755,63 @@ def export_reports():
             "Status"
         ])
 
-      
-def excel_safe_text(value):
-    text = "" if value is None else str(value)
+        for row in rows:
+            (
+                owner_name,
+                phone_number,
+                imei,
+                phone_model,
+                last_location,
+                report_date,
+                status
+            ) = row
 
-    # Prevent spreadsheet formulas in user-provided text.
-    if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
-        return "'" + text
+            # Preserve complete IMEI values as text in Excel.
+            imei_text = str(imei or "").strip()
 
-    return text
+            if imei_text.isdigit():
+                imei_cell = '="' + imei_text + '"'
+            else:
+                imei_cell = excel_safe_text(imei_text)
 
+            # Preserve leading zeros in phone numbers.
+            phone_text = str(phone_number or "").strip()
 
-for row in cur.fetchall():
-    owner_name, phone_number, imei, phone_model, last_location, report_date, status = row
+            if phone_text.isdigit() or (
+                phone_text.startswith("+")
+                and phone_text[1:].isdigit()
+            ):
+                phone_cell = '="' + phone_text + '"'
+            else:
+                phone_cell = excel_safe_text(phone_text)
 
-    # Keep IMEI and phone numbers as text in Excel.
-    imei_text = str(imei or "").strip()
-    if imei_text.isdigit():
-        imei_cell = '="' + imei_text + '"'
-    else:
-        imei_cell = excel_safe_text(imei_text)
+            # Export the full date and time.
+            if report_date is not None and hasattr(
+                report_date, "strftime"
+            ):
+                date_text = report_date.strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+                date_cell = '="' + date_text + '"'
+            else:
+                date_cell = excel_safe_text(report_date)
 
-    phone_text = str(phone_number or "").strip()
-    if phone_text.isdigit() or (
-        phone_text.startswith("+") and phone_text[1:].isdigit()
-    ):
-        phone_cell = '="' + phone_text + '"'
-    else:
-        phone_cell = excel_safe_text(phone_text)
-
-    # Export the complete date and time as text.
-    if report_date is not None and hasattr(report_date, "strftime"):
-        date_text = report_date.strftime("%Y-%m-%d %H:%M:%S")
-        date_cell = '="' + date_text + '"'
-    else:
-        date_cell = excel_safe_text(report_date)
-
-    writer.writerow([
-        excel_safe_text(owner_name),
-        phone_cell,
-        imei_cell,
-        excel_safe_text(phone_model),
-        excel_safe_text(last_location),
-        date_cell,
-        excel_safe_text(status)
-    ])
-
+            writer.writerow([
+                excel_safe_text(owner_name),
+                phone_cell,
+                imei_cell,
+                excel_safe_text(phone_model),
+                excel_safe_text(last_location),
+                date_cell,
+                excel_safe_text(status)
+            ])
 
         return Response(
             output.getvalue(),
             mimetype="text/csv; charset=utf-8",
             headers={
                 "Content-Disposition":
-                    "attachment; filename=stolen_phone_reports.csv"
+                    'attachment; filename="stolen_phone_reports.csv"'
             }
         )
 
@@ -1792,7 +1824,6 @@ for row in cur.fetchall():
             cur.close()
         if conn:
             conn.close()
-
 
 
 # =================================================
