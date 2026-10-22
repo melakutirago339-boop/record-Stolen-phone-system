@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authorized Locations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+            background: #f4f6f9;
+        }
+        h1, h2 { color: #24364b; }
+        form, .panel {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+        input, select {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 10px;
+            margin: 8px 0 14px;
+        }
+        button {
+            background: #1769aa;
+            color: white;
+            padding: 11px 18px;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th { background: #e8edf3; }
+        .message { color: green; }
+        .error { color: #b00020; }
+        .table-wrap { overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Authorized Locations</h1>
+    <p>Manage approved locations and their recorded details.</p>
+
+    <p>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a> |
+        <a href="{{ url_for('phone_locations') }}">Phone GPS Location History</a>
+    </p>
+
+    {% if message %}
+        <p class="message">{{ message }}</p>
+    {% endif %}
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('location_redirect') }}">
+        <h2>Add Authorized Location</h2>
+
+        <label>Location Name *</label>
+        <input type="text" name="name" required>
+
+        <label>City *</label>
+        <input type="text" name="city" required>
+
+        <label>Address</label>
+        <input type="text" name="address">
+
+        <label>Location Type</label>
+        <input type="text" name="type" placeholder="Office, station, service area">
+
+        <label>Latitude (optional)</label>
+        <input type="number" name="latitude" step="any" min="-90" max="90">
+
+        <label>Longitude (optional)</label>
+        <input type="number" name="longitude" step="any" min="-180" max="180">
+
+        <label>Status</label>
+        <select name="status">
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+        </select>
+
+        <button type="submit">Save Authorized Location</button>
+    </form>
+
+    <section class="panel">
+        <h2>Saved Authorized Locations ({{ locations|length }})</h2>
+
+        {% if locations %}
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            {% for key in locations[0].keys() %}
+                                <th>{{ key }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for location in locations %}
+                            <tr>
+                                {% for value in location.values() %}
+                                    <td>{{ value if value is not none else "" }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No authorized locations have been registered yet.</p>
+        {% endif %}
+    </section>
+</body>
+</html>
