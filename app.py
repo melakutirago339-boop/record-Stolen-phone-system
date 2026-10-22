@@ -1709,7 +1709,7 @@ def location_redirect():
                 error = "Longitude must be between -180 and 180."
 
             if not error:
-                               cur.execute("""
+                                              cur.execute("""
                     INSERT INTO authorized_locations
                         (location_name, city, latitude, longitude,
                          location_type, address, status)
@@ -1723,10 +1723,11 @@ def location_redirect():
                     address or None,
                     status or "Authorized"
                 ))
+
                 conn.commit()
                 message = "Authorized location saved successfully."
 
-                cur.execute("""
+        cur.execute("""
             SELECT *
             FROM authorized_locations
             ORDER BY location_name
@@ -1737,7 +1738,6 @@ def location_redirect():
             dict(zip(columns, row))
             for row in cur.fetchall()
         ]
-
     except Exception:
         if conn:
             conn.rollback()
