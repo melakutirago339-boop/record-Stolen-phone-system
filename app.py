@@ -1568,13 +1568,7 @@ def phone_locations():
         search_imei=search_imei
     )
 
-
-# Redirect the old Authorized Locations link
-@app.route("/location")
-@login_required
-def location_redirect():
-    return redirect(url_for("phone_locations"))
-    # =================================================
+# =================================================
 # AUTHORIZED LOCATIONS
 # =================================================
 
