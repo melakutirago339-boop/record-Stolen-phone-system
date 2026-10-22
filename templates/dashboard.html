@@ -219,6 +219,131 @@
 <footer>
     Stolen Phone Recovery System
 </footer>
+    
+<script>
+const translations = {
+  en: {
+    dashboard: "Dashboard",
+    registered: "Registered Phones",
+    stolen: "Stolen Phones",
+    recovered: "Recovered Phones",
+    openCases: "Open Cases",
+    menu: "System Menu",
+    register: "Register Phone",
+    report: "Report Stolen Phone",
+    search: "Search IMEI",
+    cases: "Case Management",
+    history: "Case History",
+    locations: "Authorized Locations",
+    phoneLocations: "Phone Location History",
+    reports: "Reports",
+    logout: "Logout"
+  },
+  am: {
+    dashboard: "ዳሽቦርድ",
+    registered: "የተመዘገቡ ስልኮች",
+    stolen: "የተሰረቁ ስልኮች",
+    recovered: "የተመለሱ ስልኮች",
+    openCases: "ክፍት ጉዳዮች",
+    menu: "የስርዓቱ ማውጫ",
+    register: "ስልክ መመዝገብ",
+    report: "የተሰረቀ ስልክ ሪፖርት",
+    search: "IMEI መፈለግ",
+    cases: "የጉዳይ አስተዳደር",
+    history: "የጉዳይ ታሪክ",
+    locations: "የተፈቀዱ ቦታዎች",
+    phoneLocations: "የስልክ መገኛ ታሪክ",
+    reports: "ሪፖርቶች",
+    logout: "ውጣ"
+  },
+  om: {
+    dashboard: "Daashboordii",
+    registered: "Bilbiloota Galmaa'an",
+    stolen: "Bilbiloota Hataman",
+    recovered: "Bilbiloota Deebi'an",
+    openCases: "Dhimmoota Banaman",
+    menu: "Baafata Sirnichaa",
+    register: "Bilbila Galmeessi",
+    report: "Bilbila Hatame Gabaasi",
+    search: "IMEI Barbaadi",
+    cases: "Bulchiinsa Dhimmaa",
+    history: "Seenaa Dhimmaa",
+    locations: "Bakkeewwan Hayyamaman",
+    phoneLocations: "Seenaa Bakka Bilbilaa",
+    reports: "Gabaasota",
+    logout: "Ba'i"
+  },
+  ti: {
+    dashboard: "ዳሽቦርድ",
+    registered: "ዝተመዝገቡ ስልክታት",
+    stolen: "ዝተሰርቁ ስልክታት",
+    recovered: "ዝተመለሱ ስልክታት",
+    openCases: "ክፉታት ጉዳያት",
+    menu: "ምርጫታት ስርዓት",
+    register: "ስልኪ መዝግብ",
+    report: "ዝተሰርቀ ስልኪ ሓብር",
+    search: "IMEI ድለ",
+    cases: "ምሕደራ ጉዳያት",
+    history: "ታሪኽ ጉዳይ",
+    locations: "ዝተፈቐዱ ቦታታት",
+    phoneLocations: "ታሪኽ ቦታ ስልኪ",
+    reports: "ጸብጻባት",
+    logout: "ውጻእ"
+  }
+};
+
+const selectors = {
+  dashboard: "main > h2:nth-of-type(1)",
+  registered: ".card:nth-child(1) h3",
+  stolen: ".card:nth-child(2) h3",
+  recovered: ".card:nth-child(3) h3",
+  openCases: ".card:nth-child(4) h3",
+  menu: "nav"
+};
+
+function setLanguage(lang) {
+  const t = translations[lang] || translations.en;
+
+  document.documentElement.lang = lang;
+
+  document.querySelector(selectors.dashboard).textContent =
+    t.dashboard;
+
+  document.querySelectorAll(".card h3").forEach((el, i) => {
+    const keys = ["registered", "stolen", "recovered", "openCases"];
+    el.textContent = t[keys[i]];
+  });
+
+  document.querySelector("main > h2:nth-of-type(2)").textContent =
+    t.menu;
+
+  const linkKeys = [
+    "register", "report", "search", "cases", "history",
+    "locations", "phoneLocations", "reports", "logout"
+  ];
+
+  document.querySelectorAll("nav a").forEach((el, i) => {
+    el.textContent = t[linkKeys[i]];
+  });
+
+  localStorage.setItem("stolenPhoneLanguage", lang);
+}
+
+const languageSelect = document.getElementById("language");
+
+languageSelect.addEventListener("change", function () {
+  setLanguage(this.value);
+});
+
+const savedLanguage =
+  localStorage.getItem("stolenPhoneLanguage") || "en";
+
+languageSelect.value = savedLanguage;
+setLanguage(savedLanguage);
+</script>
+</body>
+</html>
+
 
 </body>
 </html>
