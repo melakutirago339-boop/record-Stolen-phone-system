@@ -26,11 +26,25 @@ def login_required(func):
             return redirect("/login")
         return func(*args, **kwargs)
     return wrapper
-    
+
+
 
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
+def get_db_connection():
+    database_url = os.environ.get("DATABASE_URL")
+
+    if not database_url:
+        raise RuntimeError(
+            "DATABASE_URL environment variable is missing."
+        )
+
+    return psycopg2.connect(
+        database_url,
+        sslmode="require",
+        connect_timeout=15
+    )
 
 def create_tables():
     conn = None
@@ -75,7 +89,6 @@ def create_tables():
             )
         """)
 
-        # Add missing columns without deleting existing records
         cur.execute("""
             ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
@@ -92,6 +105,17 @@ def create_tables():
             TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         """)
 
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS case_status
+            VARCHAR(50) DEFAULT 'Reported'
+        """)
+
+        cur.execute("""
+            ALTER TABLE stolen_phones
+            ADD COLUMN IF NOT EXISTS officer_name VARCHAR(150)
+        """)
+
         # Cases
         cur.execute("""
             CREATE TABLE IF NOT EXISTS cases (
@@ -106,7 +130,6 @@ def create_tables():
             )
         """)
 
-        # Ensure required columns exist in an older cases table
         cur.execute("""
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS owner_name VARCHAR(150)
@@ -144,7 +167,7 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
 
-        # Case history table
+        # Case history
         cur.execute("""
             CREATE TABLE IF NOT EXISTS case_history (
                 id SERIAL PRIMARY KEY,
@@ -176,7 +199,6 @@ def create_tables():
             )
         """)
 
-        # Add GPS columns to an existing table without deleting records
         cur.execute("""
             ALTER TABLE phone_location_history
             ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
@@ -185,6 +207,12 @@ def create_tables():
         cur.execute("""
             ALTER TABLE phone_location_history
             ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
+        """)
+
+        cur.execute("""
+            ALTER TABLE phone_location_history
+            ADD COLUMN IF NOT EXISTS permission_confirmed
+            BOOLEAN NOT NULL DEFAULT FALSE
         """)
 
         # Authorized locations
@@ -202,7 +230,7 @@ def create_tables():
             )
         """)
 
-        # System users for Admin and Officer login
+        # System users
         cur.execute("""
             CREATE TABLE IF NOT EXISTS system_users (
                 id SERIAL PRIMARY KEY,
