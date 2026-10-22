@@ -4,12 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stolen Phone System Dashboard</title>
+    <title>Stolen Phone Recovery System</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
@@ -21,15 +19,70 @@
         header {
             background: #0f172a;
             color: white;
-            padding: 20px;
+            padding: 18px 20px;
         }
 
-        header h1 {
-            margin-top: 0;
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logos {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-placeholder {
+            width: 68px;
+            height: 68px;
+            border: 2px dashed #94a3b8;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 10px;
+            padding: 5px;
+            color: white;
+            background: #1e293b;
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: clamp(20px, 3vw, 29px);
+        }
+
+        .brand p {
+            margin: 7px 0 0;
+            color: #cbd5e1;
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            padding: 10px;
+            border-radius: 7px;
+            border: 1px solid #cbd5e1;
+            font-size: 14px;
         }
 
         main {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 25px auto;
             padding: 20px;
         }
@@ -45,6 +98,7 @@
             padding: 22px;
             border-radius: 12px;
             box-shadow: 0 3px 10px #00000010;
+            border-top: 4px solid #2563eb;
         }
 
         .number {
@@ -68,25 +122,23 @@
             border-radius: 7px;
         }
 
-        nav a:hover {
-            background: #1d4ed8;
-        }
+        nav a:hover { background: #1d4ed8; }
 
-        .location-link {
-            background: #15803d;
-        }
+        .location-link { background: #15803d; }
+        .location-link:hover { background: #166534; }
 
-        .location-link:hover {
-            background: #166534;
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #64748b;
         }
 
         @media (max-width: 600px) {
-            main {
-                padding: 12px;
-            }
-
-            header {
-                padding: 16px;
+            main { padding: 12px; }
+            header { padding: 15px; }
+            .logo-placeholder {
+                width: 55px;
+                height: 55px;
             }
         }
     </style>
@@ -95,16 +147,39 @@
 <body>
 
 <header>
-    <h1>Stolen Phone Recovery System</h1>
-    <p>Welcome, {{ username }} | Role: {{ role }}</p>
+    <div class="header-top">
+        <div class="brand">
+            <div class="logos">
+                <div class="logo-placeholder">
+                    Federal Police Logo
+                </div>
+                <div class="logo-placeholder">
+                    Addis Ababa Police Logo
+                </div>
+            </div>
+
+            <div>
+                <h1>Stolen Phone Recovery System</h1>
+                <p>Welcome, {{ username }} | Role: {{ role }}</p>
+            </div>
+        </div>
+
+        <div class="header-controls">
+            <label for="language">Language / ቋንቋ:</label>
+            <select id="language" name="language">
+                <option value="en">English</option>
+                <option value="am">አማርኛ</option>
+                <option value="om">Afaan Oromoo</option>
+                <option value="ti">ትግርኛ</option>
+            </select>
+        </div>
+    </div>
 </header>
 
 <main>
-
     <h2>Dashboard</h2>
 
     <section class="cards">
-
         <div class="card">
             <h3>Registered Phones</h3>
             <p class="number">{{ registered_count }}</p>
@@ -124,34 +199,26 @@
             <h3>Open Cases</h3>
             <p class="number">{{ active_cases }}</p>
         </div>
-
     </section>
 
     <h2>System Menu</h2>
 
     <nav>
         <a href="/register_phone">Register Phone</a>
-
         <a href="/report_stolen">Report Stolen Phone</a>
-
         <a href="/search_imei">Search IMEI</a>
-
         <a href="/cases">Case Management</a>
-
         <a href="/case_history">Case History</a>
-
         <a href="/location">Authorized Locations</a>
-
-        <a href="/phone_locations" class="location-link">
-            Phone Location History
-        </a>
-
+        <a href="/phone_locations" class="location-link">Phone Location History</a>
         <a href="/reports">Reports</a>
-
         <a href="/logout">Logout</a>
     </nav>
-
 </main>
+
+<footer>
+    Stolen Phone Recovery System
+</footer>
 
 </body>
 </html>
