@@ -15,19 +15,18 @@ app.secret_key = os.environ.get(
     "SECRET_KEY",
     "stolen-phone-demo-secret-key"
 )
-
 # -------------------------------------------------
-# DATABASE CONNECTION
+# LOGIN REQUIRED DECORATOR
 # -------------------------------------------------
 
-def get_db_connection():
-    database_url = os.environ.get("DATABASE_URL")
-
-    if not database_url:
-        raise Exception("DATABASE_URL is not configured.")
-
-    return psycopg2.connect(database_url)
-
+def login_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if "username" not in session:
+            return redirect("/login")
+        return func(*args, **kwargs)
+    return wrapper
+    
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
@@ -160,7 +159,6 @@ def create_tables():
             )
         """)
         
-       
         # Phone location history
         cur.execute("""
             CREATE TABLE IF NOT EXISTS phone_location_history (
@@ -186,6 +184,21 @@ def create_tables():
         cur.execute("""
             ALTER TABLE phone_location_history
             ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
+        """)
+
+                # Authorized locations
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS authorized_locations (
+                id SERIAL PRIMARY KEY,
+                location_name VARCHAR(150) NOT NULL,
+                city VARCHAR(100),
+                latitude VARCHAR(50),
+                longitude VARCHAR(50),
+                location_type VARCHAR(100),
+                address TEXT,
+                status VARCHAR(50) DEFAULT 'Authorized',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
         """)
 
         # System users for Admin and Officer login
@@ -321,18 +334,6 @@ def location_redirect():
         error=error
     )
 
-# -------------------------------------------------
-# LOGIN REQUIRED DECORATOR
-# -------------------------------------------------
-
-def login_required(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        if "username" not in session:
-            return redirect("/login")
-        return func(*args, **kwargs)
-    return wrapper
-    
 # -------------------------------------------------
 # CREATE OFFICER ACCOUNT
 # -------------------------------------------------
@@ -1657,106 +1658,6 @@ def phone_locations():
         search_imei=search_imei
     )
 
-# =================================================
-# AUTHORIZED LOCATIONS
-# =================================================
-
-@app.route("/location", methods=["GET", "POST"])
-@login_required
-def location_redirect():
-    message = None
-    error = None
-    locations = []
-
-    conn = None
-    cur = None
-
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        if request.method == "POST":
-            name = request.form.get("name", "").strip()
-            city = request.form.get("city", "").strip()
-            address = request.form.get("address", "").strip()
-            location_type = request.form.get("type", "").strip()
-            status = request.form.get("status", "Active").strip()
-
-            latitude_text = request.form.get("latitude", "").strip()
-            longitude_text = request.form.get("longitude", "").strip()
-
-            latitude = None
-            longitude = None
-
-            if not name or not city:
-                error = "Location name and city are required."
-
-            try:
-                if latitude_text:
-                    latitude = float(latitude_text)
-                if longitude_text:
-                    longitude = float(longitude_text)
-            except ValueError:
-                error = "Latitude and longitude must be valid numbers."
-
-            if not error and ((latitude is None) != (longitude is None)):
-                error = "Enter both coordinates or leave both blank."
-
-            if not error and latitude is not None and not -90 <= latitude <= 90:
-                error = "Latitude must be between -90 and 90."
-
-            if not error and longitude is not None and not -180 <= longitude <= 180:
-                error = "Longitude must be between -180 and 180."
-
-            if not error:
-                                              cur.execute("""
-                    INSERT INTO authorized_locations
-                        (location_name, city, latitude, longitude,
-                         location_type, address, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    name,
-                    city,
-                    str(latitude) if latitude is not None else None,
-                    str(longitude) if longitude is not None else None,
-                    location_type or None,
-                    address or None,
-                    status or "Authorized"
-                ))
-
-                conn.commit()
-                message = "Authorized location saved successfully."
-
-        cur.execute("""
-            SELECT *
-            FROM authorized_locations
-            ORDER BY location_name
-        """)
-
-        columns = [description[0] for description in cur.description]
-        locations = [
-            dict(zip(columns, row))
-            for row in cur.fetchall()
-        ]
-    except Exception:
-        if conn:
-            conn.rollback()
-
-        app.logger.exception("Authorized locations page failed")
-        error = "Could not load or save authorized locations. Check Render logs."
-
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-
-    return render_template(
-        "authorized_locations.html",
-        locations=locations,
-        message=message,
-        error=error
-    )
 
 # =================================================
 # CASE HISTORY
