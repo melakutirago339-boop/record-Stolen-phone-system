@@ -1574,6 +1574,106 @@ def phone_locations():
 @login_required
 def location_redirect():
     return redirect(url_for("phone_locations"))
+    # =================================================
+# AUTHORIZED LOCATIONS
+# =================================================
+
+@app.route("/location", methods=["GET", "POST"])
+@login_required
+def location_redirect():
+    message = None
+    error = None
+    locations = []
+
+    conn = None
+    cur = None
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        if request.method == "POST":
+            name = request.form.get("name", "").strip()
+            city = request.form.get("city", "").strip()
+            address = request.form.get("address", "").strip()
+            location_type = request.form.get("type", "").strip()
+            status = request.form.get("status", "Active").strip()
+
+            latitude_text = request.form.get("latitude", "").strip()
+            longitude_text = request.form.get("longitude", "").strip()
+
+            latitude = None
+            longitude = None
+
+            if not name or not city:
+                error = "Location name and city are required."
+
+            try:
+                if latitude_text:
+                    latitude = float(latitude_text)
+                if longitude_text:
+                    longitude = float(longitude_text)
+            except ValueError:
+                error = "Latitude and longitude must be valid numbers."
+
+            if not error and ((latitude is None) != (longitude is None)):
+                error = "Enter both coordinates or leave both blank."
+
+            if not error and latitude is not None and not -90 <= latitude <= 90:
+                error = "Latitude must be between -90 and 90."
+
+            if not error and longitude is not None and not -180 <= longitude <= 180:
+                error = "Longitude must be between -180 and 180."
+
+            if not error:
+                cur.execute("""
+                    INSERT INTO authorized_locations
+                        (name, city, lat, long, type, address, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    name,
+                    city,
+                    latitude,
+                    longitude,
+                    location_type or None,
+                    address or None,
+                    status or "Active"
+                ))
+
+                conn.commit()
+                message = "Authorized location saved successfully."
+
+        cur.execute("""
+            SELECT *
+            FROM authorized_locations
+            ORDER BY name
+        """)
+
+        columns = [description[0] for description in cur.description]
+        locations = [
+            dict(zip(columns, row))
+            for row in cur.fetchall()
+        ]
+
+    except Exception:
+        if conn:
+            conn.rollback()
+
+        app.logger.exception("Authorized locations page failed")
+        error = "Could not load or save authorized locations. Check Render logs."
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+    return render_template(
+        "authorized_locations.html",
+        locations=locations,
+        message=message,
+        error=error
+    )
 
 # =================================================
 # CASE HISTORY
