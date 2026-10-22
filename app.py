@@ -216,19 +216,35 @@ def create_tables():
         """)
 
         # Authorized locations
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS authorized_locations (
-                id SERIAL PRIMARY KEY,
-                location_name VARCHAR(150) NOT NULL,
-                city VARCHAR(100),
-                latitude VARCHAR(50),
-                longitude VARCHAR(50),
-                location_type VARCHAR(100),
-                address TEXT,
-                status VARCHAR(50) DEFAULT 'Authorized',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+       cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS city TEXT
+""")
+
+cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS address TEXT
+""")
+
+cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS location_type TEXT
+""")
+
+cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
+""")
+
+cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
+""")
+
+cur.execute("""
+    ALTER TABLE authorized_locations
+    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active'
+""")
 
         # System users
         cur.execute("""
