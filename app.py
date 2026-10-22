@@ -201,6 +201,23 @@ def create_tables():
             )
         """)
         
+        conn.commit()
+        print("Database tables ready")
+
+    except Exception as e:
+        if conn:
+            conn.rollback()
+
+        print("Database table setup error:", repr(e))
+        raise
+
+    finally:
+        if cur:
+            cur.close()
+
+        if conn:
+            conn.close()
+
       
 # =================================================
 # AUTHORIZED LOCATIONS
@@ -304,7 +321,7 @@ def location_redirect():
         error=error
     )
 
-        # -------------------------------------------------
+# -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
 # -------------------------------------------------
 
@@ -1692,27 +1709,27 @@ def location_redirect():
                 error = "Longitude must be between -180 and 180."
 
             if not error:
-                cur.execute("""
+                               cur.execute("""
                     INSERT INTO authorized_locations
-                        (name, city, lat, long, type, address, status)
+                        (location_name, city, latitude, longitude,
+                         location_type, address, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (
                     name,
                     city,
-                    latitude,
-                    longitude,
+                    str(latitude) if latitude is not None else None,
+                    str(longitude) if longitude is not None else None,
                     location_type or None,
                     address or None,
-                    status or "Active"
+                    status or "Authorized"
                 ))
-
                 conn.commit()
                 message = "Authorized location saved successfully."
 
-        cur.execute("""
+                cur.execute("""
             SELECT *
             FROM authorized_locations
-            ORDER BY name
+            ORDER BY location_name
         """)
 
         columns = [description[0] for description in cur.description]
