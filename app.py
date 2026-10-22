@@ -1348,8 +1348,6 @@ def cases():
     )
 
 
-
-```python
 # =================================================
 # AUTHORIZED LOCATION / PHONE GPS LOCATION HISTORY
 # =================================================
@@ -1576,7 +1574,7 @@ def phone_locations():
 @login_required
 def location_redirect():
     return redirect(url_for("phone_locations"))
-```
+
 # =================================================
 # CASE HISTORY
 # =================================================
