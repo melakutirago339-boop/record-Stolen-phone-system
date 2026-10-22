@@ -27,6 +27,7 @@ def login_required(func):
         return func(*args, **kwargs)
     return wrapper
     
+
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
@@ -74,7 +75,7 @@ def create_tables():
             )
         """)
 
-                    # Add missing columns without deleting existing records
+        # Add missing columns without deleting existing records
         cur.execute("""
             ALTER TABLE stolen_phones
             ADD COLUMN IF NOT EXISTS last_location VARCHAR(255)
@@ -142,7 +143,7 @@ def create_tables():
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
-        
+
         # Case history table
         cur.execute("""
             CREATE TABLE IF NOT EXISTS case_history (
@@ -158,7 +159,7 @@ def create_tables():
                 changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         # Phone location history
         cur.execute("""
             CREATE TABLE IF NOT EXISTS phone_location_history (
@@ -186,7 +187,7 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
         """)
 
-                # Authorized locations
+        # Authorized locations
         cur.execute("""
             CREATE TABLE IF NOT EXISTS authorized_locations (
                 id SERIAL PRIMARY KEY,
@@ -213,7 +214,7 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         conn.commit()
         print("Database tables ready")
 
@@ -231,7 +232,6 @@ def create_tables():
         if conn:
             conn.close()
 
-      
 # =================================================
 # AUTHORIZED LOCATIONS
 # =================================================
