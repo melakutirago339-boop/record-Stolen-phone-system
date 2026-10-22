@@ -336,6 +336,40 @@
 
     <section class="panel">
         <h2>Recorded Location History</h2>
+        
+        <form method="GET"
+              action="{{ url_for('phone_locations') }}"
+              class="field">
+
+            <label for="search_imei">Search Location History by IMEI</label>
+
+            <input type="text"
+                   id="search_imei"
+                   name="search_imei"
+                   maxlength="15"
+                   pattern="[0-9]{15}"
+                   inputmode="numeric"
+                   placeholder="Enter 15-digit IMEI"
+                   value="{{ search_imei or '' }}"
+                   required>
+
+            <button type="submit" class="secondary">
+                Search IMEI
+            </button>
+
+            <a href="{{ url_for('phone_locations') }}"
+               class="action-link dark-button">
+                Show All Records
+            </a>
+        </form>
+
+        {% if search_imei %}
+            <p class="hint">
+                Search results for IMEI: {{ search_imei }}
+                — {{ locations|length }} record(s) found.
+            </p>
+        {% endif %}
+
 
         <div class="field">
             <h3>Recorded Locations Map</h3>
