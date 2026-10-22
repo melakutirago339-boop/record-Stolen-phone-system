@@ -1051,12 +1051,15 @@ def cases():
                     else:
                         record_id = int(record_id)
 
+                        # Lock the record while processing the update.
+                        # This helps prevent simultaneous duplicate updates.
                         if source == "case":
                             cur.execute("""
                                 SELECT case_number, imei,
                                        case_status, officer_name
                                 FROM cases
                                 WHERE id = %s
+                                FOR UPDATE
                             """, (record_id,))
                         else:
                             cur.execute("""
@@ -1065,6 +1068,7 @@ def cases():
                                     imei, case_status, officer_name
                                 FROM stolen_phones
                                 WHERE id = %s
+                                FOR UPDATE
                             """, (record_id,))
 
                         old_record = cur.fetchone()
@@ -1093,7 +1097,9 @@ def cases():
                                             officer_name = %s
                                         WHERE id = %s
                                     """, (
-                                        case_status, officer_name, record_id
+                                        case_status,
+                                        officer_name,
+                                        record_id
                                     ))
                                 else:
                                     cur.execute("""
@@ -1101,6 +1107,7 @@ def cases():
                                         SET case_status = %s
                                         WHERE id = %s
                                     """, (case_status, record_id))
+
                             else:
                                 if role == "admin":
                                     cur.execute("""
@@ -1109,7 +1116,9 @@ def cases():
                                             officer_name = %s
                                         WHERE id = %s
                                     """, (
-                                        case_status, officer_name, record_id
+                                        case_status,
+                                        officer_name,
+                                        record_id
                                     ))
                                 else:
                                     cur.execute("""
@@ -1117,38 +1126,37 @@ def cases():
                                         SET case_status = %s
                                         WHERE id = %s
                                     """, (case_status, record_id))
-                                    
-                        # Save history only when the status changes
-                        if previous_status != case_status:
-                            cur.execute("""
-                                INSERT INTO case_history (
+
+                            # Save history only when the status changes.
+                            if previous_status != case_status:
+                                cur.execute("""
+                                    INSERT INTO case_history (
+                                        source,
+                                        record_id,
+                                        case_number,
+                                        imei,
+                                        previous_status,
+                                        new_status,
+                                        officer_name,
+                                        changed_by
+                                    )
+                                    VALUES (
+                                        %s, %s, %s, %s,
+                                        %s, %s, %s, %s
+                                    )
+                                """, (
                                     source,
                                     record_id,
                                     case_number,
                                     imei,
                                     previous_status,
-                                    new_status,
+                                    case_status,
                                     officer_name,
-                                    changed_by
-                                )
-                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                                ON CONFLICT DO NOTHING
-                                RETURNING id
-                            """, (
-                                source,
-                                record_id,
-                                case_number,
-                                imei,
-                                previous_status,
-                                case_status,
-                                officer_name,
-                                session.get("username", "unknown")
-                            ))
+                                    session.get("username", "unknown")
+                                ))
 
-                            history_row = cur.fetchone()
-
-                        conn.commit()
-                        message = "Case updated successfully."
+                            conn.commit()
+                            message = "Case updated successfully."
 
  
             # Create a new case - Admin only
@@ -1340,6 +1348,7 @@ def cases():
     )
 
 
+
 # =================================================
 # AUTHORIZED LOCATION
 # =================================================
@@ -1377,13 +1386,21 @@ def phone_locations():
         if not error and (not imei or not location):
             error = "IMEI and location are required."
 
+        elif not error and (
+            len(imei) != 15 or not imei.isdigit()
+        ):
+            error = "IMEI must contain exactly 15 digits."
+
         elif not error and not permission:
             error = "Confirm legal authorization before saving."
 
         elif not error and (
             (latitude is None) != (longitude is None)
         ):
-            error = "Enter both Latitude and Longitude, or leave both empty."
+            error = (
+                "Enter both Latitude and Longitude, "
+                "or leave both empty."
+            )
 
         elif not error and latitude is not None and not (
             -90 <= latitude <= 90
@@ -1404,8 +1421,7 @@ def phone_locations():
                 cur = conn.cursor()
 
                 cur.execute("""
-                    INSERT INTO phone_location_history
-                    (
+                    INSERT INTO phone_location_history (
                         imei, location, latitude, longitude,
                         source, notes, permission_confirmed,
                         recorded_by
@@ -1419,7 +1435,7 @@ def phone_locations():
                     source or None,
                     notes or None,
                     True,
-                    str(session.get("username", "admin"))
+                    str(session.get("username", "unknown"))
                 ))
 
                 conn.commit()
@@ -1428,7 +1444,11 @@ def phone_locations():
             except Exception:
                 if conn:
                     conn.rollback()
-                error = "Save failed. Check the Render logs and database."
+
+                app.logger.exception("Phone location save failed")
+                error = (
+                    "Save failed. Check the Render logs and database."
+                )
 
             finally:
                 if cur:
@@ -1466,6 +1486,7 @@ def phone_locations():
             })
 
     except Exception:
+        app.logger.exception("Phone location history load failed")
         error = error or (
             "Could not load location history. "
             "Check the database columns and Render logs."
@@ -1498,7 +1519,7 @@ def location_redirect():
 @app.route("/case_history")
 @login_required
 def case_history():
-
+    
     history_list = []
     error = None
     conn = None
@@ -1561,11 +1582,9 @@ def case_history():
     )
 
 
-
 # =================================================
 # REPORTS
 # =================================================
-
 
 @app.route("/reports")
 @login_required
