@@ -823,29 +823,6 @@ gpsLocationGroups.forEach(function (group) {
     marker.bindPopup(popupContent);
 });
     
-        const popup = document.createElement("div");
-
-        function addDetail(label, value) {
-            const line = document.createElement("div");
-            const strong = document.createElement("strong");
-
-            strong.textContent = label + ": ";
-            line.appendChild(strong);
-            line.appendChild(
-                document.createTextNode(value || "-")
-            );
-            popup.appendChild(line);
-        }
-
-        addDetail("IMEI", imei);
-        addDetail("Location", place);
-        addDetail("Latitude", String(lat));
-        addDetail("Longitude", String(lon));
-        addDetail("Recorded at", recordedAt);
-
-        marker.bindPopup(popup);
-        markers.push(marker);
-    });
 
     if (markers.length > 0) {
         historyMap.fitBounds(
