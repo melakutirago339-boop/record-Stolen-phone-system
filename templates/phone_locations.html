@@ -657,6 +657,21 @@
     }
 
     const historyMap = L.map("recordedLocationsMap");
+    const gpsHistoryIcon = L.divIcon({
+    className: "custom-gps-marker",
+    html: '<div style="background:#2563eb;width:18px;height:18px;border:3px solid white;border-radius:50%;box-shadow:0 1px 5px #0008;"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -9]
+});
+
+const authorizedLocationIcon = L.divIcon({
+    className: "custom-authorized-marker",
+    html: '<div style="background:#16a34a;width:18px;height:18px;border:3px solid white;border-radius:50%;box-shadow:0 1px 5px #0008;"></div>',
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
+    popupAnchor: [0, -9]
+});
 
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
@@ -689,7 +704,9 @@
 
         authorizedCoordinateKeys.add(coordinateKey);
 
-        const marker = L.marker([lat, lon]).addTo(historyMap);
+       const marker = L.marker([lat, lon], {
+    icon: authorizedLocationIcon
+}).addTo(historyMap);
         const popup = document.createElement("div");
 
         function addAuthorizedDetail(label, value) {
@@ -746,7 +763,9 @@
             return;
         }
 
-        const marker = L.marker([lat, lon]).addTo(historyMap);
+       const marker = L.marker([lat, lon], {
+    icon: gpsHistoryIcon
+}).addTo(historyMap);
         const popup = document.createElement("div");
 
         function addDetail(label, value) {
