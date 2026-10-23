@@ -34,7 +34,6 @@ def login_required(func):
 # -------------------------------------------------
 def get_db_connection():
     database_url = os.environ.get("DATABASE_URL")
-
     if not database_url:
         raise RuntimeError(
             "DATABASE_URL environment variable is missing."
@@ -215,37 +214,36 @@ def create_tables():
             BOOLEAN NOT NULL DEFAULT FALSE
         """)
 
-        # Authorized locations
-       cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS city TEXT
-""")
+              # Authorized locations
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS city TEXT
+        """)
 
-cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS address TEXT
-""")
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS address TEXT
+        """)
 
-cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS location_type TEXT
-""")
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS location_type TEXT
+        """)
 
-cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
-""")
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION
+        """)
 
-cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
-""")
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION
+        """)
 
-cur.execute("""
-    ALTER TABLE authorized_locations
-    ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active'
-""")
-
+        cur.execute("""
+            ALTER TABLE authorized_locations
+            ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active'
+        """)
         # System users
         cur.execute("""
             CREATE TABLE IF NOT EXISTS system_users (
