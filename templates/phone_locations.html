@@ -796,10 +796,34 @@ const authorizedLocationIcon = L.divIcon({
             { padding: [25, 25], maxZoom: 15 }
         );
 
-        message.textContent =
-            "Showing " + markers.length +
-            " saved GPS location(s). Click a marker to view details.";
-        message.className = "success";
+       const gpsHistoryCount = rows.length
+    ? Array.from(rows).filter(function (row) {
+        const cells = row.querySelectorAll("td");
+
+        if (cells.length < 9) {
+            return false;
+        }
+
+        const lat = Number(cells[2].textContent.trim());
+        const lon = Number(cells[3].textContent.trim());
+
+        return cells[2].textContent.trim() !== "-" &&
+               cells[3].textContent.trim() !== "-" &&
+               Number.isFinite(lat) &&
+               Number.isFinite(lon) &&
+               lat >= -90 && lat <= 90 &&
+               lon >= -180 && lon <= 180;
+    }).length
+    : 0;
+
+const authorizedCount = authorizedCoordinateKeys.size;
+
+message.textContent =
+    "GPS History: " + gpsHistoryCount +
+    " marker(s) | Authorized Locations: " + authorizedCount +
+    " marker(s). Click a marker to view details.";
+
+message.className = "success";
     } else {
         historyMap.setView([8.9806, 38.7578], 11);
 
