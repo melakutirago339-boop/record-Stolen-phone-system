@@ -665,8 +665,10 @@
 
     const markers = [];
     const rows = document.querySelectorAll(".table-wrap tbody tr");
-        // Add saved authorized locations to the map.
+        
+    // Add authorized locations without duplicate map markers.
     const authorizedLocations = {{ authorized_locations | tojson }};
+    const authorizedCoordinateKeys = new Set();
 
     authorizedLocations.forEach(function (location) {
         const lat = Number(location.latitude);
@@ -678,6 +680,15 @@
             return;
         }
 
+        // Skip locations with the same coordinates.
+        const coordinateKey = lat.toFixed(6) + "," + lon.toFixed(6);
+
+        if (authorizedCoordinateKeys.has(coordinateKey)) {
+            return;
+        }
+
+        authorizedCoordinateKeys.add(coordinateKey);
+
         const marker = L.marker([lat, lon]).addTo(historyMap);
         const popup = document.createElement("div");
 
@@ -687,7 +698,11 @@
 
             strong.textContent = label + ": ";
             line.appendChild(strong);
-            line.appendChild(document.createTextNode(value || "-"));
+            line.appendChild(
+                document.createTextNode(
+                    value == null || value === "" ? "-" : String(value)
+                )
+            );
             popup.appendChild(line);
         }
 
@@ -695,13 +710,14 @@
         addAuthorizedDetail("Address", location.address);
         addAuthorizedDetail("City", location.city);
         addAuthorizedDetail("Type", location.location_type);
-        addAuthorizedDetail("Latitude", String(lat));
-        addAuthorizedDetail("Longitude", String(lon));
+        addAuthorizedDetail("Latitude", lat);
+        addAuthorizedDetail("Longitude", lon);
         addAuthorizedDetail("Status", location.status);
 
         marker.bindPopup(popup);
         markers.push(marker);
     });
+
 
     rows.forEach(function (row) {
         const cells = row.querySelectorAll("td");
