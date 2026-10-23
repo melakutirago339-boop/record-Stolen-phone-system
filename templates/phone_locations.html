@@ -746,46 +746,83 @@ const authorizedLocationIcon = L.divIcon({
         markers.push(marker);
     });
 
+const gpsLocationGroups = new Map();
 
-    rows.forEach(function (row) {
-        const cells = row.querySelectorAll("td");
-        const searchedIMEI = {{ (search_imei or '') | tojson }};
+rows.forEach(function (row) {
+    const cells = row.querySelectorAll("td");
 
-if (searchedIMEI && cells.length > 0) {
-    const rowIMEI = cells[0].textContent.trim();
-
-    if (rowIMEI !== searchedIMEI) {
+    if (cells.length < 9) {
         return;
     }
-}
 
-        if (cells.length < 9) {
+    const searchedIMEI = {{ (search_imei or '') | tojson }};
+
+    if (searchedIMEI) {
+        const rowIMEI = cells[0].textContent.trim();
+
+        if (rowIMEI !== searchedIMEI) {
             return;
         }
+    }
 
-        const imei = cells[0].textContent.trim();
-        const place = cells[1].textContent.trim();
-        const latText = cells[2].textContent.trim();
-        const lonText = cells[3].textContent.trim();
-        const recordedAt = cells[8].textContent.trim();
+    const imei = cells[0].textContent.trim();
+    const place = cells[1].textContent.trim();
+    const latText = cells[2].textContent.trim();
+    const lonText = cells[3].textContent.trim();
+    const recordedAt = cells[8].textContent.trim();
 
-        if (!latText || !lonText ||
-            latText === "-" || lonText === "-") {
-            return;
-        }
+    if (!latText || !lonText ||
+        latText === "-" || lonText === "-") {
+        return;
+    }
 
-        const lat = Number(latText);
-        const lon = Number(lonText);
+    const lat = Number(latText);
+    const lon = Number(lonText);
 
-        if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
-            lat < -90 || lat > 90 ||
-            lon < -180 || lon > 180) {
-            return;
-        }
+    if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+        lat < -90 || lat > 90 ||
+        lon < -180 || lon > 180) {
+        return;
+    }
 
-       const marker = L.marker([lat, lon], {
-    icon: gpsHistoryIcon
-}).addTo(historyMap);
+    const locationKey = lat.toFixed(6) + "," + lon.toFixed(6);
+
+    if (!gpsLocationGroups.has(locationKey)) {
+        gpsLocationGroups.set(locationKey, {
+            lat: lat,
+            lon: lon,
+            records: []
+        });
+    }
+
+    gpsLocationGroups.get(locationKey).records.push({
+        imei: imei,
+        place: place,
+        recordedAt: recordedAt
+    });
+});
+
+gpsLocationGroups.forEach(function (group) {
+    const marker = L.marker([group.lat, group.lon], {
+        icon: gpsHistoryIcon
+    }).addTo(historyMap);
+
+    const popupContent = group.records.map(function (record, index) {
+        return `
+            <div style="margin-bottom:10px;">
+                <strong>GPS Record ${index + 1}</strong><br>
+                <strong>IMEI:</strong> ${record.imei}<br>
+                <strong>Location:</strong> ${record.place}<br>
+                <strong>Latitude:</strong> ${group.lat}<br>
+                <strong>Longitude:</strong> ${group.lon}<br>
+                <strong>Recorded at:</strong> ${record.recordedAt}
+            </div>
+        `;
+    }).join("<hr>");
+
+    marker.bindPopup(popupContent);
+});
+    
         const popup = document.createElement("div");
 
         function addDetail(label, value) {
