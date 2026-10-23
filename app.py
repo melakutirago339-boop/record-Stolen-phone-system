@@ -28,7 +28,6 @@ def login_required(func):
     return wrapper
 
 
-
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
@@ -1488,8 +1487,9 @@ def cases():
 def phone_locations():
     message = None
     error = None
-       authorized_locations = []
-
+    locations = []
+    authorized_locations = []
+    
     # Read the IMEI search from the URL query string.
     search_imei = request.args.get("search_imei", "").strip()
 
@@ -1934,7 +1934,6 @@ def excel_safe_text(value):
 
     return text
 
-
 @app.route("/reports/export")
 @login_required
 def export_reports():
@@ -2062,15 +2061,12 @@ def logout():
     session.clear()
     return redirect(url_for("login"))
     
-
 # =================================================
 # SAFEDEVICE PAGE AND IMEI API
 # =================================================
 
 from flask import jsonify
 from datetime import datetime
-
-
 @app.route("/safedevice")
 @login_required
 def safedevice():
