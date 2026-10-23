@@ -298,27 +298,58 @@
             {% elif location_history %}
                 <div class="table-wrap">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Known Location</th>
-                                <th>Source</th>
-                                <th>Notes</th>
-                                <th>Recorded By</th>
-                                <th>Date Recorded</th>
-                            </tr>
-                        </thead>
+                        
 
-                        <tbody>
-                            {% for item in location_history %}
-                            <tr>
-                                <td>{{ item.location }}</td>
-                                <td>{{ item.source or 'Not provided' }}</td>
-                                <td>{{ item.notes or 'None' }}</td>
-                                <td>{{ item.recorded_by or 'Unknown' }}</td>
-                                <td>{{ item.recorded_at }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
+<thead>
+    <tr>
+        <th>Known Location</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Map</th>
+        <th>Source</th>
+        <th>Notes</th>
+        <th>Recorded By</th>
+        <th>Date Recorded</th>
+    </tr>
+</thead>
+
+
+                        
+<tbody>
+    {% for item in location_history %}
+    <tr>
+        <td>{{ item.location or 'N/A' }}</td>
+
+        <td>
+            {{ item.latitude if item.latitude is not none else '—' }}
+        </td>
+
+        <td>
+            {{ item.longitude if item.longitude is not none else '—' }}
+        </td>
+
+        <td>
+            {% if item.latitude is not none and item.longitude is not none %}
+                <a
+                    href="https://www.openstreetmap.org/?mlat={{ item.latitude }}&mlon={{ item.longitude }}#map=16/{{ item.latitude }}/{{ item.longitude }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Open Map
+                </a>
+            {% else %}
+                No GPS
+            {% endif %}
+        </td>
+
+        <td>{{ item.source or 'Not provided' }}</td>
+        <td>{{ item.notes or 'None' }}</td>
+        <td>{{ item.recorded_by or 'Unknown' }}</td>
+        <td>{{ item.recorded_at }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+
                     </table>
                 </div>
 
