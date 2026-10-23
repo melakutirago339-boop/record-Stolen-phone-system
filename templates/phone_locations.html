@@ -665,6 +665,43 @@
 
     const markers = [];
     const rows = document.querySelectorAll(".table-wrap tbody tr");
+        // Add saved authorized locations to the map.
+    const authorizedLocations = {{ authorized_locations | tojson }};
+
+    authorizedLocations.forEach(function (location) {
+        const lat = Number(location.latitude);
+        const lon = Number(location.longitude);
+
+        if (!Number.isFinite(lat) || !Number.isFinite(lon) ||
+            lat < -90 || lat > 90 ||
+            lon < -180 || lon > 180) {
+            return;
+        }
+
+        const marker = L.marker([lat, lon]).addTo(historyMap);
+        const popup = document.createElement("div");
+
+        function addAuthorizedDetail(label, value) {
+            const line = document.createElement("div");
+            const strong = document.createElement("strong");
+
+            strong.textContent = label + ": ";
+            line.appendChild(strong);
+            line.appendChild(document.createTextNode(value || "-"));
+            popup.appendChild(line);
+        }
+
+        addAuthorizedDetail("Authorized Location", location.location_name);
+        addAuthorizedDetail("Address", location.address);
+        addAuthorizedDetail("City", location.city);
+        addAuthorizedDetail("Type", location.location_type);
+        addAuthorizedDetail("Latitude", String(lat));
+        addAuthorizedDetail("Longitude", String(lon));
+        addAuthorizedDetail("Status", location.status);
+
+        marker.bindPopup(popup);
+        markers.push(marker);
+    });
 
     rows.forEach(function (row) {
         const cells = row.querySelectorAll("td");
