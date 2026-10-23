@@ -1479,7 +1479,6 @@ def cases():
         error=error
     )
 
-
 # =================================================
 # AUTHORIZED LOCATION / PHONE GPS LOCATION HISTORY
 # =================================================
@@ -1489,7 +1488,7 @@ def cases():
 def phone_locations():
     message = None
     error = None
-    locations = []
+       authorized_locations = []
 
     # Read the IMEI search from the URL query string.
     search_imei = request.args.get("search_imei", "").strip()
@@ -1605,7 +1604,7 @@ def phone_locations():
                 if conn:
                     conn.close()
 
-    # Load saved location history.
+       # Load authorized locations for the GPS map.
     conn = None
     cur = None
 
@@ -1613,76 +1612,36 @@ def phone_locations():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        if search_imei:
-            if (
-                len(search_imei) != 15
-                or not search_imei.isdigit()
-            ):
-                error = (
-                    error or
-                    "Search IMEI must contain exactly 15 digits."
-                )
-                locations = []
+        cur.execute("""
+            SELECT location_name, address, city,
+                   latitude, longitude, location_type, status
+            FROM authorized_locations
+            WHERE latitude IS NOT NULL
+              AND longitude IS NOT NULL
+              AND status = 'Active'
+            ORDER BY location_name
+        """)
 
-            else:
-                cur.execute("""
-                    SELECT id, imei, location, latitude, longitude,
-                           source, notes, permission_confirmed,
-                           recorded_by, recorded_at
-                    FROM phone_location_history
-                    WHERE imei = %s
-                    ORDER BY recorded_at DESC
-                """, (search_imei,))
+        rows = cur.fetchall()
 
-                rows = cur.fetchall()
-
-                for row in rows:
-                    locations.append({
-                        "id": row[0],
-                        "imei": row[1],
-                        "location": row[2],
-                        "latitude": row[3],
-                        "longitude": row[4],
-                        "source": row[5],
-                        "notes": row[6],
-                        "permission_confirmed": row[7],
-                        "recorded_by": row[8],
-                        "recorded_at": row[9]
-                    })
-
-        else:
-            cur.execute("""
-                SELECT id, imei, location, latitude, longitude,
-                       source, notes, permission_confirmed,
-                       recorded_by, recorded_at
-                FROM phone_location_history
-                ORDER BY recorded_at DESC
-            """)
-
-            rows = cur.fetchall()
-
-            for row in rows:
-                locations.append({
-                    "id": row[0],
-                    "imei": row[1],
-                    "location": row[2],
-                    "latitude": row[3],
-                    "longitude": row[4],
-                    "source": row[5],
-                    "notes": row[6],
-                    "permission_confirmed": row[7],
-                    "recorded_by": row[8],
-                    "recorded_at": row[9]
-                })
+        for row in rows:
+            authorized_locations.append({
+                "location_name": row[0],
+                "address": row[1],
+                "city": row[2],
+                "latitude": row[3],
+                "longitude": row[4],
+                "location_type": row[5],
+                "status": row[6]
+            })
 
     except Exception:
         app.logger.exception(
-            "Phone location history load failed"
+            "Authorized locations map load failed"
         )
 
         error = error or (
-            "Could not load location history. "
-            "Check the database columns and Render logs."
+            "Could not load authorized locations for the map."
         )
 
     finally:
@@ -1692,14 +1651,14 @@ def phone_locations():
         if conn:
             conn.close()
 
-    return render_template(
+       return render_template(
         "phone_locations.html",
         locations=locations,
+        authorized_locations=authorized_locations,
         success=message,
         error=error,
         search_imei=search_imei
     )
-
 
 # =================================================
 # CASE HISTORY
