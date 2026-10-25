@@ -872,8 +872,7 @@ rows.forEach(function (row) {
    
 const source = cells[5].textContent.trim();
 const notes = cells[6].textContent.trim();
-
-
+    
 gpsLocationGroups.get(locationKey).records.push({
     imei: imei,
     place: place,
@@ -884,16 +883,11 @@ gpsLocationGroups.get(locationKey).records.push({
 }); // Close rows.forEach
 
 gpsLocationGroups.forEach(function (group) {
-    // GPS marker code continues here
-
-
-gpsLocationGroups.forEach(function (group) {
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
     }).addTo(historyMap);
-
+    
     const popupContainer = document.createElement("div");
-
     group.records.forEach(function (record, index) {
         const recordBox = document.createElement("div");
         recordBox.style.marginBottom = "10px";
@@ -935,9 +929,9 @@ gpsLocationGroups.forEach(function (group) {
         }
     });
 
-    marker.bindPopup(popupContainer);
+       marker.bindPopup(popupContainer);
+    markers.push(marker);
 });
-
     
     if (markers.length > 0) {
         historyMap.fitBounds(
