@@ -877,28 +877,59 @@ rows.forEach(function (row) {
     });
 });
 
+
 gpsLocationGroups.forEach(function (group) {
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
     }).addTo(historyMap);
 
-   const popupContent = group.records.map(function (record, index) {
-    return `
-        <div style="margin-bottom:10px;">
-            <strong>GPS Record ${index + 1}</strong><br>
-            <strong>IMEI:</strong> ${record.imei}<br>
-            <strong>Location:</strong> ${record.place}<br>
-            <strong>Latitude:</strong> ${group.lat}<br>
-            <strong>Longitude:</strong> ${group.lon}<br>
-            <strong>Recorded at:</strong> ${record.recordedAt}
-        </div>
-    `;
-}).join("<hr>");
+    const popupContainer = document.createElement("div");
 
-    marker.bindPopup(popupContent);
+    group.records.forEach(function (record, index) {
+        const recordBox = document.createElement("div");
+        recordBox.style.marginBottom = "10px";
+
+        function addLine(label, value) {
+            const line = document.createElement("div");
+            const strong = document.createElement("strong");
+
+            strong.textContent = label + ": ";
+            line.appendChild(strong);
+            line.appendChild(
+                document.createTextNode(
+                    value === undefined || value === null || value === ""
+                        ? "—"
+                        : String(value)
+                )
+            );
+
+            recordBox.appendChild(line);
+        }
+
+        const title = document.createElement("strong");
+        title.textContent = "GPS Record " + (index + 1);
+        recordBox.appendChild(title);
+
+        addLine("IMEI", record.imei);
+        addLine("Location", record.place);
+        addLine("Latitude", group.lat);
+        addLine("Longitude", group.lon);
+        addLine("Information Source", record.source);
+        addLine("Additional Notes", record.notes);
+        addLine("Recorded at", record.recordedAt);
+
+        popupContainer.appendChild(recordBox);
+
+        if (index < group.records.length - 1) {
+            const divider = document.createElement("hr");
+            popupContainer.appendChild(divider);
+        }
+    });
+
+    marker.bindPopup(popupContainer);
 });
-    
 
+    
     if (markers.length > 0) {
         historyMap.fitBounds(
             L.featureGroup(markers).getBounds(),
