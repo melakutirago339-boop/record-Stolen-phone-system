@@ -402,7 +402,7 @@
 
         {% if locations %}
         <div class="table-wrap">
-            <table>
+           <table class="location-history-table">
                 <thead>
                     <tr>
                         <th>IMEI</th>
@@ -433,12 +433,13 @@
 
                         <td>
                             {% if item.latitude is not none and item.longitude is not none %}
-                                <a
-                                  href="https://www.openstreetmap.org/?mlat={{ item.latitude }}&amp;mlon={{ item.longitude }}#map=16/{{ item.latitude }}/{{ item.longitude }}"
-                                  target="_blank"
-                                  rel="noopener noreferrer">
-                                  Open Map
-                                </a>
+                               <a
+    class="location-map-link"
+    href="https://www.openstreetmap.org/?mlat={{ item.latitude }}&amp;mlon={{ item.longitude }}#map=16/{{ item.latitude }}/{{ item.longitude }}"
+    target="_blank"
+    rel="noopener noreferrer">
+    📍 Open Map
+</a>
                             {% else %}
                                 No GPS
                             {% endif %}
