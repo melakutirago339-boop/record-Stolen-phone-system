@@ -421,7 +421,9 @@
                 — {{ locations|length }} record(s) found.
             </p>
         {% endif %}
-       <div class="gps-summary">
+        
+      
+<div class="gps-summary">
     <div class="gps-summary-card">
         <span>Total Records</span>
         <strong>{{ locations|length }}</strong>
@@ -430,18 +432,18 @@
     <div class="gps-summary-card">
         <span>Records With GPS</span>
         <strong>
-            {% set gps_records = locations|selectattr('latitude')|list %}
-            {{ gps_records|length }}
+            {{ locations|selectattr('latitude', 'ne', none)|selectattr('longitude', 'ne', none)|list|length }}
         </strong>
     </div>
 
     <div class="gps-summary-card">
         <span>Records Without GPS</span>
         <strong>
-            {{ locations|length - (locations|selectattr('latitude')|list|length) }}
+            {{ locations|length - (locations|selectattr('latitude', 'ne', none)|selectattr('longitude', 'ne', none)|list|length) }}
         </strong>
     </div>
 </div>
+
 
         <div class="field">
             <h3>Recorded Locations Map</h3>
