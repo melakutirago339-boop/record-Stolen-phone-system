@@ -172,6 +172,58 @@
             #map, #recordedLocationsMap { height: 320px; }
             button, .action-link { max-width: 100%; }
         }
+        .location-history-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+}
+
+.location-history-table th {
+    white-space: nowrap;
+    background: #123b63;
+    color: white;
+    padding: 12px;
+    text-align: left;
+}
+
+.location-history-table td {
+    padding: 11px;
+    border-bottom: 1px solid #e2e8f0;
+    line-height: 1.5;
+}
+
+.location-history-table tbody tr:nth-child(even) {
+    background: #f5f8fc;
+}
+
+.location-history-table tbody tr:hover {
+    background: #eaf3ff;
+}
+
+.location-map-link {
+    display: inline-block;
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: #1261a0;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.location-map-link:hover {
+    background: #0b477b;
+}
+
+.no-gps {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #fff1d6;
+    color: #8a5a00;
+    font-size: 12px;
+    font-weight: bold;
+}
     </style>
 </head>
 
@@ -441,7 +493,7 @@
     📍 Open Map
 </a>
                             {% else %}
-                                No GPS
+                               <span class="no-gps">No GPS</span>
                             {% endif %}
                         </td>
 
