@@ -1071,8 +1071,9 @@ def search_imei():
                             phone, "case_status", "status"
                         ) or "Reported Stolen"
                     })
- # Load saved location history, including GPS coordinates.
-   try:
+                    
+# Load saved location history, including GPS coordinates.
+try:
     cur.execute("""
         SELECT location,
                latitude,
