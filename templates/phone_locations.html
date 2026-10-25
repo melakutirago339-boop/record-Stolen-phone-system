@@ -881,7 +881,7 @@ gpsLocationGroups.get(locationKey).records.push({
     notes: notes
 });
 }); // Close rows.forEach
-
+    
 gpsLocationGroups.forEach(function (group) {
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
