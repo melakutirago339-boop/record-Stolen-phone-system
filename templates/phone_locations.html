@@ -816,10 +816,7 @@ const authorizedLocationIcon = L.divIcon({
         addAuthorizedDetail("Longitude", lon);
         addAuthorizedDetail("Status", location.status);
 
-            marker.bindPopup(popupContainer);
-    markers.push(marker);
-});
-
+          
 const gpsLocationGroups = new Map();
 
 rows.forEach(function (row) {
@@ -869,25 +866,25 @@ rows.forEach(function (row) {
         });
     }
 
-   
-const source = cells[5].textContent.trim();
-const notes = cells[6].textContent.trim();
-    
-gpsLocationGroups.get(locationKey).records.push({
-    imei: imei,
-    place: place,
-    recordedAt: recordedAt,
-    source: source,
-    notes: notes
+    const source = cells[5].textContent.trim();
+    const notes = cells[6].textContent.trim();
+
+    gpsLocationGroups.get(locationKey).records.push({
+        imei: imei,
+        place: place,
+        recordedAt: recordedAt,
+        source: source,
+        notes: notes
+    });
 });
-}); // Close rows.forEach
-    
+
 gpsLocationGroups.forEach(function (group) {
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
     }).addTo(historyMap);
-    
+
     const popupContainer = document.createElement("div");
+
     group.records.forEach(function (record, index) {
         const recordBox = document.createElement("div");
         recordBox.style.marginBottom = "10px";
@@ -929,10 +926,10 @@ gpsLocationGroups.forEach(function (group) {
         }
     });
 
-       marker.bindPopup(popupContainer);
+    marker.bindPopup(popupContainer);
     markers.push(marker);
 });
-    
+
     if (markers.length > 0) {
         historyMap.fitBounds(
             L.featureGroup(markers).getBounds(),
