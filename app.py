@@ -1071,36 +1071,40 @@ def search_imei():
                             phone, "case_status", "status"
                         ) or "Reported Stolen"
                     })
+ # Load saved location history, including GPS coordinates.
+   try:
+    cur.execute("""
+        SELECT location,
+               latitude,
+               longitude,
+               source,
+               notes,
+               recorded_by,
+               recorded_at
+        FROM phone_location_history
+        WHERE imei = %s
+        ORDER BY recorded_at DESC
+    """, (searched_imei,))
 
-                # Load saved location history separately so that
-                # a history-table problem does not hide phone results.
-                try:
-                    cur.execute("""
-                        SELECT location, source, notes,
-                               recorded_by, recorded_at
-                        FROM phone_location_history
-                        WHERE imei = %s
-                        ORDER BY recorded_at DESC
-                    """, (searched_imei,))
+    for row in cur.fetchall():
+        location_history.append({
+            "location": row[0],
+            "latitude": row[1],
+            "longitude": row[2],
+            "source": row[3],
+            "notes": row[4],
+            "recorded_by": row[5],
+            "recorded_at": row[6]
+        })
 
-                    for row in cur.fetchall():
-                        location_history.append({
-                            "location": row[0],
-                            "source": row[1],
-                            "notes": row[2],
-                            "recorded_by": row[3],
-                            "recorded_at": row[4]
-                        })
-
-                except Exception:
-                    app.logger.exception(
-                        "Could not load phone location history"
-                    )
-                    location_history_error = (
-                        "Could not load location history. "
-                        "Check the Render logs for details."
-                    )
-
+except Exception:
+    app.logger.exception(
+        "Could not load phone location history"
+    )
+    location_history_error = (
+        "Could not load location history. "
+        "Check the Render logs for details."
+    )
             except Exception:
                 if conn:
                     conn.rollback()
