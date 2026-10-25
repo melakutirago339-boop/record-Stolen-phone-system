@@ -870,11 +870,16 @@ rows.forEach(function (row) {
         });
     }
 
-    gpsLocationGroups.get(locationKey).records.push({
-        imei: imei,
-        place: place,
-        recordedAt: recordedAt
-    });
+   
+const source = cells[5].textContent.trim();
+const notes = cells[6].textContent.trim();
+
+gpsLocationGroups.get(locationKey).records.push({
+    imei: imei,
+    place: place,
+    recordedAt: recordedAt,
+    source: source,
+    notes: notes
 });
 
 
