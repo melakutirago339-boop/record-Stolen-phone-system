@@ -419,10 +419,9 @@
             <p class="hint">
                 Search results for IMEI: {{ search_imei }}
                 — {{ locations|length }} record(s) found.
+                 {% endif %}
             </p>
-        {% endif %}
         
-      
 <div class="gps-summary">
     <div class="gps-summary-card">
         <span>Total Records</span>
@@ -817,9 +816,9 @@ const authorizedLocationIcon = L.divIcon({
         addAuthorizedDetail("Longitude", lon);
         addAuthorizedDetail("Status", location.status);
 
-        marker.bindPopup(popup);
-        markers.push(marker);
-    });
+            marker.bindPopup(popupContainer);
+    markers.push(marker);
+});
 
 const gpsLocationGroups = new Map();
 
@@ -874,6 +873,7 @@ rows.forEach(function (row) {
 const source = cells[5].textContent.trim();
 const notes = cells[6].textContent.trim();
 
+
 gpsLocationGroups.get(locationKey).records.push({
     imei: imei,
     place: place,
@@ -881,6 +881,10 @@ gpsLocationGroups.get(locationKey).records.push({
     source: source,
     notes: notes
 });
+}); // Close rows.forEach
+
+gpsLocationGroups.forEach(function (group) {
+    // GPS marker code continues here
 
 
 gpsLocationGroups.forEach(function (group) {
