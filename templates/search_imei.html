@@ -163,6 +163,97 @@
             font-size: 13px;
             margin: 30px 0;
         }
+        
+/* GPS location history improvements */
+.location-history-card {
+    border-top: 5px solid #1261a0;
+}
+
+.location-history-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.location-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 18px 0;
+}
+
+.location-stat {
+    flex: 1 1 150px;
+    padding: 15px;
+    background: #eef5fc;
+    border: 1px solid #d5e5f5;
+    border-radius: 10px;
+}
+
+.location-stat strong {
+    display: block;
+    color: #071e3d;
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.location-stat span {
+    color: #555;
+    font-size: 13px;
+}
+
+.table-wrap {
+    border-radius: 10px;
+    border: 1px solid #dce3ec;
+}
+
+.location-table {
+    min-width: 850px;
+}
+
+.location-table th {
+    white-space: nowrap;
+}
+
+.location-table td {
+    line-height: 1.5;
+}
+
+.location-table a {
+    display: inline-block;
+    padding: 7px 10px;
+    border-radius: 6px;
+    background: #1261a0;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.location-table a:hover {
+    background: #0b477b;
+}
+
+.no-gps {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: #fff1d6;
+    color: #8a5a00;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.location-notice {
+    padding: 12px 15px;
+    background: #eef7ff;
+    border-left: 4px solid #1261a0;
+    border-radius: 6px;
+    color: #28445f;
+    line-height: 1.6;
+    margin: 15px 0;
+}
+
 
         @media (max-width: 600px) {
             .card {
