@@ -815,7 +815,10 @@ const authorizedLocationIcon = L.divIcon({
         addAuthorizedDetail("Latitude", lat);
         addAuthorizedDetail("Longitude", lon);
         addAuthorizedDetail("Status", location.status);
-
+        
+        marker.bindPopup(popup);
+        markers.push(marker);
+    });
           
 const gpsLocationGroups = new Map();
 
