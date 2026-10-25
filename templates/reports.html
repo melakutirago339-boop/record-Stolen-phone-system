@@ -209,6 +209,98 @@
                 font-size: 13px;
             }
         }
+        
+/* Print and PDF layout */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 15mm;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #111111 !important;
+        font-size: 12px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .navbar,
+    .print-controls,
+    footer {
+        display: none !important;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .header {
+        margin-bottom: 20px;
+    }
+
+    .header h1 {
+        color: #071e3d !important;
+        font-size: 24px;
+    }
+
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .card,
+    .report-card {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border: 1px solid #dddddd;
+        border-radius: 6px;
+        padding: 15px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .number {
+        font-size: 24px;
+    }
+
+    .report-card {
+        margin-bottom: 15px;
+    }
+
+    .report-card h2 {
+        font-size: 17px;
+        margin-bottom: 12px;
+    }
+
+    .report-row {
+        padding: 10px 0;
+        gap: 10px;
+    }
+
+    .report-name {
+        min-width: 125px;
+    }
+
+    .bar-container {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+
+    .info {
+        background: #ffffff !important;
+        padding: 10px;
+    }
+
+    .error {
+        break-inside: avoid;
+    }
+}
+
     </style>
 </head>
 
@@ -227,7 +319,8 @@
         <div class="header">
             <h1>📊 System Reports</h1>
             
-<div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+<div class="print-controls"
+     style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
     <a href="{{ url_for('export_reports') }}"
        style="display: inline-block; background: #16803c; color: white; padding: 12px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
         ⬇ Export CSV
@@ -240,6 +333,7 @@
 </div>
 
         {% if error %}
+            </div>
         <div class="error">
             <strong>Reports error:</strong> {{ error }}
         </div>
