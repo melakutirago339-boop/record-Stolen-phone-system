@@ -962,11 +962,13 @@ gpsLocationGroups.forEach(function (group) {
 const authorizedCount = authorizedCoordinateKeys.size;
 
 message.textContent =
-    "GPS History: " + gpsHistoryCount +
-    " marker(s) | Authorized Locations: " + authorizedCount +
+    "GPS Records: " + gpsHistoryCount +
+    " | Unique GPS Markers: " + gpsLocationGroups.size +
+    " | Authorized Locations: " + authorizedCount +
     " marker(s). Click a marker to view details.";
 
 message.className = "success";
+        
     } else {
         historyMap.setView([8.9806, 38.7578], 11);
 
