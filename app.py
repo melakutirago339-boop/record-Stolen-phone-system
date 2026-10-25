@@ -1105,8 +1105,7 @@ except Exception:
     location_history_error = (
         "Could not load location history. "
         "Check the Render logs for details."
-    )
-            except Exception:
+    )            except Exception:
                 if conn:
                     conn.rollback()
 
