@@ -1648,17 +1648,25 @@ def phone_locations():
             cur.close()
         if conn:
             conn.close()
+                # Count GPS history records.
+    gps_record_count = sum(
+        1 for item in locations
+        if item["latitude"] is not None
+        and item["longitude"] is not None
+    )
 
-    return render_template(
+    no_gps_record_count = len(locations) - gps_record_count
+
+       return render_template(
         "phone_locations.html",
         locations=locations,
         authorized_locations=authorized_locations,
         success=message,
         error=error,
-        search_imei=search_imei
+        search_imei=search_imei,
+        gps_record_count=gps_record_count,
+        no_gps_record_count=no_gps_record_count
     )
-
-
 # =================================================
 # CASE HISTORY
 # =================================================
