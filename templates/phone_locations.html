@@ -882,18 +882,18 @@ gpsLocationGroups.forEach(function (group) {
         icon: gpsHistoryIcon
     }).addTo(historyMap);
 
-    const popupContent = group.records.map(function (record, index) {
-        return `
-            <div style="margin-bottom:10px;">
-                <strong>GPS Record ${index + 1}</strong><br>
-                <strong>IMEI:</strong> ${record.imei}<br>
-                <strong>Location:</strong> ${record.place}<br>
-                <strong>Latitude:</strong> ${group.lat}<br>
-                <strong>Longitude:</strong> ${group.lon}<br>
-                <strong>Recorded at:</strong> ${record.recordedAt}
-            </div>
-        `;
-    }).join("<hr>");
+   const popupContent = group.records.map(function (record, index) {
+    return `
+        <div style="margin-bottom:10px;">
+            <strong>GPS Record ${index + 1}</strong><br>
+            <strong>IMEI:</strong> ${record.imei}<br>
+            <strong>Location:</strong> ${record.place}<br>
+            <strong>Latitude:</strong> ${group.lat}<br>
+            <strong>Longitude:</strong> ${group.lon}<br>
+            <strong>Recorded at:</strong> ${record.recordedAt}
+        </div>
+    `;
+}).join("<hr>");
 
     marker.bindPopup(popupContent);
 });
