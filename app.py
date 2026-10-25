@@ -1487,7 +1487,6 @@ def cases():
 # AUTHORIZED LOCATION / PHONE GPS LOCATION HISTORY
 # =================================================
 
-
 @app.route("/phone_locations", methods=["GET", "POST"])
 @login_required
 def phone_locations():
@@ -1649,14 +1648,14 @@ def phone_locations():
         if conn:
             conn.close()
             
- # Count GPS history records.
- gps_record_count = sum(
+     # Count GPS history records.
+    gps_record_count = sum(
         1 for item in locations
         if item["latitude"] is not None
         and item["longitude"] is not None
     )
 
-no_gps_record_count = len(locations) - gps_record_count
+    no_gps_record_count = len(locations) - gps_record_count
 
     return render_template(
         "phone_locations.html",
