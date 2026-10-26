@@ -482,24 +482,32 @@
             color: #475569;
         }
        
+
 /* Case table layout */
 .actions-cell {
-    min-width: 270px;
-    width: 270px;
+    min-width: 300px;
+    width: 300px;
     vertical-align: top;
     white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .actions-cell .small-link {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     margin-bottom: 12px;
-    color: #2563eb;
+    padding: 8px 12px;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d4ed8;
     font-weight: 700;
     text-decoration: none;
 }
 
 .actions-cell .small-link:hover {
+    background: #dbeafe;
     text-decoration: underline;
 }
 
@@ -507,9 +515,10 @@
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 10px;
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
     padding: 14px;
     border: 1px solid #dbe4f0;
     border-radius: 12px;
@@ -526,10 +535,12 @@
 }
 
 .update-form select,
-.update-form input {
+.update-form input[type="text"] {
     display: block;
     width: 100%;
+    max-width: 100%;
     min-width: 0;
+    box-sizing: border-box;
     margin-top: 6px;
     padding: 10px;
     border: 1px solid #cbd5e1;
@@ -540,7 +551,7 @@
 }
 
 .update-form select:focus,
-.update-form input:focus {
+.update-form input[type="text"]:focus {
     outline: none;
     border-color: #2563eb;
     box-shadow: 0 0 0 3px rgba(37, 99, 235, .11);
@@ -549,14 +560,32 @@
 .update-form .btn {
     display: block;
     width: 100%;
-    margin-top: 2px;
-    padding: 11px;
+    box-sizing: border-box;
+    margin-top: 4px;
+    padding: 11px 12px;
+    border: 0;
     border-radius: 8px;
+    background: #2563eb;
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
     white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+.update-form .btn:hover {
+    background: #1d4ed8;
+}
+
+.update-form .btn:disabled {
+    opacity: 0.65;
+    cursor: wait;
 }
 
 .table-scroll {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
@@ -569,15 +598,15 @@
     border-spacing: 0;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
     .actions-cell {
-        min-width: 250px;
-        width: 250px;
+        min-width: 280px;
+        width: 280px;
     }
 
     .update-form {
-        padding: 11px;
-        gap: 10px;
+        padding: 12px;
+        gap: 9px;
     }
 }
 
