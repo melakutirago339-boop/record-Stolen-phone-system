@@ -804,7 +804,39 @@
         min-width: 320px;
     }
 }
- 
+
+        
+/* Case Management table only */
+.table-scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.table-scroll table {
+    width: 100%;
+    min-width: 1500px;
+    table-layout: auto;
+}
+
+.table-scroll th:last-child,
+.table-scroll td.actions-cell {
+    width: 360px;
+    min-width: 360px;
+}
+
+.table-scroll td.actions-cell {
+    vertical-align: top;
+    white-space: normal;
+}
+
+.table-scroll .case-actions,
+.table-scroll .update-form {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
     </style>
 </head>
 
