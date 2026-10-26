@@ -1058,59 +1058,59 @@
         View Case →
     </a>
 
-    <form class="update-form" method="POST"
-          action="{{ url_for('cases') }}">
 
-        <input type="hidden" name="action" value="update_case">
-        <input type="hidden" name="source" value="{{ case.source }}">
-        <input type="hidden" name="record_id" value="{{ case.id }}">
+<form class="update-form" method="POST"
+      action="{{ url_for('cases') }}"
+      onsubmit="const btn = this.querySelector('button[type=submit]'); if (this.dataset.submitting === 'true') return false; this.dataset.submitting = 'true'; btn.disabled = true; btn.textContent = 'Saving...';">
 
-        <label for="case-status-{{ case.source }}-{{ case.id }}">
-            Case Status
-        </label>
+    <input type="hidden" name="action" value="update_case">
+    <input type="hidden" name="source" value="{{ case.source }}">
+    <input type="hidden" name="record_id" value="{{ case.id }}">
 
-        <select
-            id="case-status-{{ case.source }}-{{ case.id }}"
-            name="case_status"
-            required>
+    <label for="case-status-{{ case.source }}-{{ case.id }}">
+        Case Status
+    </label>
 
-            <option value="Reported"
-                {% if (case.case_status or 'Reported')|lower|trim == 'reported' %}selected{% endif %}>
-                Reported
-            </option>
+    <select
+        id="case-status-{{ case.source }}-{{ case.id }}"
+        name="case_status"
+        required>
 
-            <option value="Investigation"
-                {% if (case.case_status or '')|lower|trim in ['investigation', 'under investigation', 'in progress'] %}selected{% endif %}>
-                Investigation
-            </option>
+        <option value="Reported"
+            {% if (case.case_status or 'Reported')|lower|trim == 'reported' %}selected{% endif %}>
+            Reported
+        </option>
 
-            <option value="Recovered"
-                {% if (case.case_status or '')|lower|trim == 'recovered' %}selected{% endif %}>
-                Recovered
-            </option>
+        <option value="Investigation"
+            {% if (case.case_status or '')|lower|trim in ['investigation', 'under investigation', 'in progress'] %}selected{% endif %}>
+            Investigation
+        </option>
 
-        </select>
+        <option value="Recovered"
+            {% if (case.case_status or '')|lower|trim == 'recovered' %}selected{% endif %}>
+            Recovered
+        </option>
 
-        <label for="officer-name-{{ case.source }}-{{ case.id }}">
-            Officer Name
-        </label>
+    </select>
 
-        <input
-            type="text"
-            id="officer-name-{{ case.source }}-{{ case.id }}"
-            name="officer_name"
-            maxlength="150"
-            placeholder="Enter officer name"
-            value="{{ case.officer_name or '' }}">
+    <label for="officer-name-{{ case.source }}-{{ case.id }}">
+        Officer Name
+    </label>
 
-        <button class="btn" type="submit">
-            Save Update
-        </button>
+    <input
+        type="text"
+        id="officer-name-{{ case.source }}-{{ case.id }}"
+        name="officer_name"
+        maxlength="150"
+        placeholder="Enter officer name"
+        value="{{ case.officer_name or '' }}">
 
-    </form>
+    <button class="btn" type="submit">
+        Save Update
+    </button>
 
+</form>
 </td>
-
 
 
                     </tr>
