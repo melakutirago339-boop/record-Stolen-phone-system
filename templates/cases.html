@@ -1051,65 +1051,60 @@
                         <td>{{ case.officer_name or 'Not assigned' }}</td>
 
                        
+
 <td class="actions-cell">
+    <div class="case-actions">
+        <a class="small-link"
+           href="{{ url_for('cases', source=case.source, view_id=case.id) }}">
+            View Case →
+        </a>
 
-    <a class="small-link"
-       href="{{ url_for('cases', source=case.source, view_id=case.id) }}">
-        View Case →
-    </a>
+        <form class="update-form"
+              method="POST"
+              action="{{ url_for('cases') }}"
+              onsubmit="const btn = this.querySelector('button[type=submit]'); if (this.dataset.submitting === 'true') return false; this.dataset.submitting = 'true'; btn.disabled = true; btn.textContent = 'Saving...';">
 
+            <input type="hidden" name="action" value="update_case">
+            <input type="hidden" name="source" value="{{ case.source }}">
+            <input type="hidden" name="record_id" value="{{ case.id }}">
 
-<form class="update-form" method="POST"
-      action="{{ url_for('cases') }}"
-      onsubmit="const btn = this.querySelector('button[type=submit]'); if (this.dataset.submitting === 'true') return false; this.dataset.submitting = 'true'; btn.disabled = true; btn.textContent = 'Saving...';">
+            <div class="form-field">
+                <label for="case-status-{{ case.source }}-{{ case.id }}">
+                    Case Status
+                </label>
+                <select id="case-status-{{ case.source }}-{{ case.id }}"
+                        name="case_status"
+                        required>
+                    <option value="Reported"
+                        {% if (case.case_status or 'Reported')|lower|trim == 'reported' %}selected{% endif %}>
+                        Reported
+                    </option>
+                    <option value="Investigation"
+                        {% if (case.case_status or '')|lower|trim in ['investigation', 'under investigation', 'in progress'] %}selected{% endif %}>
+                        Investigation
+                    </option>
+                    <option value="Recovered"
+                        {% if (case.case_status or '')|lower|trim == 'recovered' %}selected{% endif %}>
+                        Recovered
+                    </option>
+                </select>
+            </div>
 
-    <input type="hidden" name="action" value="update_case">
-    <input type="hidden" name="source" value="{{ case.source }}">
-    <input type="hidden" name="record_id" value="{{ case.id }}">
+            <div class="form-field">
+                <label for="officer-name-{{ case.source }}-{{ case.id }}">
+                    Officer Name
+                </label>
+                <input type="text"
+                       id="officer-name-{{ case.source }}-{{ case.id }}"
+                       name="officer_name"
+                       maxlength="150"
+                       placeholder="Enter officer name"
+                       value="{{ case.officer_name or '' }}">
+            </div>
 
-    <label for="case-status-{{ case.source }}-{{ case.id }}">
-        Case Status
-    </label>
-
-    <select
-        id="case-status-{{ case.source }}-{{ case.id }}"
-        name="case_status"
-        required>
-
-        <option value="Reported"
-            {% if (case.case_status or 'Reported')|lower|trim == 'reported' %}selected{% endif %}>
-            Reported
-        </option>
-
-        <option value="Investigation"
-            {% if (case.case_status or '')|lower|trim in ['investigation', 'under investigation', 'in progress'] %}selected{% endif %}>
-            Investigation
-        </option>
-
-        <option value="Recovered"
-            {% if (case.case_status or '')|lower|trim == 'recovered' %}selected{% endif %}>
-            Recovered
-        </option>
-
-    </select>
-
-    <label for="officer-name-{{ case.source }}-{{ case.id }}">
-        Officer Name
-    </label>
-
-    <input
-        type="text"
-        id="officer-name-{{ case.source }}-{{ case.id }}"
-        name="officer_name"
-        maxlength="150"
-        placeholder="Enter officer name"
-        value="{{ case.officer_name or '' }}">
-
-    <button class="btn" type="submit">
-        Save Update
-    </button>
-
-</form>
+            <button class="btn" type="submit">Save Update</button>
+        </form>
+    </div>
 </td>
 
 
