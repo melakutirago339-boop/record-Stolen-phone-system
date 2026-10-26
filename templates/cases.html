@@ -483,31 +483,26 @@
         }
        
 
+
 /* Case table layout */
 .actions-cell {
-    min-width: 300px;
-    width: 300px;
+    width: 320px;
+    min-width: 320px;
     vertical-align: top;
     white-space: normal;
-    overflow-wrap: anywhere;
+    padding: 12px;
+    box-sizing: border-box;
 }
 
 .actions-cell .small-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 12px;
-    padding: 8px 12px;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    background: #eff6ff;
-    color: #1d4ed8;
+    display: inline-block;
+    margin-bottom: 14px;
+    color: #2563eb;
     font-weight: 700;
     text-decoration: none;
 }
 
 .actions-cell .small-link:hover {
-    background: #dbeafe;
     text-decoration: underline;
 }
 
@@ -535,10 +530,9 @@
 }
 
 .update-form select,
-.update-form input[type="text"] {
+.update-form input {
     display: block;
     width: 100%;
-    max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
     margin-top: 6px;
@@ -551,10 +545,10 @@
 }
 
 .update-form select:focus,
-.update-form input[type="text"]:focus {
+.update-form input:focus {
     outline: none;
     border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, .11);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11);
 }
 
 .update-form .btn {
@@ -562,20 +556,10 @@
     width: 100%;
     box-sizing: border-box;
     margin-top: 4px;
-    padding: 11px 12px;
-    border: 0;
+    padding: 11px;
     border-radius: 8px;
-    background: #2563eb;
-    color: #fff;
-    font-weight: 700;
-    text-align: center;
     white-space: normal;
-    overflow-wrap: anywhere;
     cursor: pointer;
-}
-
-.update-form .btn:hover {
-    background: #1d4ed8;
 }
 
 .update-form .btn:disabled {
@@ -585,7 +569,6 @@
 
 .table-scroll {
     width: 100%;
-    max-width: 100%;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
@@ -600,15 +583,11 @@
 
 @media (max-width: 768px) {
     .actions-cell {
-        min-width: 280px;
-        width: 280px;
-    }
-
-    .update-form {
-        padding: 12px;
-        gap: 9px;
+        width: 300px;
+        min-width: 300px;
     }
 }
+
 
         .empty-icon {
             font-size: 43px;
