@@ -101,26 +101,54 @@
         <h2>Saved Authorized Locations ({{ locations|length }})</h2>
 
         {% if locations %}
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            {% for key in locations[0].keys() %}
-                                <th>{{ key }}</th>
-                            {% endfor %}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for location in locations %}
-                            <tr>
-                                {% for value in location.values() %}
-                                    <td>{{ value if value is not none else "" }}</td>
-                                {% endfor %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+          
+<div class="table-wrap">
+    <table>
+        <thead>
+            <tr>
+                {% for key in locations[0].keys() %}
+                    <th>{{ key }}</th>
+                {% endfor %}
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for location in locations %}
+                <tr>
+                    {% for value in location.values() %}
+                        <td>{{ value if value is not none else "" }}</td>
+                    {% endfor %}
+
+                    <td>
+                        {% if location.get('id')|int in [2, 3] %}
+                            <form method="POST"
+                                  action="{{ url_for('location_redirect') }}"
+                                  onsubmit="return confirm('Are you sure you want to delete duplicate location ID {{ location.get('id') }}? This cannot be undone.');">
+
+                                <input type="hidden"
+                                       name="action"
+                                       value="delete_location">
+
+                                <input type="hidden"
+                                       name="location_id"
+                                       value="{{ location.get('id') }}">
+
+                                <button type="submit"
+                                        style="background:#b00020;">
+                                    Delete Duplicate
+                                </button>
+                            </form>
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
         {% else %}
             <p>No authorized locations have been registered yet.</p>
         {% endif %}
