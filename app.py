@@ -273,6 +273,7 @@ def create_tables():
         if conn:
             conn.close()
 
+
 # =================================================
 # AUTHORIZED LOCATIONS
 # =================================================
@@ -292,61 +293,97 @@ def location_redirect():
         cur = conn.cursor()
 
         if request.method == "POST":
-            name = request.form.get("name", "").strip()
-            city = request.form.get("city", "").strip()
-            address = request.form.get("address", "").strip()
-            location_type = request.form.get("type", "").strip()
-            status = request.form.get("status", "Authorized").strip()
+            action = request.form.get("action", "add_location")
 
-            latitude_text = request.form.get("latitude", "").strip()
-            longitude_text = request.form.get("longitude", "").strip()
+            # Delete an authorized location after confirmation
+            if action == "delete_location":
+                location_id = request.form.get("location_id", "").strip()
 
-            latitude = None
-            longitude = None
+                if not location_id.isdigit():
+                    error = "Invalid location ID."
+                elif int(location_id) not in (2, 3):
+                    error = (
+                        "For safety, this delete action is currently "
+                        "limited to duplicate location IDs 2 and 3."
+                    )
+                else:
+                    cur.execute("""
+                        DELETE FROM authorized_locations
+                        WHERE id = %s
+                    """, (int(location_id),))
 
-            if not name or not city:
-                error = "Location name and city are required."
+                    if cur.rowcount == 1:
+                        conn.commit()
+                        message = (
+                            f"Duplicate authorized location "
+                            f"ID {location_id} deleted."
+                        )
+                    else:
+                        conn.rollback()
+                        error = (
+                            f"Location ID {location_id} was not found."
+                        )
 
-            try:
-                if latitude_text:
-                    latitude = float(latitude_text)
-                if longitude_text:
-                    longitude = float(longitude_text)
-            except ValueError:
-                error = "Latitude and longitude must be valid numbers."
+            # Add a new authorized location
+            elif action == "add_location":
+                name = request.form.get("name", "").strip()
+                city = request.form.get("city", "").strip()
+                address = request.form.get("address", "").strip()
+                location_type = request.form.get("type", "").strip()
+                status = request.form.get("status", "Active").strip()
 
-            if not error and ((latitude is None) != (longitude is None)):
-                error = "Enter both coordinates or leave both blank."
+                latitude_text = request.form.get("latitude", "").strip()
+                longitude_text = request.form.get("longitude", "").strip()
 
-            if not error and latitude is not None and not -90 <= latitude <= 90:
-                error = "Latitude must be between -90 and 90."
+                latitude = None
+                longitude = None
 
-            if not error and longitude is not None and not -180 <= longitude <= 180:
-                error = "Longitude must be between -180 and 180."
+                if not name or not city:
+                    error = "Location name and city are required."
 
-            if not error:
-                cur.execute("""
-                    INSERT INTO authorized_locations
-                        (location_name, city, latitude, longitude,
-                         location_type, address, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    name,
-                    city,
-                    str(latitude) if latitude is not None else None,
-                    str(longitude) if longitude is not None else None,
-                    location_type or None,
-                    address or None,
-                    status or "Authorized"
-                ))
+                try:
+                    if latitude_text:
+                        latitude = float(latitude_text)
+                    if longitude_text:
+                        longitude = float(longitude_text)
+                except ValueError:
+                    error = "Latitude and longitude must be valid numbers."
 
-                conn.commit()
-                message = "Authorized location saved successfully."
+                if not error and ((latitude is None) != (longitude is None)):
+                    error = "Enter both coordinates or leave both blank."
+
+                if not error and latitude is not None and not -90 <= latitude <= 90:
+                    error = "Latitude must be between -90 and 90."
+
+                if not error and longitude is not None and not -180 <= longitude <= 180:
+                    error = "Longitude must be between -180 and 180."
+
+                if not error:
+                    cur.execute("""
+                        INSERT INTO authorized_locations
+                            (location_name, city, latitude, longitude,
+                             location_type, address, status)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        name,
+                        city,
+                        str(latitude) if latitude is not None else None,
+                        str(longitude) if longitude is not None else None,
+                        location_type or None,
+                        address or None,
+                        status or "Active"
+                    ))
+
+                    conn.commit()
+                    message = "Authorized location saved successfully."
+
+            else:
+                error = "Invalid action."
 
         cur.execute("""
             SELECT *
             FROM authorized_locations
-            ORDER BY location_name
+            ORDER BY location_name, id
         """)
 
         columns = [description[0] for description in cur.description]
@@ -360,7 +397,10 @@ def location_redirect():
             conn.rollback()
 
         app.logger.exception("Authorized locations page failed")
-        error = "Could not load or save authorized locations. Check Render logs."
+        error = (
+            "Could not complete the operation. "
+            "Check Render logs; the record may be protected by a database constraint."
+        )
 
     finally:
         if cur:
@@ -374,6 +414,7 @@ def location_redirect():
         message=message,
         error=error
     )
+
 
 # -------------------------------------------------
 # CREATE OFFICER ACCOUNT
