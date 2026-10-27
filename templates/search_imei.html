@@ -274,10 +274,24 @@
             ← Dashboard
         </a>
     </div>
-    <div class="result-row">
-    <strong>Status:</strong>
-    {{ result.status or 'N/A' }}
-</div>
+   
+                            <div class="result-row">
+                                <strong>Status:</strong>
+                                {{ result.status or 'N/A' }}
+                            </div>
+
+                            {% if result.type == 'Case Record' %}
+                                <div class="result-row">
+                                    <strong>Case Number:</strong>
+                                    {{ result.case_number or 'N/A' }}
+                                </div>
+
+                                <div class="result-row">
+                                    <strong>Officer Name:</strong>
+                                    {{ result.officer_name or 'N/A' }}
+                                </div>
+                            {% endif %}
+
 
     <div class="container">
 
