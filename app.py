@@ -1844,7 +1844,7 @@ def reports():
         recovered_count = recovered_cases_count
         active_cases_count = reported_count + investigation_count
 
-)
+
         # 4. Authorized locations
         cur.execute("""
             SELECT COUNT(*)
