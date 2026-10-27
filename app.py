@@ -1841,7 +1841,20 @@ def reports():
         recovered_cases_count = row[3]
         closed_count = row[4]
 
-        recovered_count = recovered_cases_count
+       # Count recovered phones from stolen-phone records only
+cur.execute("""
+    SELECT COUNT(*)
+    FROM stolen_phones
+    WHERE LOWER(TRIM(COALESCE(case_status, ''))) = 'recovered'
+       OR (
+            LOWER(TRIM(COALESCE(case_status, ''))) NOT IN (
+                'recovered', 'closed', 'investigation',
+                'under investigation', 'in progress'
+            )
+            AND LOWER(TRIM(COALESCE(status, ''))) = 'recovered'
+       )
+""")
+recovered_count = cur.fetchone()[0]
         active_cases_count = reported_count + investigation_count
 
 
