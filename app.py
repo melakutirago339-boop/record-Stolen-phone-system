@@ -1779,42 +1779,34 @@ def reports():
         """)
         stolen_count = cur.fetchone()[0]
 
-               # 3. Count cases and unlinked stolen-phone reports
-        # without counting the same IMEI twice.
+             
+        # 3. Count cases and unlinked stolen-phone reports
+        # Count each IMEI only once when a case is linked to it.
         cur.execute("""
             WITH all_cases AS (
                 SELECT
-                    case_status,
+                    LOWER(TRIM(COALESCE(case_status, 'reported')))
+                        AS normalized_status,
                     imei
                 FROM cases
 
                 UNION ALL
 
                 SELECT
-                    CASE
-                        WHEN LOWER(TRIM(COALESCE(s.case_status, '')))
-                             IN (
-                                 'recovered',
-                                 'closed',
-                                 'investigation',
-                                 'under investigation',
-                                 'in progress'
-                             )
-                        THEN s.case_status
-
-                        WHEN LOWER(TRIM(COALESCE(s.status, '')))
-                             IN (
-                                 'reported',
-                                 'recovered',
-                                 'closed',
-                                 'investigation',
-                                 'under investigation',
-                                 'in progress'
-                             )
-                        THEN s.status
-
-                        ELSE 'Reported'
-                    END AS case_status,
+                    LOWER(TRIM(
+                        CASE
+                            WHEN LOWER(TRIM(COALESCE(s.case_status, '')))
+                                IN ('recovered', 'closed', 'investigation',
+                                    'under investigation', 'in progress')
+                            THEN s.case_status
+                            WHEN LOWER(TRIM(COALESCE(s.status, '')))
+                                IN ('reported', 'recovered', 'closed',
+                                    'investigation', 'under investigation',
+                                    'in progress')
+                            THEN s.status
+                            ELSE 'reported'
+                        END
+                    )) AS normalized_status,
                     s.imei
                 FROM stolen_phones AS s
                 WHERE NOT EXISTS (
@@ -1825,36 +1817,24 @@ def reports():
             )
             SELECT
                 COUNT(*),
-
                 COUNT(*) FILTER (
-                    WHERE LOWER(TRIM(COALESCE(case_status, '')))
-                          = 'reported'
+                    WHERE normalized_status = 'reported'
                 ),
-
                 COUNT(*) FILTER (
-                    WHERE LOWER(TRIM(COALESCE(case_status, '')))
-                          IN (
-                              'investigation',
-                              'under investigation',
-                              'in progress'
-                          )
+                    WHERE normalized_status IN (
+                        'investigation', 'under investigation', 'in progress'
+                    )
                 ),
-
                 COUNT(*) FILTER (
-                    WHERE LOWER(TRIM(COALESCE(case_status, '')))
-                          = 'recovered'
+                    WHERE normalized_status = 'recovered'
                 ),
-
                 COUNT(*) FILTER (
-                    WHERE LOWER(TRIM(COALESCE(case_status, '')))
-                          = 'closed'
+                    WHERE normalized_status = 'closed'
                 )
-
             FROM all_cases
         """)
 
         row = cur.fetchone()
-
         cases_count = row[0]
         reported_count = row[1]
         investigation_count = row[2]
@@ -1862,11 +1842,9 @@ def reports():
         closed_count = row[4]
 
         recovered_count = recovered_cases_count
+        active_cases_count = reported_count + investigation_count
 
-        active_cases_count = (
-            reported_count + investigation_count
-        )
-
+)
         # 4. Authorized locations
         cur.execute("""
             SELECT COUNT(*)
