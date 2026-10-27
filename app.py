@@ -1040,36 +1040,31 @@ def search_imei():
                         "status": phone.get("status") or "Registered"
                     })
 
-                # Search stolen-phone reports
+                               # Search case records
                 cur.execute("""
                     SELECT *
-                    FROM stolen_phones
+                    FROM cases
                     WHERE imei = %s
                 """, (searched_imei,))
 
-                stolen_columns = [
+                case_columns = [
                     desc[0] for desc in cur.description
                 ]
 
                 for row in cur.fetchall():
-                    phone = dict(zip(stolen_columns, row))
+                    case = dict(zip(case_columns, row))
 
                     results.append({
-                        "type": "Stolen Phone",
-                        "owner_name": phone.get("owner_name"),
-                        "phone_number": phone.get("phone_number"),
-                        "imei": phone.get("imei"),
-                        "phone_model": phone.get("phone_model"),
-                        "location": first_value(
-                            phone, "last_location", "location"
-                        ),
-                        "date": first_value(
-                            phone, "report_date", "created_at",
-                            "reported_at"
-                        ),
-                        "status": first_value(
-                            phone, "case_status", "status"
-                        ) or "Reported Stolen"
+                        "type": "Case Record",
+                        "owner_name": case.get("owner_name"),
+                        "phone_number": None,
+                        "imei": case.get("imei"),
+                        "phone_model": None,
+                        "location": None,
+                        "date": case.get("created_at"),
+                        "status": case.get("case_status") or "Reported",
+                        "case_number": case.get("case_number"),
+                        "officer_name": case.get("officer_name")
                     })
                     
                 # Load saved location history, including GPS coordinates.
