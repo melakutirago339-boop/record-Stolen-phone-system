@@ -1840,8 +1840,7 @@ def reports():
         investigation_count = row[2]
         recovered_cases_count = row[3]
         closed_count = row[4]
-
-       # Count recovered phones from stolen-phone records only
+# Count recovered phones from stolen-phone records only
 cur.execute("""
     SELECT COUNT(*)
     FROM stolen_phones
