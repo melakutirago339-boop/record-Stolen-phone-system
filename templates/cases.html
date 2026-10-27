@@ -931,7 +931,15 @@
     <section class="panel">
         <div class="panel-heading">
             <div class="heading-group">
-                <div class="heading-icon">＋</div>
+               <button
+    type="button"
+    class="heading-icon"
+    id="toggleCaseForm"
+    aria-label="Show or hide Create New Case form"
+    aria-expanded="true"
+    aria-controls="createCaseForm">
+    ＋
+</button>
                 <div>
                     <h2>Create New Case</h2>
                     <p class="section-subtitle">Enter the details to register a new case.</p>
@@ -939,7 +947,8 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ url_for('cases') }}">
+        <form id="createCaseForm" method="POST"
+      action="{{ url_for('cases') }}">
             <input type="hidden" name="action" value="create_case">
 
             <div class="details">
@@ -997,6 +1006,7 @@
             </div>
         </form>
     </section>
+    
 
     <!-- SELECTED CASE DETAILS -->
     {% if selected_case %}
@@ -1238,6 +1248,29 @@
 <footer>
     © 2026 Stolen Phone Recovery System · Case Management
 </footer>
+    
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleButton = document.getElementById("toggleCaseForm");
+    const caseForm = document.getElementById("createCaseForm");
+
+    if (!toggleButton || !caseForm) {
+        return;
+    }
+
+    // Hide the form when the page first opens
+    caseForm.hidden = true;
+    toggleButton.setAttribute("aria-expanded", "false");
+
+    toggleButton.addEventListener("click", function () {
+        const isHidden = caseForm.hidden;
+
+        caseForm.hidden = !isHidden;
+        toggleButton.setAttribute("aria-expanded", String(isHidden));
+        toggleButton.textContent = isHidden ? "−" : "＋";
+    });
+});
+</script>
 
 </body>
 </html>
