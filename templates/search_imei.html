@@ -309,81 +309,80 @@
                 <button type="submit">🔎 Search IMEI</button>
             </form>
 
-            {% if searched_imei and not results and not error %}
-                <div class="result">
-                    No phone found in the phone records for IMEI
-                    <strong>{{ searched_imei }}</strong>.
-                    Check the location history below as well.
+           
+{% if searched_imei and not results and not error %}
+    <div class="result">
+        No phone found in the phone records for IMEI
+        <strong>{{ searched_imei }}</strong>.
+        Check the location history below as well.
+    </div>
+{% endif %}
+
+{% if results %}
+    <div class="result">
+        <h2>Search Results</h2>
+
+        <p class="success">
+            Found {{ results|length }} matching record(s).
+        </p>
+
+        {% for result in results %}
+            <div style="margin-top:20px; padding-top:15px;
+                        border-top:1px solid #ddd;">
+
+                <h3>{{ result.type }}</h3>
+
+                <div class="result-row">
+                    <strong>Owner:</strong>
+                    {{ result.owner_name or 'N/A' }}
                 </div>
-            {% endif %}
 
-            {% if results %}
-                <div class="result">
-                    <h2>Search Results</h2>
-
-                    <p class="success">
-                        Found {{ results|length }} matching record(s).
-                    </p>
-
-                    {% for result in results %}
-                        <div style="margin-top:20px; padding-top:15px;
-                                    border-top:1px solid #ddd;">
-
-                            <h3>{{ result.type }}</h3>
-
-                            <div class="result-row">
-                                <strong>Owner:</strong>
-                                {{ result.owner_name or 'N/A' }}
-                            </div>
-
-                            <div class="result-row">
-                                <strong>Phone Number:</strong>
-                                {{ result.phone_number or 'N/A' }}
-                            </div>
-
-                            <div class="result-row">
-                                <strong>IMEI:</strong>
-                                {{ result.imei }}
-                            </div>
-
-                            <div class="result-row">
-                                <strong>Model:</strong>
-                                {{ result.phone_model or 'N/A' }}
-                            </div>
-
-                            <div class="result-row">
-                                <strong>Location / Color:</strong>
-                                {{ result.location or 'N/A' }}
-                            </div>
-
-                            <div class="result-row">
-                                <strong>Date:</strong>
-                                {{ result.date or 'N/A' }}
-                            </div>
-
-                           
-                            <div class="result-row">
-                                <strong>Status:</strong>
-                                {{ result.status or 'N/A' }}
-                            </div>
-
-                            {% if result.type == 'Case Record' %}
-                                <div class="result-row">
-                                    <strong>Case Number:</strong>
-                                    {{ result.case_number or 'N/A' }}
-                                </div>
-
-                                <div class="result-row">
-                                    <strong>Officer Name:</strong>
-                                    {{ result.officer_name or 'N/A' }}
-                                </div>
-                            {% endif %}
->
-                        </div>
-                    {% endfor %}
+                <div class="result-row">
+                    <strong>Phone Number:</strong>
+                    {{ result.phone_number or 'N/A' }}
                 </div>
-                                     {% endif %}
-                        </div>
+
+                <div class="result-row">
+                    <strong>IMEI:</strong>
+                    {{ result.imei }}
+                </div>
+
+                <div class="result-row">
+                    <strong>Model:</strong>
+                    {{ result.phone_model or 'N/A' }}
+                </div>
+
+                <div class="result-row">
+                    <strong>Location / Color:</strong>
+                    {{ result.location or 'N/A' }}
+                </div>
+
+                <div class="result-row">
+                    <strong>Date:</strong>
+                    {{ result.date or 'N/A' }}
+                </div>
+
+                <div class="result-row">
+                    <strong>Status:</strong>
+                    {{ result.status or 'N/A' }}
+                </div>
+
+                {% if result.type == 'Case Record' %}
+                    <div class="result-row">
+                        <strong>Case Number:</strong>
+                        {{ result.case_number or 'N/A' }}
+                    </div>
+
+                    <div class="result-row">
+                        <strong>Officer Name:</strong>
+                        {{ result.officer_name or 'N/A' }}
+                    </div>
+                {% endif %}
+
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
 
         <!-- PHONE LOCATION HISTORY -->
         {% if searched_imei %}
