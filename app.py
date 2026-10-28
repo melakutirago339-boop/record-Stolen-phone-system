@@ -1393,11 +1393,12 @@ def cases():
             FROM cases
             ORDER BY created_at DESC
         """)
-               existing_cases = cur.fetchall()
 
+        
+        
+            existing_cases = cur.fetchall()
         for row in existing_cases:
             case_imei = row[2] or ""
-
             cur.execute("""
                 SELECT phone_model, color
                 FROM registered_phones
