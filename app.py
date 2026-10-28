@@ -2017,6 +2017,7 @@ def excel_safe_text(value):
 
     return text
 
+
 @app.route("/reports/export")
 @login_required
 def export_reports():
@@ -2043,9 +2044,9 @@ def export_reports():
                     NULLIF(case_status, ''),
                     status,
                     'Reported'
-                )
+                ) AS report_status
             FROM stolen_phones
-            ORDER BY report_date DESC
+            ORDER BY report_date DESC NULLS LAST
         """)
 
         rows = cur.fetchall()
@@ -2065,28 +2066,25 @@ def export_reports():
         ])
 
         for row in rows:
-            (
-                owner_name,
-                phone_number,
-                imei,
-                phone_model,
-                last_location,
-                report_date,
-                status
-            ) = row
+            owner_name = row[0]
+            phone_number = row[1]
+            imei = row[2]
+            phone_model = row[3]
+            last_location = row[4]
+            report_date = row[5]
+            status = row[6]
 
-            # Keep IMEI as text in Excel.
+            # Keep IMEI and phone number as text in Excel.
             imei_text = str(imei or "").strip()
-            if imei_text.isdigit():
-                imei_cell = '="' + imei_text + '"'
-            else:
-                imei_cell = excel_safe_text(imei_text)
-
-            # Preserve leading zeros in phone numbers.
             phone_text = str(phone_number or "").strip()
-            if phone_text.isdigit():
-                phone_cell = '="' + phone_text + '"'
-            elif (
+
+            imei_cell = (
+                '="' + imei_text + '"'
+                if imei_text.isdigit()
+                else excel_safe_text(imei_text)
+            )
+
+            if phone_text.isdigit() or (
                 phone_text.startswith("+")
                 and phone_text[1:].isdigit()
             ):
@@ -2094,16 +2092,15 @@ def export_reports():
             else:
                 phone_cell = excel_safe_text(phone_text)
 
-            # Preserve the complete date and time.
+            # Keep date and time together.
             if report_date is not None and hasattr(
                 report_date, "strftime"
             ):
-                date_text = report_date.strftime(
+                date_cell = report_date.strftime(
                     "%Y-%m-%d %H:%M:%S"
                 )
-                date_cell = '="' + date_text + '"'
             else:
-                date_cell = excel_safe_text(report_date)
+                date_cell = str(report_date or "")
 
             writer.writerow([
                 excel_safe_text(owner_name),
@@ -2133,6 +2130,7 @@ def export_reports():
             cur.close()
         if conn:
             conn.close()
+
 
 # =================================================
 # LOGOUT
