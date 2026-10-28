@@ -1832,9 +1832,8 @@ def reports():
              
        
         
-                # 3. Case Status summary
-        # Match the records displayed in Case Management:
-        # all cases plus all stolen-phone reports.
+                        # 3. Case Status summary
+        # Count cases and only standalone stolen-phone reports.
         cur.execute("""
             SELECT
                 COUNT(*),
@@ -1859,9 +1858,16 @@ def reports():
                         = 'closed'
                 )
             FROM cases
+        """)
+        row = cur.fetchone()
 
-            UNION ALL
+        cases_count = row[0]
+        reported_count = row[1]
+        investigation_count = row[2]
+        recovered_cases_count = row[3]
+        closed_count = row[4]
 
+        cur.execute("""
             SELECT
                 COUNT(*),
                 COUNT(*) FILTER (
@@ -1949,17 +1955,20 @@ def reports():
                             ELSE 'reported'
                         END, 'reported'))) = 'closed'
                 )
-            FROM stolen_phones
+            FROM stolen_phones AS s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cases AS c
+                WHERE c.imei = s.imei
+            )
         """)
+        report_row = cur.fetchone()
 
-        status_rows = cur.fetchall()
-
-        cases_count = sum(row[0] for row in status_rows)
-        reported_count = sum(row[1] for row in status_rows)
-        investigation_count = sum(row[2] for row in status_rows)
-        recovered_cases_count = sum(row[3] for row in status_rows)
-        closed_count = sum(row[4] for row in status_rows)
-       
+        cases_count += report_row[0]
+        reported_count += report_row[1]
+        investigation_count += report_row[2]
+        recovered_cases_count += report_row[3]
+        closed_count += report_row[4]
         # Add only stolen-phone reports that do not already
         # have a matching case with the same IMEI.
         cur.execute("""
