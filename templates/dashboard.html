@@ -7,145 +7,283 @@
     <title>Stolen Phone Recovery System</title>
 
     <style>
-        * { box-sizing: border-box; }
+        
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f1f5f9;
-            color: #1e293b;
-        }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f1f5f9;
+    color: #1e293b;
+    line-height: 1.5;
+}
 
-        header {
-            background: #0f172a;
-            color: white;
-            padding: 18px 20px;
-        }
+header {
+    background: linear-gradient(135deg, #0f172a, #123b69);
+    color: white;
+    padding: 22px;
+    box-shadow: 0 4px 14px #00000018;
+}
 
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
+.header-top {
+    max-width: 1250px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+}
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-width: 0;
+}
 
-        .logos {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+.logos {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .logo-placeholder {
-            width: 68px;
-            height: 68px;
-            border: 2px dashed #94a3b8;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 10px;
-            padding: 5px;
-            color: white;
-            background: #1e293b;
-        }
+.logo-placeholder {
+    width: 58px;
+    height: 58px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 9px;
+    padding: 5px;
+    color: white;
+    background: #1e293b;
+}
 
-        .brand h1 {
-            margin: 0;
-            font-size: clamp(20px, 3vw, 29px);
-        }
+.brand h1 {
+    margin: 0;
+    font-size: clamp(20px, 3vw, 30px);
+    line-height: 1.25;
+}
 
-        .brand p {
-            margin: 7px 0 0;
-            color: #cbd5e1;
-        }
+.brand p {
+    margin: 8px 0 0;
+    color: #cbd5e1;
+    overflow-wrap: anywhere;
+}
 
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
 
-        select {
-            padding: 10px;
-            border-radius: 7px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-        }
+select {
+    max-width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 14px;
+}
 
-        main {
-            max-width: 1100px;
-            margin: 25px auto;
-            padding: 20px;
-        }
+main {
+    width: 100%;
+    max-width: 1250px;
+    margin: 28px auto;
+    padding: 20px;
+}
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 18px;
-        }
+main > h2 {
+    color: #123b69;
+    margin: 0 0 18px;
+    font-size: 25px;
+}
 
-        .card {
-            background: white;
-            padding: 22px;
-            border-radius: 12px;
-            box-shadow: 0 3px 10px #00000010;
-            border-top: 4px solid #2563eb;
-        }
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 32px;
+}
 
-        .number {
-            font-size: 30px;
-            font-weight: bold;
-            color: #2563eb;
-        }
+.card {
+    min-width: 0;
+    background: white;
+    padding: 22px;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px #0f172a0d;
+    border-top: 4px solid #2563eb;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
 
-        nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+.card:nth-child(2) {
+    border-top-color: #dc2626;
+}
 
-        nav a {
-            display: inline-block;
-            padding: 12px 15px;
-            background: #2563eb;
-            color: white;
-            text-decoration: none;
-            border-radius: 7px;
-        }
+.card:nth-child(3) {
+    border-top-color: #16a34a;
+}
 
-        nav a:hover { background: #1d4ed8; }
+.card:nth-child(4) {
+    border-top-color: #d97706;
+}
 
-        .location-link { background: #15803d; }
-        .location-link:hover { background: #166534; }
+.card h3 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: #475569;
+}
 
-        footer {
-            text-align: center;
-            padding: 20px;
-            color: #64748b;
-        }
+.number {
+    margin: 0;
+    font-size: clamp(28px, 3vw, 36px);
+    font-weight: bold;
+    color: #123b69;
+    overflow-wrap: anywhere;
+}
 
-        @media (max-width: 600px) {
-            main { padding: 12px; }
-            header { padding: 15px; }
-            .logo-placeholder {
-                width: 55px;
-                height: 55px;
-            }
-        }
-    </style>
-</head>
+nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
 
-<body>
+nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 13px 16px;
+    background: #2563eb;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+    transition: background 0.2s, transform 0.2s;
+}
 
+nav a:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+}
+
+nav a:focus-visible,
+select:focus-visible {
+    outline: 3px solid #93c5fd;
+    outline-offset: 3px;
+}
+
+nav a.location-link {
+    background: #15803d;
+}
+
+nav a.location-link:hover {
+    background: #166534;
+}
+
+footer {
+    text-align: center;
+    padding: 24px 16px;
+    color: #64748b;
+    font-size: 14px;
+}
+
+@media (max-width: 900px) {
+    .cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    header {
+        padding: 16px 12px;
+    }
+
+    .header-top,
+    .brand {
+        align-items: flex-start;
+    }
+
+    .brand {
+        gap: 10px;
+    }
+
+    .logos {
+        gap: 5px;
+    }
+
+    .logo-placeholder {
+        width: 42px;
+        height: 42px;
+        font-size: 7px;
+        padding: 3px;
+    }
+
+    .brand h1 {
+        font-size: 20px;
+    }
+
+    .brand p {
+        font-size: 13px;
+    }
+
+    .header-controls {
+        width: 100%;
+    }
+
+    main {
+        margin: 18px auto;
+        padding: 12px;
+    }
+
+    main > h2 {
+        font-size: 22px;
+    }
+
+    .cards {
+        gap: 10px;
+    }
+
+    .card {
+        padding: 15px 12px;
+        border-radius: 10px;
+    }
+
+    .card h3 {
+        font-size: 14px;
+    }
+
+    .number {
+        font-size: 28px;
+    }
+
+    nav {
+        grid-template-columns: 1fr;
+        gap: 9px;
+    }
+
+    nav a {
+        min-height: 46px;
+        padding: 12px;
+    }
+}
+
+   </script>
+</body>
+</html>
 <header>
     <div class="header-top">
         <div class="brand">
