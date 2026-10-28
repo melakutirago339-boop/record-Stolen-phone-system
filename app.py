@@ -1396,21 +1396,40 @@ def cases():
         """)
         existing_cases = cur.fetchall()
 
-        for row in existing_cases:
+                for row in existing_cases:
+            case_imei = row[2] or ""
+
+            # Get phone details using the case IMEI.
+            cur.execute("""
+                SELECT phone_model, color
+                FROM registered_phones
+                WHERE imei = %s
+                LIMIT 1
+            """, (case_imei,))
+
+            phone_details = cur.fetchone()
+
+            phone_model = ""
+            phone_color = ""
+
+            if phone_details:
+                phone_model = phone_details[0] or ""
+                phone_color = phone_details[1] or ""
+
             case_list.append({
                 "id": row[0],
                 "case_number": row[1],
-                "imei": row[2],
+                "imei": case_imei,
                 "owner_name": row[3] or "",
                 "officer_name": row[4] or "",
                 "case_status": row[5] or "Reported",
                 "description": row[6] or "",
                 "created_at": row[7],
-                "phone_model": "",
+                "phone_model": phone_model,
                 "last_location": "",
+                "phone_color": phone_color,
                 "source": "case"
             })
-
        
         # Load stolen-phone reports into Case Management.
         # Show each report even if another case has the same IMEI.
