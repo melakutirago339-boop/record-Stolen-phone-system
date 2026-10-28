@@ -1167,6 +1167,7 @@ def search_imei():
         location_history=location_history,
         location_history_error=location_history_error
     )
+    
 # =================================================
 # CASE MANAGEMENT
 # =================================================
@@ -1410,18 +1411,15 @@ def cases():
                 "source": "case"
             })
 
-        # Load stolen-phone reports not yet linked to a case
+       
+        # Load stolen-phone reports into Case Management.
+        # Show each report even if another case has the same IMEI.
         cur.execute("""
             SELECT s.id, s.imei, s.owner_name,
                    s.phone_model, s.last_location,
                    s.report_date, s.case_status, s.officer_name
             FROM stolen_phones AS s
-            WHERE NOT EXISTS (
-                SELECT 1
-                FROM cases AS c
-                WHERE c.imei = s.imei
-            )
-            ORDER BY s.report_date DESC
+            ORDER BY s.report_date DESC NULLS LAST, s.id DESC
         """)
         unlinked_reports = cur.fetchall()
 
