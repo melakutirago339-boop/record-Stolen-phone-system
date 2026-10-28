@@ -1192,7 +1192,6 @@ def cases():
             role = session.get("role", "").strip().lower()
 
          
-           
             # Update an existing case or stolen-phone report
             if action == "update_case":
                 role = session.get("role", "").strip().lower()
@@ -1394,12 +1393,11 @@ def cases():
             FROM cases
             ORDER BY created_at DESC
         """)
-        existing_cases = cur.fetchall()
+               existing_cases = cur.fetchall()
 
-                for row in existing_cases:
+        for row in existing_cases:
             case_imei = row[2] or ""
 
-            # Get phone details using the case IMEI.
             cur.execute("""
                 SELECT phone_model, color
                 FROM registered_phones
@@ -1430,7 +1428,6 @@ def cases():
                 "phone_color": phone_color,
                 "source": "case"
             })
-       
         # Load stolen-phone reports into Case Management.
         # Show each report even if another case has the same IMEI.
         cur.execute("""
