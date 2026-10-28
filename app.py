@@ -1814,67 +1814,118 @@ def reports():
         stolen_count = cur.fetchone()[0]
 
              
-        # 3. Count cases and unlinked stolen-phone reports
-        # Count each IMEI only once when a case is linked to it.
+       
+        # 3. Count cases and stolen-phone reports
+        # Count every case record and every stolen report separately.
         cur.execute("""
-            WITH all_cases AS (
-                SELECT
-                    LOWER(TRIM(COALESCE(case_status, 'reported')))
-                        AS normalized_status,
-                    imei
-                FROM cases
-
-                UNION ALL
-
-                SELECT
-                    LOWER(TRIM(
-                        CASE
-                            WHEN LOWER(TRIM(COALESCE(s.case_status, '')))
-                                IN ('recovered', 'closed', 'investigation',
-                                    'under investigation', 'in progress')
-                            THEN s.case_status
-                            WHEN LOWER(TRIM(COALESCE(s.status, '')))
-                                IN ('reported', 'recovered', 'closed',
-                                    'investigation', 'under investigation',
-                                    'in progress')
-                            THEN s.status
-                            ELSE 'reported'
-                        END
-                    )) AS normalized_status,
-                    s.imei
-                FROM stolen_phones AS s
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM cases AS c
-                    WHERE c.imei = s.imei
-                )
-            )
             SELECT
                 COUNT(*),
                 COUNT(*) FILTER (
-                    WHERE normalized_status = 'reported'
+                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
+                        = 'reported'
                 ),
                 COUNT(*) FILTER (
-                    WHERE normalized_status IN (
-                        'investigation', 'under investigation', 'in progress'
-                    )
+                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
+                        IN ('investigation', 'under investigation', 'in progress')
                 ),
                 COUNT(*) FILTER (
-                    WHERE normalized_status = 'recovered'
+                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
+                        = 'recovered'
                 ),
                 COUNT(*) FILTER (
-                    WHERE normalized_status = 'closed'
+                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
+                        = 'closed'
                 )
-            FROM all_cases
+            FROM cases
         """)
-
         row = cur.fetchone()
         cases_count = row[0]
         reported_count = row[1]
         investigation_count = row[2]
         recovered_cases_count = row[3]
         closed_count = row[4]
-        # Count recovered phones from stolen-phone records only
+
+        # Add stolen-phone reports to case-status statistics.
+        # Do not hide reports just because their IMEI appears in cases.
+        cur.execute("""
+            SELECT
+                COUNT(*),
+                COUNT(*) FILTER (
+                    WHERE LOWER(TRIM(COALESCE(
+                        CASE
+                            WHEN LOWER(TRIM(COALESCE(case_status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN case_status
+                            WHEN LOWER(TRIM(COALESCE(status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN status
+                            ELSE 'reported'
+                        END, 'reported'))) = 'reported'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(TRIM(COALESCE(
+                        CASE
+                            WHEN LOWER(TRIM(COALESCE(case_status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN case_status
+                            WHEN LOWER(TRIM(COALESCE(status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN status
+                            ELSE 'reported'
+                        END, 'reported')))
+                        IN ('investigation', 'under investigation', 'in progress')
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(TRIM(COALESCE(
+                        CASE
+                            WHEN LOWER(TRIM(COALESCE(case_status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN case_status
+                            WHEN LOWER(TRIM(COALESCE(status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN status
+                            ELSE 'reported'
+                        END, 'reported'))) = 'recovered'
+                ),
+                COUNT(*) FILTER (
+                    WHERE LOWER(TRIM(COALESCE(
+                        CASE
+                            WHEN LOWER(TRIM(COALESCE(case_status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN case_status
+                            WHEN LOWER(TRIM(COALESCE(status, '')))
+                                IN ('reported', 'investigation',
+                                    'under investigation', 'in progress',
+                                    'recovered', 'closed')
+                            THEN status
+                            ELSE 'reported'
+                        END, 'reported'))) = 'closed'
+                )
+            FROM stolen_phones
+        """)
+        report_row = cur.fetchone()
+
+        cases_count += report_row[0]
+        reported_count += report_row[1]
+        investigation_count += report_row[2]
+        recovered_cases_count += report_row[3]
+        closed_count += report_row[4]
+
+        # Count recovered phones from stolen-phone records.
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
@@ -1890,6 +1941,7 @@ def reports():
         recovered_count = cur.fetchone()[0]
 
         active_cases_count = reported_count + investigation_count
+
         # 4. Authorized locations
         cur.execute("""
             SELECT COUNT(*)
