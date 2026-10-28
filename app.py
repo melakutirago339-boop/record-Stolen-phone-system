@@ -1831,8 +1831,8 @@ def reports():
 
              
        
-        # 3. Count cases and stolen-phone reports
-        # Count every case record and every stolen report separately.
+        
+        # 3. Count case records for the Case Status summary.
         cur.execute("""
             SELECT
                 COUNT(*),
@@ -1842,7 +1842,11 @@ def reports():
                 ),
                 COUNT(*) FILTER (
                     WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
-                        IN ('investigation', 'under investigation', 'in progress')
+                        IN (
+                            'investigation',
+                            'under investigation',
+                            'in progress'
+                        )
                 ),
                 COUNT(*) FILTER (
                     WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
@@ -1861,8 +1865,9 @@ def reports():
         recovered_cases_count = row[3]
         closed_count = row[4]
 
-        # Add stolen-phone reports to case-status statistics.
-        # Do not hide reports just because their IMEI appears in cases.
+       
+        # Add only stolen-phone reports that do not already
+        # have a matching case with the same IMEI.
         cur.execute("""
             SELECT
                 COUNT(*),
@@ -1931,7 +1936,12 @@ def reports():
                             ELSE 'reported'
                         END, 'reported'))) = 'closed'
                 )
-            FROM stolen_phones
+            FROM stolen_phones AS s
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM cases AS c
+                WHERE c.imei = s.imei
+            )
         """)
         report_row = cur.fetchone()
 
