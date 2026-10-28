@@ -1386,16 +1386,17 @@ def cases():
                             conn.rollback()
                             error = "This case number already exists."
 
-        # Load cases created in the cases table
+              # Load cases created in the cases table
         cur.execute("""
             SELECT id, case_number, imei, owner_name,
                    officer_name, case_status, description, created_at
             FROM cases
             ORDER BY created_at DESC
         """)
+        existing_cases = cur.fetchall()
 
-     existing_cases = cur.fetchall()
         for row in existing_cases:
+            
             case_imei = row[2] or ""
             cur.execute("""
                 SELECT phone_model, color
