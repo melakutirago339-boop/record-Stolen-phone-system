@@ -126,7 +126,7 @@ main > h2 {
 .cards {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 20px;
+    gap: 22px;
     margin-bottom: 40px;
 }
 
@@ -135,17 +135,17 @@ main > h2 {
     position: relative;
     overflow: hidden;
     background: var(--surface);
-    padding: 25px 22px;
+    padding: 28px 22px;
     border: 1px solid var(--border);
-    border-radius: 18px;
-    box-shadow: 0 6px 22px #1025440a;
+    border-radius: 20px;
+    box-shadow: 0 8px 24px #1025440d;
     border-top: 5px solid var(--blue);
-    transition: transform .2s ease, box-shadow .2s ease;
+    transition: transform .25s ease, box-shadow .25s ease;
 }
 
 .card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 30px #10254418;
+    transform: translateY(-5px);
+    box-shadow: 0 16px 34px #1025441a;
 }
 
 .card:nth-child(2) {
@@ -161,8 +161,9 @@ main > h2 {
 }
 
 .card h3 {
-    margin: 0 0 14px;
+    margin: 0 0 16px;
     font-size: 15px;
+    line-height: 1.5;
     font-weight: 700;
     color: var(--muted);
 }
