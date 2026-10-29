@@ -1075,14 +1075,17 @@ def search_imei():
                 for row in cur.fetchall():
                     phone = dict(zip(registered_columns, row))
 
+                   
                     results.append({
                         "type": "Registered Phone",
                         "owner_name": phone.get("owner_name"),
                         "phone_number": phone.get("phone_number"),
                         "imei": phone.get("imei"),
                         "phone_model": phone.get("phone_model"),
+                        "brand": phone.get("brand"),
+                        "color": phone.get("color"),
                         "location": first_value(
-                            phone, "location", "color", "address"
+                            phone, "location", "address"
                         ),
                         "date": first_value(
                             phone, "registration_date",
