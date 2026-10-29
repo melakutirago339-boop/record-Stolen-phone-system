@@ -625,37 +625,39 @@ def dashboard():
 
         recovered_count = recovered_reports + recovered_cases
 
-        # Open cases from both tables, avoiding duplicate IMEIs
+                # Count unique open cases across both tables
         cur.execute("""
-            SELECT
-                (
-                    SELECT COUNT(*)
-                    FROM cases
-                    WHERE LOWER(TRIM(COALESCE(case_status, 'reported')))
-                          IN (
-                              'reported',
-                              'investigation',
-                              'under investigation',
-                              'in progress'
-                          )
+            WITH open_records AS (
+                SELECT
+                    NULLIF(TRIM(imei), '') AS imei,
+                    LOWER(TRIM(COALESCE(case_status, 'reported'))) AS case_status
+                FROM cases
+
+                UNION ALL
+
+                SELECT
+                    NULLIF(TRIM(imei), '') AS imei,
+                    LOWER(TRIM(COALESCE(case_status, 'reported'))) AS case_status
+                FROM stolen_phones AS s
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM cases AS c
+                    WHERE c.imei = s.imei
                 )
-                +
-                (
-                    SELECT COUNT(*)
-                    FROM stolen_phones AS s
-                    WHERE LOWER(TRIM(COALESCE(s.case_status, 'reported')))
-                          IN (
-                              'reported',
-                              'investigation',
-                              'under investigation',
-                              'in progress'
-                          )
-                      AND NOT EXISTS (
-                          SELECT 1
-                          FROM cases AS c
-                          WHERE c.imei = s.imei
-                      )
+            ),
+            unique_open_cases AS (
+                SELECT DISTINCT imei
+                FROM open_records
+                WHERE case_status IN (
+                    'reported',
+                    'investigation',
+                    'under investigation',
+                    'in progress'
                 )
+                  AND imei IS NOT NULL
+            )
+            SELECT COUNT(*)
+            FROM unique_open_cases
         """)
         active_cases = cur.fetchone()[0]
 
