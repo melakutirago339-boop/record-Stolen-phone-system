@@ -16,6 +16,25 @@
         font-family: Arial, Helvetica, sans-serif;
     }
 
+    .message {
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.message.error {
+    color: #991b1b;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+}
+
+.message.success {
+    color: #166534;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+}
     :root {
         --navy: #102747;
         --blue: #1769aa;
@@ -276,6 +295,17 @@
             <p class="description">
                 Register mobile phone and owner information in the system.
             </p>
+            {% if error %}
+    <div class="message error" role="alert">
+        {{ error }}
+    </div>
+{% endif %}
+
+{% if success %}
+    <div class="message success" role="status">
+        {{ success }}
+    </div>
+{% endif %}
 
 
             <form method="POST" action="#">
