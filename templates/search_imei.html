@@ -352,10 +352,18 @@
                     {{ result.phone_model or 'N/A' }}
                 </div>
 
-                <div class="result-row">
-                    <strong>Location / Color:</strong>
-                    {{ result.location or 'N/A' }}
-                </div>
+               
+<div class="result-row">
+    <strong>Color:</strong>
+    {{ result.color or 'N/A' }}
+</div>
+
+{% if result.location %}
+<div class="result-row">
+    <strong>Last Known Location:</strong>
+    {{ result.location }}
+</div>
+{% endif %}
 
                 <div class="result-row">
                     <strong>Date:</strong>
