@@ -316,6 +316,14 @@ footer {
         padding: 12px;
     }
 }
+    .police-logo {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 12px;
+    padding: 4px;
+    background: #ffffff;
+}
 </style>
 
 
@@ -327,13 +335,18 @@ footer {
     <div class="header-top">
         <div class="brand">
             <div class="logos">
-                <div class="logo-placeholder">
-                    Federal Police Logo
-                </div>
-                <div class="logo-placeholder">
-                    Addis Ababa Police Logo
-                </div>
-            </div>
+    <img
+        src="{{ url_for('static', filename='images/federal-police.png') }}"
+        alt="Federal Police Logo"
+        class="police-logo"
+    >
+
+    <img
+        src="{{ url_for('static', filename='images/addis-police.png') }}"
+        alt="Addis Ababa Police Logo"
+        class="police-logo"
+    >
+</div>
 
             <div>
                 <h1>Stolen Phone Recovery System</h1>
