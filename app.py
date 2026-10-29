@@ -740,6 +740,9 @@ def register_phone():
         brand = request.form.get("brand", "").strip()
         color = request.form.get("color", "").strip()
         description = request.form.get("description", "").strip()
+        registration_date = request.form.get(
+    "registration_date", ""
+).strip()
 
         if not owner_name or not imei:
             return render_template(
@@ -781,6 +784,7 @@ def register_phone():
                 ADD COLUMN IF NOT EXISTS description TEXT
             """)
 
+            
             cur.execute("""
                 INSERT INTO registered_phones (
                     owner_name,
@@ -790,9 +794,11 @@ def register_phone():
                     color,
                     brand,
                     imei2,
-                    description
+                    description,
+                    registration_date
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s,
+                        COALESCE(%s::timestamp, CURRENT_TIMESTAMP))
             """, (
                 owner_name,
                 phone_number,
@@ -801,8 +807,10 @@ def register_phone():
                 color,
                 brand,
                 imei2 or None,
-                description
+                description,
+                registration_date or None
             ))
+
 
             conn.commit()
 
