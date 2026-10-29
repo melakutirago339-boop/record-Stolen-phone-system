@@ -878,9 +878,15 @@
         </div>
     {% endif %}
 
-    {% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
+   
+{% set ns = namespace(total=0, reported=0, investigation=0, recovered=0) %}
+{% set seen_imeis = namespace(values=[]) %}
 
-    {% for case in cases %}
+{% for case in cases %}
+    {% set current_imei = (case.imei or '')|trim %}
+
+    {% if current_imei and current_imei not in seen_imeis.values %}
+        {% set seen_imeis.values = seen_imeis.values + [current_imei] %}
         {% set ns.total = ns.total + 1 %}
         {% set status = case.case_status|default('Reported', true)|lower|trim %}
 
@@ -891,7 +897,20 @@
         {% elif status == 'recovered' %}
             {% set ns.recovered = ns.recovered + 1 %}
         {% endif %}
-    {% endfor %}
+    {% elif not current_imei %}
+        {% set ns.total = ns.total + 1 %}
+        {% set status = case.case_status|default('Reported', true)|lower|trim %}
+
+        {% if status == 'reported' %}
+            {% set ns.reported = ns.reported + 1 %}
+        {% elif status in ['investigation', 'under investigation', 'in progress'] %}
+            {% set ns.investigation = ns.investigation + 1 %}
+        {% elif status == 'recovered' %}
+            {% set ns.recovered = ns.recovered + 1 %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+
 
     <section class="stats">
         <div class="stat">
