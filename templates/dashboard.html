@@ -316,14 +316,28 @@ footer {
         padding: 12px;
     }
 }
-    .police-logo {
-    width: 64px;
-    height: 64px;
+   
+.police-logo {
+    width: 68px;
+    height: 68px;
     object-fit: contain;
-    border-radius: 12px;
-    padding: 4px;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 5px;
     background: #ffffff;
+    box-shadow: 0 4px 12px #00000020;
+    flex-shrink: 0;
 }
+
+@media (max-width: 600px) {
+    .police-logo {
+        width: 44px;
+        height: 44px;
+        padding: 3px;
+        border-radius: 9px;
+    }
+}
+
 </style>
 
 
