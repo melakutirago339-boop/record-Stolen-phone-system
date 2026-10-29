@@ -1832,24 +1832,41 @@ def reports():
         stolen_count = cur.fetchone()[0]
 
         
-               # 3. Case Status summary — count both tables like Case Management.
+                     # 3. Case Status summary — count unique IMEIs.
         cur.execute("""
             WITH all_case_records AS (
                 SELECT
+                    NULLIF(TRIM(imei), '') AS imei,
                     COALESCE(
                         NULLIF(LOWER(TRIM(case_status)), ''),
                         'reported'
-                    ) AS status
+                    ) AS status,
+                    1 AS source_priority
                 FROM cases
 
                 UNION ALL
 
                 SELECT
+                    NULLIF(TRIM(imei), '') AS imei,
                     COALESCE(
                         NULLIF(LOWER(TRIM(case_status)), ''),
                         'reported'
-                    ) AS status
-                FROM stolen_phones
+                    ) AS status,
+                    2 AS source_priority
+                FROM stolen_phones AS s
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM cases AS c
+                    WHERE c.imei = s.imei
+                )
+            ),
+            unique_cases AS (
+                SELECT DISTINCT ON (imei)
+                    imei,
+                    status
+                FROM all_case_records
+                WHERE imei IS NOT NULL
+                ORDER BY imei, source_priority
             )
             SELECT
                 COUNT(*),
@@ -1869,7 +1886,7 @@ def reports():
                 COUNT(*) FILTER (
                     WHERE status = 'closed'
                 )
-            FROM all_case_records
+            FROM unique_cases
         """)
         row = cur.fetchone()
 
