@@ -1280,11 +1280,12 @@ def cases():
 
                             # Officers may change status only.
                             # Admins may also change officer assignment.
-                        
-                      if role == "admin":
-                         officer_name = requested_officer
-                      else:
-                         officer_name = existing_officer
+
+                            if role == "admin":
+                                officer_name = requested_officer
+                            else:
+                                officer_name = existing_officer
+
                             if source == "case":
                                 if role == "admin":
                                     cur.execute("""
@@ -1322,6 +1323,7 @@ def cases():
                                         SET case_status = %s
                                         WHERE id = %s
                                     """, (case_status, record_id))
+                                    
                          # Send notification when Admin assigns a case
                             if (
                                 role == "admin"
