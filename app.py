@@ -1298,13 +1298,7 @@ def cases():
                                         officer_name,
                                         record_id
                                     ))
-                                else:
-                                    cur.execute("""
-                                        UPDATE cases
-                                        SET case_status = %s
-                                        WHERE id = %s
-                                    """, (case_status, record_id))
-
+                               
                             else:
                                 if role == "admin":
                                     cur.execute("""
