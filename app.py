@@ -1685,13 +1685,13 @@ def cases():
         print("Case management error:", repr(e))
         error = "Could not process cases. Check Render Logs."
 
-    finally:
+      finally:
         if cur:
             cur.close()
         if conn:
             conn.close()
 
-          return render_template(
+    return render_template(
         "cases.html",
         cases=case_list,
         selected_case=selected_case,
