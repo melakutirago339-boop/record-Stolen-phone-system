@@ -1301,6 +1301,65 @@
             </table>
         </div>
     </section>
+        <!-- ADMIN OFFICER REPORTS -->
+    {% if session.get('role', '')|lower == 'admin' %}
+    <section class="panel">
+        <div class="panel-heading">
+            <div class="heading-group">
+                <div class="heading-icon">📝</div>
+                <div>
+                    <h2>Officer Reports</h2>
+                    <p class="section-subtitle">
+                        Investigation reports submitted by officers.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if officer_reports %}
+            {% for report in officer_reports %}
+                <div class="detail" style="margin-bottom:15px;">
+                    <div class="details">
+                        <div>
+                            <strong>Case Number</strong>
+                            <div class="detail-value">
+                                {{ report.case_number }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong>Officer</strong>
+                            <div class="detail-value">
+                                {{ report.officer_username }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong>IMEI</strong>
+                            <div class="detail-value">
+                                {{ report.imei or 'N/A' }}
+                            </div>
+                        </div>
+
+                        <div>
+                            <strong>Date Submitted</strong>
+                            <div class="detail-value">
+                                {{ report.created_at }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:15px;">
+                        <strong>Report Details</strong>
+                        <p style="white-space:pre-wrap; margin-top:8px;">{{ report.report_text }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="muted-value">No officer reports submitted yet.</p>
+        {% endif %}
+    </section>
+    {% endif %}
 
 </main>
 
