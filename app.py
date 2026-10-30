@@ -1278,7 +1278,7 @@ def cases():
                             previous_status = old_record[2] or "Reported"
                             existing_officer = old_record[3] or ""
 
-                            # Officers may change status only.
+                                                        # Officers may change status only.
                             # Admins may also change officer assignment.
 
                             if role == "admin":
@@ -1305,6 +1305,24 @@ def cases():
                                         WHERE id = %s
                                     """, (case_status, record_id))
 
+                            else:
+                                if role == "admin":
+                                    cur.execute("""
+                                        UPDATE stolen_phones
+                                        SET case_status = %s,
+                                            officer_name = %s
+                                        WHERE id = %s
+                                    """, (
+                                        case_status,
+                                        officer_name,
+                                        record_id
+                                    ))
+                                else:
+                                    cur.execute("""
+                                        UPDATE stolen_phones
+                                        SET case_status = %s
+                                        WHERE id = %s
+                                    """, (case_status, record_id))
                             else:
                                 if role == "admin":
                                     cur.execute("""
