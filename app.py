@@ -1678,7 +1678,7 @@ def cases():
                     "admin_reviewed": row[6]
                 })
 
-          except Exception as e:
+             except Exception as e:
         if conn:
             conn.rollback()
 
