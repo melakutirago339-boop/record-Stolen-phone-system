@@ -1406,6 +1406,73 @@ def cases():
 
                             conn.commit()
                             message = "Case updated successfully."
+                                        # Officer submits a report for an assigned case
+            elif action == "submit_officer_report":
+                username = session.get("username", "").strip()
+                role = session.get("role", "").strip().lower()
+
+                source = request.form.get("source", "").strip()
+                record_id = request.form.get("record_id", "").strip()
+                report_text = request.form.get("report_text", "").strip()
+
+                if role != "officer":
+                    error = "Only officers can submit officer reports."
+
+                elif source not in ["case", "report"] or not record_id.isdigit():
+                    error = "Invalid case details."
+
+                elif not report_text:
+                    error = "Please enter your report."
+
+                else:
+                    record_id = int(record_id)
+
+                    if source == "case":
+                        cur.execute("""
+                            SELECT case_number, imei, officer_name
+                            FROM cases
+                            WHERE id = %s
+                        """, (record_id,))
+                    else:
+                        cur.execute("""
+                            SELECT
+                                'STOLEN-' || id::text,
+                                imei,
+                                officer_name
+                            FROM stolen_phones
+                            WHERE id = %s
+                        """, (record_id,))
+
+                    assigned_case = cur.fetchone()
+
+                    if not assigned_case:
+                        error = "Case not found."
+
+                    elif (assigned_case[2] or "").strip() != username:
+                        error = "You can only report on cases assigned to you."
+
+                    else:
+                        cur.execute("""
+                            INSERT INTO officer_reports (
+                                case_number,
+                                imei,
+                                source,
+                                record_id,
+                                officer_username,
+                                report_text
+                            )
+                            VALUES (%s, %s, %s, %s, %s, %s)
+                        """, (
+                            assigned_case[0],
+                            assigned_case[1],
+                            source,
+                            record_id,
+                            username,
+                            report_text
+                        ))
+
+                        conn.commit()
+                        message = "Officer report submitted successfully."
 
  
             # Create a new case - Admin only
