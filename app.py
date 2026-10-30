@@ -1280,11 +1280,10 @@ def cases():
 
                             # Officers may change status only.
                             # Admins may also change officer assignment.
-                            if role == "officer":
-                                officer_name = existing_officer
-                            else:
-                                officer_name = requested_officer
-
+                           if role == "admin":
+    officer_name = requested_officer
+else:
+    officer_name = existing_officer
                             if source == "case":
                                 if role == "admin":
                                     cur.execute("""
