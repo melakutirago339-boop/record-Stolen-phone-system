@@ -590,9 +590,8 @@ def dashboard():
     stolen_count = 0
     recovered_count = 0
     active_cases = 0
-    notifications = []
-unread_count = 0
-
+       notifications = []
+    unread_count = 0
     conn = None
     cur = None
 
@@ -638,7 +637,7 @@ unread_count = 0
 
         recovered_count = recovered_reports + recovered_cases
 
-                # Count unique open cases across both tables
+                       # Count unique open cases across both tables
         cur.execute("""
             WITH open_records AS (
                 SELECT
@@ -672,7 +671,9 @@ unread_count = 0
             SELECT COUNT(*)
             FROM unique_open_cases
         """)
-        active_cases = cur.fetchone()[0
+              active_cases = cur.fetchone()[0]
+
+        # Get notifications for the logged-in user
                 # Get notifications for the logged-in user
         current_username = session.get("username")
 
@@ -712,7 +713,7 @@ unread_count = 0
         role=session.get("role"),
         registered_count=registered_count,
         stolen_count=stolen_count,
-                recovered_count=recovered_count,
+         recovered_count=recovered_count,
         active_cases=active_cases,
         notifications=notifications,
         unread_count=unread_count
