@@ -583,6 +583,7 @@ def login():
 # DASHBOARD
 # -------------------------------------------------
 
+
 @app.route("/dashboard")
 @login_required
 def dashboard():
@@ -590,8 +591,9 @@ def dashboard():
     stolen_count = 0
     recovered_count = 0
     active_cases = 0
-       notifications = []
+    notifications = []
     unread_count = 0
+
     conn = None
     cur = None
 
@@ -599,21 +601,12 @@ def dashboard():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # Total registered phones
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM registered_phones
-        """)
+        cur.execute("SELECT COUNT(*) FROM registered_phones")
         registered_count = cur.fetchone()[0]
 
-        # Total stolen phone reports
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
-        """)
+        cur.execute("SELECT COUNT(*) FROM stolen_phones")
         stolen_count = cur.fetchone()[0]
 
-        # Recovered stolen-phone reports
         cur.execute("""
             SELECT COUNT(*)
             FROM stolen_phones
@@ -622,7 +615,6 @@ def dashboard():
         """)
         recovered_reports = cur.fetchone()[0]
 
-        # Recovered cases not already represented by a stolen-phone report
         cur.execute("""
             SELECT COUNT(*)
             FROM cases AS c
@@ -637,7 +629,7 @@ def dashboard():
 
         recovered_count = recovered_reports + recovered_cases
 
-                       # Count unique open cases across both tables
+        # Count unique open cases
         cur.execute("""
             WITH open_records AS (
                 SELECT
@@ -666,15 +658,13 @@ def dashboard():
                     'under investigation',
                     'in progress'
                 )
-                  AND imei IS NOT NULL
+                AND imei IS NOT NULL
             )
-            SELECT COUNT(*)
-            FROM unique_open_cases
+            SELECT COUNT(*) FROM unique_open_cases
         """)
-              active_cases = cur.fetchone()[0]
+        active_cases = cur.fetchone()[0]
 
-        # Get notifications for the logged-in user
-                # Get notifications for the logged-in user
+        # Get notifications for logged-in user
         current_username = session.get("username")
 
         cur.execute("""
@@ -684,7 +674,6 @@ def dashboard():
             ORDER BY created_at DESC
             LIMIT 10
         """, (current_username,))
-
         notifications = cur.fetchall()
 
         cur.execute("""
@@ -693,13 +682,12 @@ def dashboard():
             WHERE username = %s
               AND is_read = FALSE
         """, (current_username,))
-
         unread_count = cur.fetchone()[0]
 
     except Exception as e:
         if conn:
             conn.rollback()
-        print("Dashboard database error:", repr(e))
+        app.logger.exception("Dashboard database error: %s", e)
 
     finally:
         if cur:
@@ -713,11 +701,12 @@ def dashboard():
         role=session.get("role"),
         registered_count=registered_count,
         stolen_count=stolen_count,
-         recovered_count=recovered_count,
+        recovered_count=recovered_count,
         active_cases=active_cases,
         notifications=notifications,
         unread_count=unread_count
     )
+
    
 # -------------------------------------------------
 # DATABASE TEST
