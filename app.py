@@ -712,8 +712,8 @@ unread_count = 0
         role=session.get("role"),
         registered_count=registered_count,
         stolen_count=stolen_count,
-        recovered_count=recovered_count,
-        active_cases=active_cases
+                recovered_count=recovered_count,
+        active_cases=active_cases,
         notifications=notifications,
         unread_count=unread_count
     )
