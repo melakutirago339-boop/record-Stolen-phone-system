@@ -714,6 +714,8 @@ unread_count = 0
         stolen_count=stolen_count,
         recovered_count=recovered_count,
         active_cases=active_cases
+        notifications=notifications,
+        unread_count=unread_count
     )
    
 # -------------------------------------------------
