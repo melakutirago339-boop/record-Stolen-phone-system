@@ -1234,7 +1234,7 @@ def cases():
     cur = None
     case_list = []
     selected_case = None
-        officer_reports = []
+    officer_reports = []
 
     try:
         conn = get_db_connection()
