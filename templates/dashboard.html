@@ -338,7 +338,78 @@ footer {
         border-radius: 9px;
     }
 }
+/* Notification Bell */
+.notification-area {
+    position: relative;
+}
 
+.notification-button {
+    position: relative;
+    border: 1px solid #ffffff55;
+    background: #ffffff18;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 22px;
+}
+
+.notification-count {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    background: #dc2626;
+    color: white;
+    border-radius: 50%;
+    min-width: 21px;
+    height: 21px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-panel {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 50px;
+    width: 320px;
+    max-width: 85vw;
+    background: white;
+    color: #1e293b;
+    border: 1px solid #dce5f0;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px #00000025;
+    padding: 15px;
+    z-index: 1000;
+}
+
+.notification-panel.show {
+    display: block;
+}
+
+.notification-item {
+    padding: 12px 5px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item.unread {
+    background: #eff6ff;
+}
+
+.notification-item p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.notification-item small {
+    color: #64748b;
+}
 </style>
 
 
@@ -370,6 +441,35 @@ footer {
         </div>
 
         <div class="header-controls">
+            <div class="notification-area">
+    <button
+        type="button"
+        class="notification-button"
+        id="notificationButton"
+        aria-label="Notifications"
+    >
+        🔔
+        {% if unread_count > 0 %}
+        <span class="notification-count">{{ unread_count }}</span>
+        {% endif %}
+    </button>
+
+    <div class="notification-panel" id="notificationPanel">
+        <h3>Notifications</h3>
+
+        {% if notifications %}
+            {% for notification in notifications %}
+            <div class="notification-item {% if not notification[3] %}unread{% endif %}">
+                <strong>{{ notification[1] }}</strong>
+                <p>{{ notification[2] }}</p>
+                <small>{{ notification[4] }}</small>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No notifications yet.</p>
+        {% endif %}
+    </div>
+</div>
             <label for="language">Language / ቋንቋ:</label>
             <select id="language" name="language">
                 <option value="en">English</option>
@@ -545,6 +645,15 @@ const savedLanguage =
 
 languageSelect.value = savedLanguage;
 setLanguage(savedLanguage);
+    const notificationButton =
+    document.getElementById("notificationButton");
+
+const notificationPanel =
+    document.getElementById("notificationPanel");
+
+notificationButton.addEventListener("click", function () {
+    notificationPanel.classList.toggle("show");
+});
     
     </script>
 </body>
