@@ -175,6 +175,20 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+                # Officer reports
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS officer_reports (
+                id SERIAL PRIMARY KEY,
+                case_number VARCHAR(100) NOT NULL,
+                imei VARCHAR(100),
+                source VARCHAR(20),
+                record_id INTEGER,
+                officer_username VARCHAR(100) NOT NULL,
+                report_text TEXT NOT NULL,
+                admin_reviewed BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
         # Case history
         cur.execute("""
