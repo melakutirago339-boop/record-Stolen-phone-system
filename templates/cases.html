@@ -1104,6 +1104,47 @@
                 </div>
             </div>
         </div>
+        {% if session.get('role', '')|lower == 'officer'
+      and selected_case.officer_name == session.get('username') %}
+
+    <div class="panel" style="margin-top:20px;">
+        <div class="panel-heading">
+            <div class="heading-group">
+                <div class="heading-icon">📝</div>
+                <div>
+                    <h2>Submit Officer Report</h2>
+                    <p class="section-subtitle">
+                        Submit progress for this assigned case.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('cases') }}">
+            <input type="hidden" name="action" value="submit_officer_report">
+            <input type="hidden" name="source" value="{{ selected_case.source }}">
+            <input type="hidden" name="record_id" value="{{ selected_case.id }}">
+
+            <div class="field">
+                <label for="report_text">
+                    Work Progress / Report Details *
+                </label>
+
+                <textarea
+                    id="report_text"
+                    name="report_text"
+                    required
+                    maxlength="5000"
+                    placeholder="Describe the investigation progress, actions taken, findings, and remaining issues..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit">Submit Report</button>
+            </div>
+        </form>
+    </div>
+
+{% endif %}
 
         <a class="small-link details-link" href="{{ url_for('cases') }}">
             ← Back to all cases
