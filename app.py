@@ -162,6 +162,19 @@ def create_tables():
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
+                # Officer notifications
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS notifications (
+                id SERIAL PRIMARY KEY,
+                username VARCHAR(100) NOT NULL,
+                title VARCHAR(200) NOT NULL,
+                message TEXT NOT NULL,
+                source VARCHAR(20),
+                record_id INTEGER,
+                is_read BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
 
         # Case history
         cur.execute("""
@@ -1309,6 +1322,28 @@ def cases():
                                         SET case_status = %s
                                         WHERE id = %s
                                     """, (case_status, record_id))
+                         # Send notification when Admin assigns a case
+                            if (
+                                role == "admin"
+                                and officer_name
+                                and officer_name != existing_officer
+                            ):
+                                cur.execute("""
+                                    INSERT INTO notifications (
+                                        username,
+                                        title,
+                                        message,
+                                        source,
+                                        record_id
+                                    )
+                                    VALUES (%s, %s, %s, %s, %s)
+                                """, (
+                                    officer_name,
+                                    "New Case Assigned",
+                                    f"Case {case_number} has been assigned to you. IMEI: {imei}",
+                                    source,
+                                    record_id
+                                ))
 
                             # Save history only when the status changes.
                             if previous_status != case_status:
