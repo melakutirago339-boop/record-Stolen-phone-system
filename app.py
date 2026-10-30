@@ -590,6 +590,8 @@ def dashboard():
     stolen_count = 0
     recovered_count = 0
     active_cases = 0
+    notifications = []
+unread_count = 0
 
     conn = None
     cur = None
@@ -670,7 +672,28 @@ def dashboard():
             SELECT COUNT(*)
             FROM unique_open_cases
         """)
-        active_cases = cur.fetchone()[0]
+        active_cases = cur.fetchone()[0
+                # Get notifications for the logged-in user
+        current_username = session.get("username")
+
+        cur.execute("""
+            SELECT id, title, message, is_read, created_at
+            FROM notifications
+            WHERE username = %s
+            ORDER BY created_at DESC
+            LIMIT 10
+        """, (current_username,))
+
+        notifications = cur.fetchall()
+
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM notifications
+            WHERE username = %s
+              AND is_read = FALSE
+        """, (current_username,))
+
+        unread_count = cur.fetchone()[0]
 
     except Exception as e:
         if conn:
