@@ -11,9 +11,7 @@ app = Flask(__name__)
 # APP CONFIGURATION
 # -------------------------------------------------
 
-app.secret_key = os.environ.get(
-    "SECRET_KEY",
-    "stolen-phone-demo-secret-key"
+app.secret_key = os.environ["SECRET_KEY"]
 )
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
