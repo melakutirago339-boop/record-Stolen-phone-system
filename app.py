@@ -1656,7 +1656,7 @@ def cases():
                         "description": "Stolen phone report",
                         "source": "report"
                     }
-                            # Load officer reports for Admin
+        # Load officer reports for Admin
         if session.get("role", "").strip().lower() == "admin":
             cur.execute("""
                 SELECT id, case_number, imei,
@@ -1678,14 +1678,14 @@ def cases():
                     "admin_reviewed": row[6]
                 })
 
-    except Exception as e:
+       except Exception as e:
         if conn:
             conn.rollback()
 
         print("Case management error:", repr(e))
         error = "Could not process cases. Check Render Logs."
 
-      finally:
+    finally:
         if cur:
             cur.close()
         if conn:
@@ -1699,7 +1699,6 @@ def cases():
         message=message,
         error=error
     )
-
 # =================================================
 # AUTHORIZED LOCATION / PHONE GPS LOCATION HISTORY
 # =================================================
