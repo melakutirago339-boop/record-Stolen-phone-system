@@ -1234,6 +1234,7 @@ def cases():
     cur = None
     case_list = []
     selected_case = None
+        officer_reports = []
 
     try:
         conn = get_db_connection()
@@ -1655,6 +1656,27 @@ def cases():
                         "description": "Stolen phone report",
                         "source": "report"
                     }
+                            # Load officer reports for Admin
+        if session.get("role", "").strip().lower() == "admin":
+            cur.execute("""
+                SELECT id, case_number, imei,
+                       officer_username, report_text,
+                       created_at, admin_reviewed
+                FROM officer_reports
+                ORDER BY created_at DESC
+            """)
+            report_rows = cur.fetchall()
+
+            for row in report_rows:
+                officer_reports.append({
+                    "id": row[0],
+                    "case_number": row[1],
+                    "imei": row[2] or "",
+                    "officer_username": row[3],
+                    "report_text": row[4],
+                    "created_at": row[5],
+                    "admin_reviewed": row[6]
+                })
 
     except Exception as e:
         if conn:
@@ -1669,10 +1691,11 @@ def cases():
         if conn:
             conn.close()
 
-    return render_template(
+       return render_template(
         "cases.html",
         cases=case_list,
         selected_case=selected_case,
+        officer_reports=officer_reports,
         message=message,
         error=error
     )
