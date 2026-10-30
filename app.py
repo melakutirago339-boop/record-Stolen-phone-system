@@ -1656,7 +1656,7 @@ def cases():
                         "description": "Stolen phone report",
                         "source": "report"
                     }
-        # Load officer reports for Admin
+              # Load officer reports for Admin
         if session.get("role", "").strip().lower() == "admin":
             cur.execute("""
                 SELECT id, case_number, imei,
@@ -1678,7 +1678,7 @@ def cases():
                     "admin_reviewed": row[6]
                 })
 
-             except Exception as e:
+    except Exception as e:
         if conn:
             conn.rollback()
 
