@@ -2041,61 +2041,6 @@ def reports():
         # Recovered count follows the same all-records rule.
         recovered_count = recovered_cases_count
 
-        # 4. Recovered phones - use the same counting rule as Dashboard.
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
-            WHERE LOWER(TRIM(COALESCE(status, ''))) = 'recovered'
-               OR LOWER(TRIM(COALESCE(case_status, ''))) = 'recovered'
-        """)
-        recovered_reports = cur.fetchone()[0]
-
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM cases AS c
-            WHERE LOWER(TRIM(COALESCE(c.case_status, ''))) = 'recovered'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM stolen_phones AS s
-                  WHERE s.imei = c.imei
-              )
-        """)
-        recovered_cases = cur.fetchone()[0]
-        recovered_count = recovered_reports + recovered_cases
-
-        # 5. Active cases - use the same counting rule as Dashboard.
-        cur.execute("""
-            SELECT
-                (
-                    SELECT COUNT(*)
-                    FROM cases
-                    WHERE LOWER(TRIM(COALESCE(case_status, '')))
-                        IN (
-                            'reported',
-                            'investigation',
-                            'under investigation',
-                            'in progress'
-                        )
-                )
-                +
-                (
-                    SELECT COUNT(*)
-                    FROM stolen_phones AS s
-                    WHERE LOWER(TRIM(COALESCE(s.case_status, '')))
-                        IN (
-                            'reported',
-                            'investigation',
-                            'under investigation',
-                            'in progress'
-                        )
-                      AND NOT EXISTS (
-                          SELECT 1
-                          FROM cases AS c
-                          WHERE c.imei = s.imei
-                      )
-                )
-        """)
-        active_cases_count = cur.fetchone()[0]
 
         # 4. Authorized locations
         cur.execute("""
