@@ -946,9 +946,11 @@
             </div>
         </div>
 
-        <form id="createCaseForm" method="POST"
+       <form id="createCaseForm" method="POST"
       action="{{ url_for('cases') }}">
-            <input type="hidden" name="action" value="create_case">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="create_case">
 
             <div class="details">
                 <div class="field">
