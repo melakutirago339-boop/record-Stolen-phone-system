@@ -126,6 +126,7 @@
                             <form method="POST"
                                   action="{{ url_for('location_redirect') }}"
                                   onsubmit="return confirm('Are you sure you want to delete duplicate location ID {{ location.get('id') }}? This cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                                 <input type="hidden"
                                        name="action"
