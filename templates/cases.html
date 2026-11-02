@@ -1219,10 +1219,14 @@
             View Case →
         </a>
 
-        <form class="update-form"
-            <input type="hidden" name="source" value="{{ case.source }}">
-            <input type="hidden" name="record_id" value="{{ case.id }}">
+       <form class="update-form"
+      method="POST"
+      action="{{ url_for('cases') }}">
 
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="update_case">
+    <input type="hidden" name="source" value="{{ case.source }}">
+    <input type="hidden" name="record_id" value="{{ case.id }}">
             <div class="form-field">
                 <label for="case-status-{{ case.source }}-{{ case.id }}">
                     Case Status
