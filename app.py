@@ -4,6 +4,7 @@ import os
 import psycopg2
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
 
@@ -12,6 +13,7 @@ app = Flask(__name__)
 # -------------------------------------------------
 
 app.secret_key = os.environ["SECRET_KEY"]
+csrf = CSRFProtect(app)
 
 # -------------------------------------------------
 # LOGIN REQUIRED DECORATOR
