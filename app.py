@@ -1996,41 +1996,27 @@ def reports():
         stolen_count = cur.fetchone()[0]
 
         
-                     # 3. Case Status summary — count unique IMEIs.
+                    
+        # 3. Count ALL case and stolen report records
+        # Each database row is counted separately, even if IMEI repeats.
         cur.execute("""
-            WITH all_case_records AS (
+            WITH all_records AS (
                 SELECT
-                    NULLIF(TRIM(imei), '') AS imei,
                     COALESCE(
                         NULLIF(LOWER(TRIM(case_status)), ''),
                         'reported'
-                    ) AS status,
-                    1 AS source_priority
+                    ) AS status
                 FROM cases
 
                 UNION ALL
 
                 SELECT
-                    NULLIF(TRIM(imei), '') AS imei,
                     COALESCE(
                         NULLIF(LOWER(TRIM(case_status)), ''),
+                        NULLIF(LOWER(TRIM(status)), ''),
                         'reported'
-                    ) AS status,
-                    2 AS source_priority
-                FROM stolen_phones AS s
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM cases AS c
-                    WHERE c.imei = s.imei
-                )
-            ),
-            unique_cases AS (
-                SELECT DISTINCT ON (imei)
-                    imei,
-                    status
-                FROM all_case_records
-                WHERE imei IS NOT NULL
-                ORDER BY imei, source_priority
+                    ) AS status
+                FROM stolen_phones
             )
             SELECT
                 COUNT(*),
@@ -2049,9 +2035,18 @@ def reports():
                 ),
                 COUNT(*) FILTER (
                     WHERE status = 'closed'
+                ),
+                COUNT(*) FILTER (
+                    WHERE status IN (
+                        'reported',
+                        'investigation',
+                        'under investigation',
+                        'in progress'
+                    )
                 )
-            FROM unique_cases
+            FROM all_records
         """)
+
         row = cur.fetchone()
 
         cases_count = row[0]
@@ -2059,6 +2054,11 @@ def reports():
         investigation_count = row[2]
         recovered_cases_count = row[3]
         closed_count = row[4]
+        active_cases_count = row[5]
+
+        # Recovered count follows the same all-records rule.
+        recovered_count = recovered_cases_count
+
        
         # 4. Recovered phones - use the same counting rule as Dashboard.
         cur.execute("""
@@ -2185,7 +2185,7 @@ def reports():
 def excel_safe_text(value):
     """Prepare text safely for spreadsheet export."""
     text = "" if value is None else str(value)
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
     if text.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
         return "'" + text
 
