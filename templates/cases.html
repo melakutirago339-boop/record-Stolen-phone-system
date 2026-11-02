@@ -1220,11 +1220,6 @@
         </a>
 
         <form class="update-form"
-              method="POST"
-              action="{{ url_for('cases') }}"
-              onsubmit="const btn = this.querySelector('button[type=submit]'); if (this.dataset.submitting === 'true') return false; this.dataset.submitting = 'true'; btn.disabled = true; btn.textContent = 'Saving...';">
-
-            <input type="hidden" name="action" value="update_case">
             <input type="hidden" name="source" value="{{ case.source }}">
             <input type="hidden" name="record_id" value="{{ case.id }}">
 
