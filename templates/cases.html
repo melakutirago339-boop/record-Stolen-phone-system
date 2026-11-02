@@ -1103,7 +1103,8 @@
         </div>
 
         <form method="POST" action="{{ url_for('cases') }}">
-            <input type="hidden" name="action" value="submit_officer_report">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" value="submit_officer_report">
             <input type="hidden" name="source" value="{{ selected_case.source }}">
             <input type="hidden" name="record_id" value="{{ selected_case.id }}">
 
