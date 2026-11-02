@@ -340,7 +340,8 @@
                 registration and stolen-report records.
             </p>
 
-            <form id="imeiForm">
+           <form id="imeiForm">
+    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
                 <label for="imei">IMEI Number</label>
                 <input
                     type="text"
