@@ -309,6 +309,7 @@
 
 
           <form method="POST" action="{{ url_for('register_phone') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="form-grid">
 
