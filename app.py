@@ -621,62 +621,44 @@ def dashboard():
         cur.execute("SELECT COUNT(*) FROM stolen_phones")
         stolen_count = cur.fetchone()[0]
 
+               # Count ALL records, even when IMEI is repeated.
         cur.execute("""
-            SELECT COUNT(*)
-            FROM stolen_phones
-            WHERE LOWER(TRIM(COALESCE(status, ''))) = 'recovered'
-               OR LOWER(TRIM(COALESCE(case_status, ''))) = 'recovered'
-        """)
-        recovered_reports = cur.fetchone()[0]
-
-        cur.execute("""
-            SELECT COUNT(*)
-            FROM cases AS c
-            WHERE LOWER(TRIM(COALESCE(c.case_status, ''))) = 'recovered'
-              AND NOT EXISTS (
-                  SELECT 1
-                  FROM stolen_phones AS s
-                  WHERE s.imei = c.imei
-              )
-        """)
-        recovered_cases = cur.fetchone()[0]
-
-        recovered_count = recovered_reports + recovered_cases
-
-        # Count unique open cases
-        cur.execute("""
-            WITH open_records AS (
+            WITH all_records AS (
                 SELECT
-                    NULLIF(TRIM(imei), '') AS imei,
-                    LOWER(TRIM(COALESCE(case_status, 'reported'))) AS case_status
+                    COALESCE(
+                        NULLIF(LOWER(TRIM(case_status)), ''),
+                        'reported'
+                    ) AS status
                 FROM cases
 
                 UNION ALL
 
                 SELECT
-                    NULLIF(TRIM(imei), '') AS imei,
-                    LOWER(TRIM(COALESCE(case_status, 'reported'))) AS case_status
-                FROM stolen_phones AS s
-                WHERE NOT EXISTS (
-                    SELECT 1
-                    FROM cases AS c
-                    WHERE c.imei = s.imei
-                )
-            ),
-            unique_open_cases AS (
-                SELECT DISTINCT imei
-                FROM open_records
-                WHERE case_status IN (
-                    'reported',
-                    'investigation',
-                    'under investigation',
-                    'in progress'
-                )
-                AND imei IS NOT NULL
+                    COALESCE(
+                        NULLIF(LOWER(TRIM(case_status)), ''),
+                        NULLIF(LOWER(TRIM(status)), ''),
+                        'reported'
+                    ) AS status
+                FROM stolen_phones
             )
-            SELECT COUNT(*) FROM unique_open_cases
+            SELECT
+                COUNT(*) FILTER (
+                    WHERE status = 'recovered'
+                ),
+                COUNT(*) FILTER (
+                    WHERE status IN (
+                        'reported',
+                        'investigation',
+                        'under investigation',
+                        'in progress'
+                    )
+                )
+            FROM all_records
         """)
-        active_cases = cur.fetchone()[0]
+
+        row = cur.fetchone()
+        recovered_count = row[0]
+        active_cases = row[1]
 
         # Get notifications for logged-in user
         current_username = session.get("username")
