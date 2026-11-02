@@ -291,6 +291,7 @@
             {% endif %}
 
             <form method="POST" action="{{ url_for('search_imei') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <label for="imei">IMEI Number</label>
 
                 <input
