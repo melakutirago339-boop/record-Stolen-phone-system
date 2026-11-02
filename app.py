@@ -2059,7 +2059,6 @@ def reports():
         # Recovered count follows the same all-records rule.
         recovered_count = recovered_cases_count
 
-       
         # 4. Recovered phones - use the same counting rule as Dashboard.
         cur.execute("""
             SELECT COUNT(*)
