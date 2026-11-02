@@ -256,6 +256,7 @@
         <form method="POST"
               action="{{ url_for('phone_locations') }}"
               id="locationForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="field">
                 <label for="imei">Phone IMEI *</label>
