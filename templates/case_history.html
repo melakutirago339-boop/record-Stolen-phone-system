@@ -76,6 +76,8 @@
         <table>
             <thead>
                 <tr>
+                    <th>Source</th>
+<th>Record ID</th>
                     <th>Case Number</th>
                     <th>IMEI</th>
                     <th>Previous Status</th>
@@ -88,6 +90,8 @@
             <tbody>
                 {% for item in history_list %}
                 <tr>
+                    <td>{{ item.source }}</td>
+<td>{{ item.record_id }}</td>
                     <td>{{ item.case_number }}</td>
                     <td>{{ item.imei }}</td>
                     <td>{{ item.previous_status }}</td>
