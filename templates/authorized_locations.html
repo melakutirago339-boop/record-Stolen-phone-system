@@ -68,6 +68,7 @@
     {% endif %}
 
     <form method="POST" action="{{ url_for('location_redirect') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <h2>Add Authorized Location</h2>
 
         <label>Location Name *</label>
