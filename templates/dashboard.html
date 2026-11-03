@@ -529,8 +529,8 @@ footer {
 <footer>
     Stolen Phone Recovery System
 </footer>
-    
-<script>
+    <script>
+
 const translations = {
   en: {
     dashboard: "Dashboard",
@@ -602,26 +602,20 @@ const translations = {
   }
 };
 
-const selectors = {
-  dashboard: "main > h2:nth-of-type(1)",
-  registered: ".card:nth-child(1) h3",
-  stolen: ".card:nth-child(2) h3",
-  recovered: ".card:nth-child(3) h3",
-  openCases: ".card:nth-child(4) h3",
-  menu: "nav"
-};
-
 function setLanguage(lang) {
   const t = translations[lang] || translations.en;
 
   document.documentElement.lang = lang;
 
-  document.querySelector(selectors.dashboard).textContent =
+  document.querySelector("main > h2:nth-of-type(1)").textContent =
     t.dashboard;
 
+  const cardKeys = [
+    "registered", "stolen", "recovered", "openCases"
+  ];
+
   document.querySelectorAll(".card h3").forEach((el, i) => {
-    const keys = ["registered", "stolen", "recovered", "openCases"];
-    el.textContent = t[keys[i]];
+    el.textContent = t[cardKeys[i]];
   });
 
   document.querySelector("main > h2:nth-of-type(2)").textContent =
@@ -650,28 +644,33 @@ const savedLanguage =
 
 languageSelect.value = savedLanguage;
 setLanguage(savedLanguage);
-    const notificationButton =
-    document.getElementById("notificationButton");
+
+// Notification button
+const notificationButton =
+  document.getElementById("notificationButton");
 
 const notificationPanel =
-    document.getElementById("notificationPanel");
+  document.getElementById("notificationPanel");
 
-notificationButton.addEventListener("click", function () {
+if (notificationButton && notificationPanel) {
+  notificationButton.addEventListener("click", function () {
     notificationPanel.classList.toggle("show");
-});
-    <script>
-if ("serviceWorker" in navigator) {
-    window.addEventListener("load", function () {
-        navigator.serviceWorker.register("/static/sw.js")
-            .then(function (registration) {
-                console.log("App service worker registered:", registration.scope);
-            })
-            .catch(function (error) {
-                console.error("Service Worker registration failed:", error);
-            });
-    });
+  });
 }
-</script>
+
+// Service Worker
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/static/sw.js")
+      .then(function (registration) {
+        console.log("Service Worker registered:", registration.scope);
+      })
+      .catch(function (error) {
+        console.error("Service Worker registration failed:", error);
+      });
+  });
+}
+
     
     </script>
 </body>
