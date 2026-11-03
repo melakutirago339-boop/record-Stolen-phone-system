@@ -1,4 +1,5 @@
 
+
 {
   "name": "Stolen Phone Recovery System",
   "short_name": "Phone Recovery",
@@ -11,12 +12,12 @@
   "theme_color": "#102344",
   "icons": [
     {
-      "src": "/static/images/app-icon-192.png",
+      "src": "/static/images/Federal_Police_Commission_of_Ethiopia.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/static/images/app-icon-512.png",
+      "src": "/static/images/Federal_Police_Commission_of_Ethiopia.png",
       "sizes": "512x512",
       "type": "image/png"
     }
