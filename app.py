@@ -262,33 +262,25 @@ def create_tables():
             BOOLEAN NOT NULL DEFAULT FALSE
         """)
 
-              # Authorized locations
+                      # Authorized locations
         cur.execute("""
-            ALTER TABLE authorized_locations
-            ADD COLUMN IF NOT EXISTS city TEXT
+            CREATE TABLE IF NOT EXISTS authorized_locations (
+                id SERIAL PRIMARY KEY,
+                location_name VARCHAR(150) NOT NULL,
+                city TEXT,
+                address TEXT,
+                location_type TEXT,
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                status TEXT DEFAULT 'Active'
+            )
         """)
 
         cur.execute("""
             ALTER TABLE authorized_locations
             ADD COLUMN IF NOT EXISTS address TEXT
         """)
-        cur.execute("""
-    CREATE TABLE IF NOT EXISTS authorized_locations (
-        id SERIAL PRIMARY KEY,
-        location_name VARCHAR(150) NOT NULL,
-        city TEXT,
-        address TEXT,
-        location_type TEXT,
-        latitude DOUBLE PRECISION,
-        longitude DOUBLE PRECISION,
-        status TEXT DEFAULT 'Active'
-    )
-""")
-
-        cur.execute("""
-            ALTER TABLE authorized_locations
-            ADD COLUMN IF NOT EXISTS location_type TEXT
-        """)
+        
 
         cur.execute("""
             ALTER TABLE authorized_locations
@@ -316,6 +308,7 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        
         # -------------------------------------------------
         # TELECOM LOCATION REPORTS
         # -------------------------------------------------
@@ -2615,17 +2608,18 @@ def safedevice_imei_api():
 # START APPLICATION
 # =================================================
 
+try:
+    create_tables()
+    print("Database initialization successful.")
+
+except Exception:
+    app.logger.exception(
+        "Database initialization failed."
+    )
+    raise
+
+
 if __name__ == "__main__":
-
-    try:
-        create_tables()
-        print("Database initialization successful.")
-
-    except Exception:
-        app.logger.exception(
-            "Database initialization failed."
-        )
-        raise
 
     port = int(os.environ.get("PORT", 5000))
 
