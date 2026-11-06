@@ -640,50 +640,51 @@ def login():
                 session["role"] = "admin"
                 return redirect(url_for("dashboard"))
 
-            # Officer and regular user login
-            if selected_role in ("officer", "user"):
-                conn = get_db_connection()
-                cur = conn.cursor()
+           # Officer and regular user login
+if selected_role in ("officer", "user"):
+    conn = get_db_connection()
+    cur = conn.cursor()
 
-                try:
-                    cur.execute("""
-                        SELECT username, password_hash, role
-                        FROM system_users
-                        WHERE username = %s
-                          AND is_active = TRUE
-                    """, (username,))
+    try:
+        cur.execute("""
+            SELECT username, password_hash, role
+            FROM system_users
+            WHERE username = %s
+              AND is_active = TRUE
+        """, (username,))
 
-                    account = cur.fetchone()
+        account = cur.fetchone()
 
-                    if (
-                        account
-                        and account[2].lower() == selected_role
-                        and check_password_hash(
-                            account[1], password
-                        )
-                    ):
-                        session.clear()
-                        session["username"] = account[0]
-                        session["role"] = account[2].lower()
-                        return redirect(url_for("dashboard"))
+        if (
+            account
+            and account[2].lower() == selected_role
+            and check_password_hash(
+                account[1], password
+            )
+        ):
+            session.clear()
+            session["username"] = account[0]
+            session["role"] = account[2].lower()
+            return redirect(url_for("dashboard"))
 
-                finally:
-                    cur.close()
-                    conn.close()
+    finally:
+        cur.close()
+        conn.close()
 
-        except (ValueError, TypeError) as error:
-            app.logger.error("Login validation error: %s", error)
+except (ValueError, TypeError) as error:
+    app.logger.error(
+        "Login validation error: %s", error
+    )
 
-        except Exception:
-            app.logger.exception("Login database error")
+except Exception:
+    app.logger.exception("Login database error")
 
-                return render_template(
-            "login.html",
-            error="Invalid username, password, or role."
-        )
+return render_template(
+    "login.html",
+    error="Invalid username, password, or role."
+)
 
-    return render_template("login.html")
-
+return render_template("login.html")
 
 # -------------------------------------------------
 # ADMIN TELECOM REPORTS
