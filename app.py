@@ -1,14 +1,7 @@
 
 from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    session,
-    url_for,
-    jsonify,
-    abort,
-    Response
+    Flask, render_template, request,
+    redirect, session, url_for, abort
 )
 import os
 import psycopg2
