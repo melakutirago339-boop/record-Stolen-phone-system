@@ -301,6 +301,73 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+        # -------------------------------------------------
+# TELECOM LOCATION REPORTS
+# -------------------------------------------------
+
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS telecom_location_reports (
+        id SERIAL PRIMARY KEY,
+
+        case_number VARCHAR(100) NOT NULL,
+        imei VARCHAR(15) NOT NULL,
+
+        provider VARCHAR(50) NOT NULL
+            CHECK (provider IN (
+                'Ethio Telecom',
+                'Safaricom Ethiopia'
+            )),
+
+        report_reference VARCHAR(150),
+
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+
+        location_description TEXT,
+
+        received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        received_by VARCHAR(150),
+
+        authorization_reference VARCHAR(150) NOT NULL,
+
+        verification_status VARCHAR(30)
+            NOT NULL DEFAULT 'Pending'
+            CHECK (
+                verification_status IN (
+                    'Pending',
+                    'Approved',
+                    'Rejected'
+                )
+            ),
+
+        approved_by VARCHAR(150),
+        approved_at TIMESTAMP,
+        approval_notes TEXT,
+
+        notes TEXT,
+
+        CHECK (
+            (latitude IS NULL AND longitude IS NULL)
+            OR
+            (
+                latitude BETWEEN -90 AND 90
+                AND longitude BETWEEN -180 AND 180
+            )
+        )
+    )
+""")
+
+cur.execute("""
+    CREATE INDEX IF NOT EXISTS
+    idx_telecom_reports_imei
+    ON telecom_location_reports(imei)
+""")
+
+cur.execute("""
+    CREATE INDEX IF NOT EXISTS
+    idx_telecom_reports_status
+    ON telecom_location_reports(verification_status)
+""")
 
         conn.commit()
         print("Database tables ready")
