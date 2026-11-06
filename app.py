@@ -689,40 +689,22 @@ def login():
 # ADMIN TELECOM REPORTS
 # -------------------------------------------------
 
-@app.route("/admin/telecom-reports", methods=["GET"])
+@app.route("/admin/telecom-reports")
 @admin_required
 def admin_telecom_reports():
 
     conn = None
     cur = None
     reports = []
-    error = None
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT
-                id,
-                case_number,
-                imei,
-                provider,
-                report_reference,
-                latitude,
-                longitude,
-                location_description,
-                received_at,
-                received_by,
-                authorization_reference,
-                verification_status,
-                approved_by,
-                approved_at,
-                approval_notes,
-                notes
+            SELECT *
             FROM telecom_location_reports
-            ORDER BY received_at DESC NULLS LAST, id DESC
-            LIMIT 500
+            ORDER BY received_at DESC
         """)
 
         columns = [desc[0] for desc in cur.description]
@@ -736,7 +718,7 @@ def admin_telecom_reports():
         app.logger.exception(
             "Telecom reports loading failed"
         )
-        error = "Could not load telecom reports. Please check server logs."
+        abort(500)
 
     finally:
         if cur:
@@ -747,10 +729,8 @@ def admin_telecom_reports():
 
     return render_template(
         "telecom_reports.html",
-        reports=reports,
-        error=error
+        reports=reports
     )
-
 
 # -------------------------------------------------
 # DASHBOARD
