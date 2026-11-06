@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Telecom Reports | SafeDevice</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .header {
+            background: #0f172a;
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+            margin: 0 0 10px;
+        }
+
+        .header p {
+            color: #cbd5e1;
+            margin: 0;
+        }
+
+        .actions {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 11px 18px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+            margin-right: 8px;
+        }
+
+        .btn:hover {
+            background: #1d4ed8;
+        }
+
+        .table-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1100px;
+        }
+
+        th, td {
+            padding: 13px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        th {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .status {
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .approved {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 35px;
+            color: #64748b;
+        }
+
+        .imei {
+            font-family: monospace;
+            white-space: nowrap;
+        }
+
+        @media(max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Telecom Location Reports</h1>
+        <p>SafeDevice Administrator Control Panel</p>
+        <p>Review location reports received from telecom providers.</p>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('dashboard') }}" class="btn">
+            ← Dashboard
+        </a>
+
+        <a href="{{ url_for('logout') }}" class="btn">
+            Logout
+        </a>
+    </div>
+
+    <div class="table-container">
+
+        <h2>Telecom Reports</h2>
+
+        <p>
+            Total reports:
+            <strong>{{ reports|length }}</strong>
+        </p>
+
+        {% if reports %}
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Case Number</th>
+                    <th>IMEI</th>
+                    <th>Provider</th>
+                    <th>Reference</th>
+                    <th>Location</th>
+                    <th>Latitude</th>
+                    <th>Longitude</th>
+                    <th>Authorization</th>
+                    <th>Received Date</th>
+                    <th>Received By</th>
+                    <th>Verification</th>
+                    <th>Approved By</th>
+                    <th>Approval Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for report in reports %}
+
+                <tr>
+                    <td>{{ report.id }}</td>
+
+                    <td>
+                        {{ report.case_number }}
+                    </td>
+
+                    <td class="imei">
+                        {{ report.imei }}
+                    </td>
+
+                    <td>
+                        {{ report.provider }}
+                    </td>
+
+                    <td>
+                        {{ report.report_reference or '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.location_description or '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.latitude if report.latitude is not none else '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.longitude if report.longitude is not none else '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.authorization_reference }}
+                    </td>
+
+                    <td>
+                        {{ report.received_at or '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.received_by or '-' }}
+                    </td>
+
+                    <td>
+                        {% set status = report.verification_status|default('Pending')|lower %}
+
+                        <span class="status {{ status }}">
+                            {{ report.verification_status or 'Pending' }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ report.approved_by or '-' }}
+                    </td>
+
+                    <td>
+                        {{ report.approved_at or '-' }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+        {% else %}
+
+        <div class="empty">
+            <h3>No Telecom Reports Found</h3>
+            <p>Telecom location reports will appear here when received.</p>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>
