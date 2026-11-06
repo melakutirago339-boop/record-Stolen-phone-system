@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin Telecom Reports | SafeDevice</title>
+    <title>Telecom Reports | SafeDevice</title>
 
     <style>
         * {
@@ -14,87 +14,170 @@
 
         body {
             margin: 0;
-            padding: 20px;
+            padding: 25px;
             font-family: Arial, sans-serif;
             background: #f1f5f9;
             color: #1e293b;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1500px;
             margin: auto;
         }
 
         .header {
-            background: #0f172a;
+            background: linear-gradient(135deg, #0f172a, #1e3a8a);
             color: white;
-            padding: 25px;
-            border-radius: 12px;
+            padding: 30px;
+            border-radius: 15px;
             margin-bottom: 25px;
+            box-shadow: 0 5px 18px rgba(15,23,42,.12);
         }
 
         .header h1 {
-            margin: 0 0 10px;
+            margin: 0 0 12px;
+            font-size: 28px;
         }
 
         .header p {
             color: #cbd5e1;
-            margin: 0;
+            margin: 6px 0;
+        }
+
+        .header small {
+            color: #93c5fd;
         }
 
         .actions {
-            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 22px;
         }
 
         .btn {
             display: inline-block;
-            padding: 11px 18px;
+            padding: 12px 20px;
             background: #2563eb;
             color: white;
             text-decoration: none;
-            border-radius: 7px;
-            margin-right: 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: .2s;
         }
 
         .btn:hover {
             background: #1d4ed8;
+            transform: translateY(-2px);
+        }
+
+        .logout {
+            background: #dc2626;
+        }
+
+        .logout:hover {
+            background: #b91c1c;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.05);
+            border-left: 5px solid #2563eb;
+        }
+
+        .summary-card h3 {
+            color: #64748b;
+            font-size: 14px;
+            margin: 0 0 12px;
+        }
+
+        .summary-card strong {
+            font-size: 30px;
+            color: #0f172a;
         }
 
         .table-container {
             background: white;
-            padding: 20px;
-            border-radius: 12px;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 3px 12px rgba(0,0,0,.05);
+        }
+
+        .table-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .table-heading h2 {
+            margin: 0;
+            color: #0f172a;
+        }
+
+        .search-box {
+            padding: 12px 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 280px;
+            max-width: 100%;
+            outline: none;
+        }
+
+        .search-box:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+        }
+
+        .table-scroll {
+            width: 100%;
             overflow-x: auto;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1100px;
+            min-width: 1450px;
         }
 
         th, td {
-            padding: 13px;
+            padding: 14px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
             font-size: 13px;
+            white-space: nowrap;
         }
 
         th {
             background: #e2e8f0;
             color: #0f172a;
+            font-weight: bold;
         }
 
-        tr:hover {
+        tbody tr:hover {
             background: #f8fafc;
         }
 
         .status {
-            padding: 6px 10px;
+            display: inline-block;
+            padding: 6px 11px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
+            text-transform: capitalize;
         }
 
         .pending {
@@ -112,24 +195,63 @@
             color: #991b1b;
         }
 
-        .empty {
-            text-align: center;
-            padding: 35px;
-            color: #64748b;
+        .unknown {
+            background: #e2e8f0;
+            color: #475569;
         }
 
         .imei {
             font-family: monospace;
-            white-space: nowrap;
+            font-weight: bold;
+            color: #1d4ed8;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 45px 20px;
+            color: #64748b;
+        }
+
+        .empty h3 {
+            color: #334155;
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: #64748b;
+            font-size: 12px;
         }
 
         @media(max-width: 600px) {
             body {
-                padding: 10px;
+                padding: 12px;
             }
 
             .header {
-                padding: 18px;
+                padding: 22px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .table-container {
+                padding: 15px;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .actions .btn {
+                flex: 1;
+                text-align: center;
             }
         }
     </style>
@@ -139,25 +261,74 @@
 
 <div class="container">
 
+    <!-- HEADER -->
     <div class="header">
         <h1>Telecom Location Reports</h1>
         <p>SafeDevice Administrator Control Panel</p>
-        <p>Review location reports received from telecom providers.</p>
+        <p>Review and manage authorized telecom location reports.</p>
+        <small>Restricted Administrative Access</small>
     </div>
 
+    <!-- ACTION BUTTONS -->
     <div class="actions">
+
         <a href="{{ url_for('dashboard') }}" class="btn">
-            ← Dashboard
+            &#8592; Dashboard
         </a>
 
-        <a href="{{ url_for('logout') }}" class="btn">
+        <a href="{{ url_for('logout') }}" class="btn logout">
             Logout
         </a>
+
     </div>
 
+    <!-- SUMMARY -->
+    <div class="summary">
+
+        <div class="summary-card">
+            <h3>Total Telecom Reports</h3>
+            <strong>{{ reports|length }}</strong>
+        </div>
+
+        <div class="summary-card">
+            <h3>Pending Verification</h3>
+            <strong>
+                {{ reports|selectattr('verification_status', 'equalto', 'Pending')|list|length }}
+            </strong>
+        </div>
+
+        <div class="summary-card">
+            <h3>Approved Reports</h3>
+            <strong>
+                {{ reports|selectattr('verification_status', 'equalto', 'Approved')|list|length }}
+            </strong>
+        </div>
+
+        <div class="summary-card">
+            <h3>Rejected Reports</h3>
+            <strong>
+                {{ reports|selectattr('verification_status', 'equalto', 'Rejected')|list|length }}
+            </strong>
+        </div>
+
+    </div>
+
+    <!-- REPORTS TABLE -->
     <div class="table-container">
 
-        <h2>Telecom Reports</h2>
+        <div class="table-heading">
+
+            <h2>Telecom Reports</h2>
+
+            <input
+                type="search"
+                id="reportSearch"
+                class="search-box"
+                placeholder="Search reports..."
+                aria-label="Search telecom reports"
+            >
+
+        </div>
 
         <p>
             Total reports:
@@ -166,110 +337,147 @@
 
         {% if reports %}
 
-        <table>
+        <div class="table-scroll">
 
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Case Number</th>
-                    <th>IMEI</th>
-                    <th>Provider</th>
-                    <th>Reference</th>
-                    <th>Location</th>
-                    <th>Latitude</th>
-                    <th>Longitude</th>
-                    <th>Authorization</th>
-                    <th>Received Date</th>
-                    <th>Received By</th>
-                    <th>Verification</th>
-                    <th>Approved By</th>
-                    <th>Approval Date</th>
-                </tr>
-            </thead>
+            <table id="reportsTable">
 
-            <tbody>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Case Number</th>
+                        <th>IMEI</th>
+                        <th>Provider</th>
+                        <th>Reference</th>
+                        <th>Location</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Authorization</th>
+                        <th>Received Date</th>
+                        <th>Received By</th>
+                        <th>Verification</th>
+                        <th>Approved By</th>
+                        <th>Approval Date</th>
+                    </tr>
+                </thead>
 
-                {% for report in reports %}
+                <tbody>
 
-                <tr>
-                    <td>{{ report.id }}</td>
+                    {% for report in reports %}
 
-                    <td>
-                        {{ report.case_number }}
-                    </td>
+                    {% set status = (report.verification_status or 'Pending')|lower|trim %}
 
-                    <td class="imei">
-                        {{ report.imei }}
-                    </td>
+                    <tr>
 
-                    <td>
-                        {{ report.provider }}
-                    </td>
+                        <td>{{ report.id }}</td>
 
-                    <td>
-                        {{ report.report_reference or '-' }}
-                    </td>
+                        <td>{{ report.case_number or '-' }}</td>
 
-                    <td>
-                        {{ report.location_description or '-' }}
-                    </td>
+                        <td class="imei">{{ report.imei or '-' }}</td>
 
-                    <td>
-                        {{ report.latitude if report.latitude is not none else '-' }}
-                    </td>
+                        <td>{{ report.provider or '-' }}</td>
 
-                    <td>
-                        {{ report.longitude if report.longitude is not none else '-' }}
-                    </td>
+                        <td>{{ report.report_reference or '-' }}</td>
 
-                    <td>
-                        {{ report.authorization_reference }}
-                    </td>
+                        <td>{{ report.location_description or '-' }}</td>
 
-                    <td>
-                        {{ report.received_at or '-' }}
-                    </td>
+                        <td>
+                            {{ report.latitude if report.latitude is not none else '-' }}
+                        </td>
 
-                    <td>
-                        {{ report.received_by or '-' }}
-                    </td>
+                        <td>
+                            {{ report.longitude if report.longitude is not none else '-' }}
+                        </td>
 
-                    <td>
-                        {% set status = report.verification_status|default('Pending')|lower %}
+                        <td>{{ report.authorization_reference or '-' }}</td>
 
-                        <span class="status {{ status }}">
-                            {{ report.verification_status or 'Pending' }}
-                        </span>
-                    </td>
+                        <td>{{ report.received_at or '-' }}</td>
 
-                    <td>
-                        {{ report.approved_by or '-' }}
-                    </td>
+                        <td>{{ report.received_by or '-' }}</td>
 
-                    <td>
-                        {{ report.approved_at or '-' }}
-                    </td>
+                        <td>
 
-                </tr>
+                            <span class="status
+                                {% if status == 'pending' %}pending
+                                {% elif status == 'approved' %}approved
+                                {% elif status == 'rejected' %}rejected
+                                {% else %}unknown{% endif %}">
 
-                {% endfor %}
+                                {{ report.verification_status or 'Pending' }}
 
-            </tbody>
+                            </span>
 
-        </table>
+                        </td>
+
+                        <td>{{ report.approved_by or '-' }}</td>
+
+                        <td>{{ report.approved_at or '-' }}</td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
 
         {% else %}
 
         <div class="empty">
+
+            <div class="empty-icon">&#128202;</div>
+
             <h3>No Telecom Reports Found</h3>
-            <p>Telecom location reports will appear here when received.</p>
+
+            <p>
+                Telecom location reports will appear here
+                when received from authorized providers.
+            </p>
+
         </div>
 
         {% endif %}
 
     </div>
 
+    <!-- FOOTER -->
+    <div class="footer">
+        SafeDevice Telecom Reports Management System
+        <br>
+        Authorized Administrative Use Only
+    </div>
+
 </div>
+
+<!-- SEARCH SCRIPT -->
+<script>
+
+    const searchInput = document.getElementById("reportSearch");
+    const table = document.getElementById("reportsTable");
+
+    if (searchInput && table) {
+
+        searchInput.addEventListener("input", function() {
+
+            const searchValue = this.value.toLowerCase();
+
+            const rows = table.querySelectorAll("tbody tr");
+
+            rows.forEach(function(row) {
+
+                const rowText = row.innerText.toLowerCase();
+
+                row.style.display =
+                    rowText.includes(searchValue) ? "" : "none";
+
+            });
+
+        });
+
+    }
+
+</script>
 
 </body>
 </html>
