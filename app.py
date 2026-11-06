@@ -14,20 +14,39 @@ app = Flask(__name__)
 
 app.secret_key = os.environ["SECRET_KEY"]
 csrf = CSRFProtect(app)
+# -------------------------------------------------
+# LOGIN REQUIRED AND ADMIN REQUIRED DECORATORS
+# -------------------------------------------------
 
-# -------------------------------------------------
-# LOGIN REQUIRED DECORATOR
-# -------------------------------------------------
+from functools import wraps
+from flask import session, redirect, url_for
+
 
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
+
         if "username" not in session:
             return redirect("/login")
+
         return func(*args, **kwargs)
+
     return wrapper
 
 
+def admin_required(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+
+        if "username" not in session:
+            return redirect("/login")
+
+        if session.get("role") != "admin":
+            return "Access denied: Admin only.", 403
+
+        return func(*args, **kwargs)
+
+    return wrapper
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
@@ -594,6 +613,45 @@ def login():
         )
 
     return render_template("login.html")
+    @app.route("/admin/telecom-reports")
+@admin_required
+def admin_telecom_reports():
+
+    conn = None
+    cur = None
+    reports = []
+
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT *
+            FROM telecom_location_reports
+            ORDER BY received_at DESC
+        """)
+
+        columns = [desc[0] for desc in cur.description]
+
+        reports = [
+            dict(zip(columns, row))
+            for row in cur.fetchall()
+        ]
+
+    except Exception:
+        app.logger.exception("Telecom reports loading failed")
+        abort(500)
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
+
+    return render_template(
+        "telecom_reports.html",
+        reports=reports
+    )
 
 # -------------------------------------------------
 # DASHBOARD
