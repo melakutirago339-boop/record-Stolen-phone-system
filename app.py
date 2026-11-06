@@ -1,5 +1,15 @@
 
-from flask import Flask, render_template, request, redirect, session, url_for
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    session,
+    url_for,
+    jsonify,
+    abort,
+    Response
+)
 import os
 import psycopg2
 from functools import wraps
@@ -269,6 +279,18 @@ def create_tables():
             ALTER TABLE authorized_locations
             ADD COLUMN IF NOT EXISTS address TEXT
         """)
+        cur.execute("""
+    CREATE TABLE IF NOT EXISTS authorized_locations (
+        id SERIAL PRIMARY KEY,
+        location_name VARCHAR(150) NOT NULL,
+        city TEXT,
+        address TEXT,
+        location_type TEXT,
+        latitude DOUBLE PRECISION,
+        longitude DOUBLE PRECISION,
+        status TEXT DEFAULT 'Active'
+    )
+""")
 
         cur.execute("""
             ALTER TABLE authorized_locations
@@ -302,73 +324,61 @@ def create_tables():
             )
         """)
         # -------------------------------------------------
-# TELECOM LOCATION REPORTS
-# -------------------------------------------------
+        # TELECOM LOCATION REPORTS
+        # -------------------------------------------------
 
-cur.execute("""
-    CREATE TABLE IF NOT EXISTS telecom_location_reports (
-        id SERIAL PRIMARY KEY,
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS telecom_location_reports (
+                id SERIAL PRIMARY KEY,
+                case_number VARCHAR(100) NOT NULL,
+                imei VARCHAR(15) NOT NULL,
 
-        case_number VARCHAR(100) NOT NULL,
-        imei VARCHAR(15) NOT NULL,
+                provider VARCHAR(50) NOT NULL
+                    CHECK (provider IN (
+                        'Ethio Telecom',
+                        'Safaricom Ethiopia'
+                    )),
 
-        provider VARCHAR(50) NOT NULL
-            CHECK (provider IN (
-                'Ethio Telecom',
-                'Safaricom Ethiopia'
-            )),
+                report_reference VARCHAR(150),
+                latitude DOUBLE PRECISION,
+                longitude DOUBLE PRECISION,
+                location_description TEXT,
 
-        report_reference VARCHAR(150),
+                received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                received_by VARCHAR(150),
 
-        latitude DOUBLE PRECISION,
-        longitude DOUBLE PRECISION,
+                authorization_reference VARCHAR(150) NOT NULL,
 
-        location_description TEXT,
+                verification_status VARCHAR(30)
+                    NOT NULL DEFAULT 'Pending'
+                    CHECK (verification_status IN (
+                        'Pending', 'Approved', 'Rejected'
+                    )),
 
-        received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        received_by VARCHAR(150),
+                approved_by VARCHAR(150),
+                approved_at TIMESTAMP,
+                approval_notes TEXT,
+                notes TEXT,
 
-        authorization_reference VARCHAR(150) NOT NULL,
-
-        verification_status VARCHAR(30)
-            NOT NULL DEFAULT 'Pending'
-            CHECK (
-                verification_status IN (
-                    'Pending',
-                    'Approved',
-                    'Rejected'
+                CHECK (
+                    (latitude IS NULL AND longitude IS NULL)
+                    OR (
+                        latitude BETWEEN -90 AND 90
+                        AND longitude BETWEEN -180 AND 180
+                    )
                 )
-            ),
-
-        approved_by VARCHAR(150),
-        approved_at TIMESTAMP,
-        approval_notes TEXT,
-
-        notes TEXT,
-
-        CHECK (
-            (latitude IS NULL AND longitude IS NULL)
-            OR
-            (
-                latitude BETWEEN -90 AND 90
-                AND longitude BETWEEN -180 AND 180
             )
-        )
-    )
-""")
+        """)
 
-cur.execute("""
-    CREATE INDEX IF NOT EXISTS
-    idx_telecom_reports_imei
-    ON telecom_location_reports(imei)
-""")
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_telecom_reports_imei
+            ON telecom_location_reports(imei)
+        """)
 
-cur.execute("""
-    CREATE INDEX IF NOT EXISTS
-    idx_telecom_reports_status
-    ON telecom_location_reports(verification_status)
-""")
-
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_telecom_reports_status
+            ON telecom_location_reports(verification_status)
+        """)
         conn.commit()
         print("Database tables ready")
 
@@ -674,28 +684,52 @@ def login():
         except Exception:
             app.logger.exception("Login database error")
 
-        return render_template(
+                return render_template(
             "login.html",
             error="Invalid username, password, or role."
         )
 
     return render_template("login.html")
-    @app.route("/admin/telecom-reports")
+
+
+# -------------------------------------------------
+# ADMIN TELECOM REPORTS
+# -------------------------------------------------
+
+@app.route("/admin/telecom-reports", methods=["GET"])
 @admin_required
 def admin_telecom_reports():
 
     conn = None
     cur = None
     reports = []
+    error = None
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
         cur.execute("""
-            SELECT *
+            SELECT
+                id,
+                case_number,
+                imei,
+                provider,
+                report_reference,
+                latitude,
+                longitude,
+                location_description,
+                received_at,
+                received_by,
+                authorization_reference,
+                verification_status,
+                approved_by,
+                approved_at,
+                approval_notes,
+                notes
             FROM telecom_location_reports
-            ORDER BY received_at DESC
+            ORDER BY received_at DESC NULLS LAST, id DESC
+            LIMIT 500
         """)
 
         columns = [desc[0] for desc in cur.description]
@@ -706,19 +740,24 @@ def admin_telecom_reports():
         ]
 
     except Exception:
-        app.logger.exception("Telecom reports loading failed")
-        abort(500)
+        app.logger.exception(
+            "Telecom reports loading failed"
+        )
+        error = "Could not load telecom reports. Please check server logs."
 
     finally:
         if cur:
             cur.close()
+
         if conn:
             conn.close()
 
     return render_template(
         "telecom_reports.html",
-        reports=reports
+        reports=reports,
+        error=error
     )
+
 
 # -------------------------------------------------
 # DASHBOARD
@@ -2496,29 +2535,27 @@ def safedevice_imei_api():
             conn.close()
 
 
+
 # =================================================
 # START APPLICATION
 # =================================================
 
-try:
-
-    create_tables()
-
-except Exception as e:
-
-    print("Database initialization error:", e)
-
-
 if __name__ == "__main__":
 
-    port = int(
-        os.environ.get(
-            "PORT",
-            5000
+    try:
+        create_tables()
+        print("Database initialization successful.")
+
+    except Exception:
+        app.logger.exception(
+            "Database initialization failed."
         )
-    )
+        raise
+
+    port = int(os.environ.get("PORT", 5000))
 
     app.run(
         host="0.0.0.0",
-        port=port
+        port=port,
+        debug=False
     )
