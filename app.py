@@ -390,6 +390,7 @@ def create_tables():
             conn.close()
 
 
+
 # =================================================
 # AUTHORIZED LOCATIONS
 # =================================================
@@ -397,6 +398,7 @@ def create_tables():
 @app.route("/location", methods=["GET", "POST"])
 @login_required
 def location_redirect():
+
     message = None
     error = None
     locations = []
@@ -404,123 +406,223 @@ def location_redirect():
     conn = None
     cur = None
 
+    role = session.get("role", "").strip().lower()
+
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
         if request.method == "POST":
-            action = request.form.get("action", "add_location")
 
-            # Delete an authorized location after confirmation
+            action = request.form.get(
+                "action", "add_location"
+            ).strip()
+
+            # -----------------------------------------
+            # DELETE LOCATION - ADMIN ONLY
+            # -----------------------------------------
+
             if action == "delete_location":
-                location_id = request.form.get("location_id", "").strip()
 
-                if not location_id.isdigit():
-                    error = "Invalid location ID."
-                elif int(location_id) not in (2, 3):
-                    error = (
-                        "For safety, this delete action is currently "
-                        "limited to duplicate location IDs 2 and 3."
-                    )
+                if role != "admin":
+                    error = "Access denied. Admin only."
+
                 else:
-                    cur.execute("""
-                        DELETE FROM authorized_locations
-                        WHERE id = %s
-                    """, (int(location_id),))
+                    location_id = request.form.get(
+                        "location_id", ""
+                    ).strip()
 
-                    if cur.rowcount == 1:
-                        conn.commit()
-                        message = (
-                            f"Duplicate authorized location "
-                            f"ID {location_id} deleted."
-                        )
+                    if not location_id.isdigit():
+                        error = "Invalid location ID."
+
                     else:
-                        conn.rollback()
-                        error = (
-                            f"Location ID {location_id} was not found."
-                        )
+                        cur.execute("""
+                            DELETE FROM authorized_locations
+                            WHERE id = %s
+                            RETURNING id
+                        """, (int(location_id),))
 
-            # Add a new authorized location
+                        deleted = cur.fetchone()
+
+                        if deleted:
+                            conn.commit()
+                            message = (
+                                f"Location ID {deleted[0]} "
+                                "deleted successfully."
+                            )
+                        else:
+                            conn.rollback()
+                            error = "Location not found."
+
+            # -----------------------------------------
+            # ADD LOCATION
+            # -----------------------------------------
+
             elif action == "add_location":
-                name = request.form.get("name", "").strip()
-                city = request.form.get("city", "").strip()
-                address = request.form.get("address", "").strip()
-                location_type = request.form.get("type", "").strip()
-                status = request.form.get("status", "Active").strip()
 
-                latitude_text = request.form.get("latitude", "").strip()
-                longitude_text = request.form.get("longitude", "").strip()
+                name = request.form.get(
+                    "name", ""
+                ).strip()
+
+                city = request.form.get(
+                    "city", ""
+                ).strip()
+
+                address = request.form.get(
+                    "address", ""
+                ).strip()
+
+                location_type = request.form.get(
+                    "type", ""
+                ).strip()
+
+                status = request.form.get(
+                    "status", "Active"
+                ).strip()
+
+                latitude_text = request.form.get(
+                    "latitude", ""
+                ).strip()
+
+                longitude_text = request.form.get(
+                    "longitude", ""
+                ).strip()
 
                 latitude = None
                 longitude = None
 
+                # Validate required fields
                 if not name or not city:
-                    error = "Location name and city are required."
+                    error = (
+                        "Location name and city are required."
+                    )
 
-                try:
-                    if latitude_text:
-                        latitude = float(latitude_text)
-                    if longitude_text:
-                        longitude = float(longitude_text)
-                except ValueError:
-                    error = "Latitude and longitude must be valid numbers."
-
-                if not error and ((latitude is None) != (longitude is None)):
-                    error = "Enter both coordinates or leave both blank."
-
-                if not error and latitude is not None and not -90 <= latitude <= 90:
-                    error = "Latitude must be between -90 and 90."
-
-                if not error and longitude is not None and not -180 <= longitude <= 180:
-                    error = "Longitude must be between -180 and 180."
-
+                # Validate coordinates
                 if not error:
+                    try:
+                        if latitude_text:
+                            latitude = float(latitude_text)
+
+                        if longitude_text:
+                            longitude = float(longitude_text)
+
+                    except ValueError:
+                        error = (
+                            "Latitude and longitude must "
+                            "be valid numbers."
+                        )
+
+                if not error and (
+                    (latitude is None) !=
+                    (longitude is None)
+                ):
+                    error = (
+                        "Enter both coordinates "
+                        "or leave both blank."
+                    )
+
+                if not error and latitude is not None:
+                    if not -90 <= latitude <= 90:
+                        error = (
+                            "Latitude must be between -90 and 90."
+                        )
+
+                if not error and longitude is not None:
+                    if not -180 <= longitude <= 180:
+                        error = (
+                            "Longitude must be between -180 and 180."
+                        )
+
+                # Validate status
+                allowed_statuses = ["Active", "Inactive"]
+
+                if not error and status not in allowed_statuses:
+                    error = "Invalid location status."
+
+                # Insert location
+                if not error:
+
                     cur.execute("""
-                        INSERT INTO authorized_locations
-                            (location_name, city, latitude, longitude,
-                             location_type, address, status)
+                        INSERT INTO authorized_locations (
+                            location_name,
+                            city,
+                            address,
+                            location_type,
+                            latitude,
+                            longitude,
+                            status
+                        )
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        RETURNING id
                     """, (
                         name,
                         city,
-                        str(latitude) if latitude is not None else None,
-                        str(longitude) if longitude is not None else None,
-                        location_type or None,
                         address or None,
-                        status or "Active"
+                        location_type or None,
+                        latitude,
+                        longitude,
+                        status
                     ))
 
+                    new_location = cur.fetchone()
+
                     conn.commit()
-                    message = "Authorized location saved successfully."
+
+                    message = (
+                        "Authorized location saved successfully. "
+                        f"ID: {new_location[0]}"
+                    )
 
             else:
                 error = "Invalid action."
 
+        # -----------------------------------------
+        # LOAD LOCATIONS
+        # -----------------------------------------
+
         cur.execute("""
-            SELECT *
+            SELECT
+                id,
+                location_name,
+                city,
+                address,
+                location_type,
+                latitude,
+                longitude,
+                status
             FROM authorized_locations
-            ORDER BY location_name, id
+            ORDER BY location_name ASC, id ASC
         """)
 
-        columns = [description[0] for description in cur.description]
+        columns = [
+            description[0]
+            for description in cur.description
+        ]
+
         locations = [
             dict(zip(columns, row))
             for row in cur.fetchall()
         ]
 
     except Exception:
+
         if conn:
             conn.rollback()
 
-        app.logger.exception("Authorized locations page failed")
+        app.logger.exception(
+            "Authorized locations page failed"
+        )
+
         error = (
             "Could not complete the operation. "
-            "Check Render logs; the record may be protected by a database constraint."
+            "Check Render logs and database configuration."
         )
 
     finally:
+
         if cur:
             cur.close()
+
         if conn:
             conn.close()
 
@@ -609,6 +711,7 @@ def home():
 # LOGIN
 # -------------------------------------------------
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -616,7 +719,6 @@ def login():
         password = request.form.get("password", "")
         selected_role = request.form.get("role", "").strip().lower()
 
-        # Existing Administrator login
         admin_username = os.environ.get(
             "ADMIN_USERNAME", "admin"
         ).strip()
@@ -625,6 +727,7 @@ def login():
             os.environ.get("ADMIN_PASSWORD_HASH", "").split()
         )
 
+        # Administrator login
         try:
             if (
                 selected_role == "admin"
@@ -640,51 +743,49 @@ def login():
                 session["role"] = "admin"
                 return redirect(url_for("dashboard"))
 
-           # Officer and regular user login
-if selected_role in ("officer", "user"):
-    conn = get_db_connection()
-    cur = conn.cursor()
+            # Officer and User login
+            if selected_role in ("officer", "user"):
+                conn = get_db_connection()
+                cur = conn.cursor()
 
-    try:
-        cur.execute("""
-            SELECT username, password_hash, role
-            FROM system_users
-            WHERE username = %s
-              AND is_active = TRUE
-        """, (username,))
+                try:
+                    cur.execute("""
+                        SELECT username, password_hash, role
+                        FROM system_users
+                        WHERE username = %s
+                          AND is_active = TRUE
+                    """, (username,))
 
-        account = cur.fetchone()
+                    account = cur.fetchone()
 
-        if (
-            account
-            and account[2].lower() == selected_role
-            and check_password_hash(
-                account[1], password
-            )
-        ):
-            session.clear()
-            session["username"] = account[0]
-            session["role"] = account[2].lower()
-            return redirect(url_for("dashboard"))
+                    if (
+                        account
+                        and account[2].lower() == selected_role
+                        and check_password_hash(
+                            account[1], password
+                        )
+                    ):
+                        session.clear()
+                        session["username"] = account[0]
+                        session["role"] = account[2].lower()
+                        return redirect(url_for("dashboard"))
 
-    finally:
-        cur.close()
-        conn.close()
+                finally:
+                    cur.close()
+                    conn.close()
 
-except (ValueError, TypeError) as error:
-    app.logger.error(
-        "Login validation error: %s", error
-    )
+        except (ValueError, TypeError):
+            app.logger.exception("Login validation error")
 
-except Exception:
-    app.logger.exception("Login database error")
+        except Exception:
+            app.logger.exception("Login database error")
 
-return render_template(
-    "login.html",
-    error="Invalid username, password, or role."
-)
+        return render_template(
+            "login.html",
+            error="Invalid username, password, or role."
+        )
 
-return render_template("login.html")
+    return render_template("login.html")
 
 # -------------------------------------------------
 # ADMIN TELECOM REPORTS
