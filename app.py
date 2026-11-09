@@ -859,21 +859,93 @@ def login():
 
     return render_template("login.html")
 
+
 # -------------------------------------------------
 # ADMIN TELECOM REPORTS
 # -------------------------------------------------
 
-@app.route("/admin/telecom-reports")
+@app.route(
+    "/admin/telecom-reports",
+    methods=["GET", "POST"]
+)
 @admin_required
 def admin_telecom_reports():
 
     conn = None
     cur = None
     reports = []
+    message = None
+    error = None
 
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+
+        # -----------------------------------------
+        # APPROVE OR REJECT TELECOM REPORT
+        # -----------------------------------------
+
+        if request.method == "POST":
+
+            report_id = request.form.get(
+                "report_id", ""
+            ).strip()
+
+            action = request.form.get(
+                "action", ""
+            ).strip()
+
+            approval_notes = request.form.get(
+                "approval_notes", ""
+            ).strip()
+
+            if not report_id.isdigit():
+                error = "Invalid report ID."
+
+            elif action not in ["approve", "reject"]:
+                error = "Invalid verification action."
+
+            else:
+                new_status = (
+                    "Approved"
+                    if action == "approve"
+                    else "Rejected"
+                )
+
+                cur.execute("""
+                    UPDATE telecom_location_reports
+                    SET
+                        verification_status = %s,
+                        approved_by = %s,
+                        approved_at = CURRENT_TIMESTAMP,
+                        approval_notes = %s
+                    WHERE id = %s
+                      AND verification_status = 'Pending'
+                    RETURNING id
+                """, (
+                    new_status,
+                    session.get("username"),
+                    approval_notes or None,
+                    int(report_id)
+                ))
+
+                updated = cur.fetchone()
+
+                if updated:
+                    conn.commit()
+                    message = (
+                        f"Telecom report {updated[0]} "
+                        f"marked as {new_status}."
+                    )
+                else:
+                    conn.rollback()
+                    error = (
+                        "Report not found or already reviewed."
+                    )
+
+        # -----------------------------------------
+        # LOAD TELECOM REPORTS
+        # -----------------------------------------
 
         cur.execute("""
             SELECT *
@@ -881,7 +953,9 @@ def admin_telecom_reports():
             ORDER BY received_at DESC
         """)
 
-        columns = [desc[0] for desc in cur.description]
+        columns = [
+            desc[0] for desc in cur.description
+        ]
 
         reports = [
             dict(zip(columns, row))
@@ -889,12 +963,21 @@ def admin_telecom_reports():
         ]
 
     except Exception:
+
+        if conn:
+            conn.rollback()
+
         app.logger.exception(
-            "Telecom reports loading failed"
+            "Telecom reports loading or update failed"
         )
-        abort(500)
+
+        error = (
+            "Could not process telecom reports. "
+            "Check Render logs."
+        )
 
     finally:
+
         if cur:
             cur.close()
 
@@ -903,7 +986,9 @@ def admin_telecom_reports():
 
     return render_template(
         "telecom_reports.html",
-        reports=reports
+        reports=reports,
+        message=message,
+        error=error
     )
 
 # -------------------------------------------------
