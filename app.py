@@ -585,8 +585,9 @@ def location_redirect():
                             conn.rollback()
                             error = "Location not found."
 
+          
             # -----------------------------------------
-            # DELETE LOCATION - ADMIN ONLY
+            # DELETE DUPLICATE LOCATION - ADMIN ONLY
             # -----------------------------------------
 
             elif action == "delete_location":
@@ -602,6 +603,9 @@ def location_redirect():
                     if not location_id.isdigit():
                         error = "Invalid location ID."
 
+                    elif int(location_id) not in [2, 3]:
+                        error = "Only approved duplicate IDs 2 and 3 can be deleted."
+
                     else:
                         cur.execute("""
                             DELETE FROM authorized_locations
@@ -614,15 +618,12 @@ def location_redirect():
                         if deleted:
                             conn.commit()
                             message = (
-                                f"Location ID {deleted[0]} "
+                                f"Duplicate location ID {deleted[0]} "
                                 "deleted successfully."
                             )
                         else:
                             conn.rollback()
                             error = "Location not found."
-
-            else:
-                error = "Invalid action."
 
         # -----------------------------------------
         # LOAD ALL AUTHORIZED LOCATIONS
