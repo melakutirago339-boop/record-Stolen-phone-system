@@ -881,7 +881,7 @@ def admin_telecom_reports():
         conn = get_db_connection()
         cur = conn.cursor()
 
-# --        ---------------------------------------
+        # -----------------------------------------
         # APPROVE OR REJECT TELECOM REPORT
         # -----------------------------------------
 
@@ -941,7 +941,7 @@ def admin_telecom_reports():
 
                 updated = cur.fetchone()
 
-
+                if  updated
     # -----------------------------------------
     # ADD APPROVED GPS DATA TO LOCATION HISTORY
     # -----------------------------------------
