@@ -912,36 +912,103 @@ def admin_telecom_reports():
                     else "Rejected"
                 )
 
-                cur.execute("""
-                    UPDATE telecom_location_reports
-                    SET
-                        verification_status = %s,
-                        approved_by = %s,
-                        approved_at = CURRENT_TIMESTAMP,
-                        approval_notes = %s
-                    WHERE id = %s
-                      AND verification_status = 'Pending'
-                    RETURNING id
-                """, (
-                    new_status,
-                    session.get("username"),
-                    approval_notes or None,
-                    int(report_id)
-                ))
+              
+cur.execute("""
+    UPDATE telecom_location_reports
+    SET
+        verification_status = %s,
+        approved_by = %s,
+        approved_at = CURRENT_TIMESTAMP,
+        approval_notes = %s
+    WHERE id = %s
+      AND verification_status = 'Pending'
+    RETURNING
+        id,
+        imei,
+        provider,
+        report_reference,
+        latitude,
+        longitude,
+        location_description,
+        authorization_reference
+""", (
+    new_status,
+    session.get("username"),
+    approval_notes or None,
+    int(report_id)
+))
 
-                updated = cur.fetchone()
+updated = cur.fetchone()
 
-                if updated:
-                    conn.commit()
-                    message = (
-                        f"Telecom report {updated[0]} "
-                        f"marked as {new_status}."
-                    )
-                else:
-                    conn.rollback()
-                    error = (
-                        "Report not found or already reviewed."
-                    )
+if updated:
+
+    # -----------------------------------------
+    # ADD APPROVED GPS DATA TO LOCATION HISTORY
+    # -----------------------------------------
+
+    if (
+        action == "approve"
+        and updated[4] is not None
+        and updated[5] is not None
+    ):
+
+        location_value = (
+            updated[6]
+            or f"Telecom GPS report #{updated[0]}"
+        )
+
+        location_notes = (
+            f"Telecom Report ID: {updated[0]}\n"
+            f"Provider: {updated[2]}\n"
+            f"Report Reference: {updated[3] or 'N/A'}\n"
+            f"Authorization Reference: {updated[7]}\n"
+            f"Approval Notes: {approval_notes or 'N/A'}"
+        )
+
+        cur.execute("""
+            INSERT INTO phone_location_history (
+                imei,
+                location,
+                latitude,
+                longitude,
+                source,
+                notes,
+                permission_confirmed,
+                recorded_by
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            updated[1],
+            location_value,
+            updated[4],
+            updated[5],
+            updated[2],
+            location_notes,
+            False,
+            session.get("username")
+        ))
+
+    conn.commit()
+
+    if action == "approve":
+        if updated[4] is not None and updated[5] is not None:
+            message = (
+                f"Telecom report {updated[0]} approved "
+                "and GPS history updated."
+            )
+        else:
+            message = (
+                f"Telecom report {updated[0]} approved. "
+                "No GPS coordinates were available."
+            )
+    else:
+        message = (
+            f"Telecom report {updated[0]} marked as Rejected."
+        )
+
+else:
+    conn.rollback()
+    error = "Report not found or already reviewed."
 
         # -----------------------------------------
         # LOAD TELECOM REPORTS
