@@ -859,7 +859,6 @@ def login():
 
     return render_template("login.html")
 
-
 # -------------------------------------------------
 # ADMIN TELECOM REPORTS
 # -------------------------------------------------
@@ -912,8 +911,6 @@ def admin_telecom_reports():
                     else "Rejected"
                 )
 
-              
-
                 cur.execute("""
                     UPDATE telecom_location_reports
                     SET
@@ -941,74 +938,84 @@ def admin_telecom_reports():
 
                 updated = cur.fetchone()
 
-                if  updated
-    # -----------------------------------------
-    # ADD APPROVED GPS DATA TO LOCATION HISTORY
-    # -----------------------------------------
+                if updated:
 
-    if (
-        action == "approve"
-        and updated[4] is not None
-        and updated[5] is not None
-    ):
+                    # -----------------------------------------
+                    # ADD APPROVED GPS DATA TO LOCATION HISTORY
+                    # -----------------------------------------
 
-        location_value = (
-            updated[6]
-            or f"Telecom GPS report #{updated[0]}"
-        )
+                    if (
+                        action == "approve"
+                        and updated[4] is not None
+                        and updated[5] is not None
+                    ):
 
-        location_notes = (
-            f"Telecom Report ID: {updated[0]}\n"
-            f"Provider: {updated[2]}\n"
-            f"Report Reference: {updated[3] or 'N/A'}\n"
-            f"Authorization Reference: {updated[7]}\n"
-            f"Approval Notes: {approval_notes or 'N/A'}"
-        )
+                        location_value = (
+                            updated[6]
+                            or f"Telecom GPS report #{updated[0]}"
+                        )
 
-        cur.execute("""
-            INSERT INTO phone_location_history (
-                imei,
-                location,
-                latitude,
-                longitude,
-                source,
-                notes,
-                permission_confirmed,
-                recorded_by
-            )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            updated[1],
-            location_value,
-            updated[4],
-            updated[5],
-            updated[2],
-            location_notes,
-            False,
-            session.get("username")
-        ))
+                        location_notes = (
+                            f"Telecom Report ID: {updated[0]}\n"
+                            f"Provider: {updated[2]}\n"
+                            f"Report Reference: {updated[3] or 'N/A'}\n"
+                            f"Authorization Reference: {updated[7]}\n"
+                            f"Approval Notes: {approval_notes or 'N/A'}"
+                        )
 
-    conn.commit()
+                        cur.execute("""
+                            INSERT INTO phone_location_history (
+                                imei,
+                                location,
+                                latitude,
+                                longitude,
+                                source,
+                                notes,
+                                permission_confirmed,
+                                recorded_by
+                            )
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            updated[1],
+                            location_value,
+                            updated[4],
+                            updated[5],
+                            updated[2],
+                            location_notes,
+                            False,
+                            session.get("username")
+                        ))
 
-    if action == "approve":
-        if updated[4] is not None and updated[5] is not None:
-            message = (
-                f"Telecom report {updated[0]} approved "
-                "and GPS history updated."
-            )
-        else:
-            message = (
-                f"Telecom report {updated[0]} approved. "
-                "No GPS coordinates were available."
-            )
-    else:
-        message = (
-            f"Telecom report {updated[0]} marked as Rejected."
-        )
+                    # Save report update and GPS history together
+                    conn.commit()
 
-else:
-    conn.rollback()
-    error = "Report not found or already reviewed."
+                    if action == "approve":
+
+                        if (
+                            updated[4] is not None
+                            and updated[5] is not None
+                        ):
+                            message = (
+                                f"Telecom report {updated[0]} approved "
+                                "and GPS history updated."
+                            )
+                        else:
+                            message = (
+                                f"Telecom report {updated[0]} approved. "
+                                "No GPS coordinates were available."
+                            )
+
+                    else:
+                        message = (
+                            f"Telecom report {updated[0]} "
+                            "marked as Rejected."
+                        )
+
+                else:
+                    conn.rollback()
+                    error = (
+                        "Report not found or already reviewed."
+                    )
 
         # -----------------------------------------
         # LOAD TELECOM REPORTS
@@ -1057,6 +1064,7 @@ else:
         message=message,
         error=error
     )
+
 
 # -------------------------------------------------
 # DASHBOARD
