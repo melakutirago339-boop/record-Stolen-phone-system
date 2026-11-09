@@ -44,12 +44,13 @@ def admin_required(func):
         if "username" not in session:
             return redirect("/login")
 
-        if session.get("role") != "admin":
+        if str(session.get("role", "")).strip().lower() != "admin":
             return "Access denied: Admin only.", 403
 
         return func(*args, **kwargs)
 
     return wrapper
+
 # -------------------------------------------------
 # CREATE DATABASE TABLES
 # -------------------------------------------------
