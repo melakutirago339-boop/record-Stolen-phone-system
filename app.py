@@ -881,7 +881,7 @@ def admin_telecom_reports():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        # -----------------------------------------
+# --        ---------------------------------------
         # APPROVE OR REJECT TELECOM REPORT
         # -----------------------------------------
 
@@ -913,34 +913,34 @@ def admin_telecom_reports():
                 )
 
               
-cur.execute("""
-    UPDATE telecom_location_reports
-    SET
-        verification_status = %s,
-        approved_by = %s,
-        approved_at = CURRENT_TIMESTAMP,
-        approval_notes = %s
-    WHERE id = %s
-      AND verification_status = 'Pending'
-    RETURNING
-        id,
-        imei,
-        provider,
-        report_reference,
-        latitude,
-        longitude,
-        location_description,
-        authorization_reference
-""", (
-    new_status,
-    session.get("username"),
-    approval_notes or None,
-    int(report_id)
-))
 
-updated = cur.fetchone()
+                cur.execute("""
+                    UPDATE telecom_location_reports
+                    SET
+                        verification_status = %s,
+                        approved_by = %s,
+                        approved_at = CURRENT_TIMESTAMP,
+                        approval_notes = %s
+                    WHERE id = %s
+                      AND verification_status = 'Pending'
+                    RETURNING
+                        id,
+                        imei,
+                        provider,
+                        report_reference,
+                        latitude,
+                        longitude,
+                        location_description,
+                        authorization_reference
+                """, (
+                    new_status,
+                    session.get("username"),
+                    approval_notes or None,
+                    int(report_id)
+                ))
 
-if updated:
+                updated = cur.fetchone()
+
 
     # -----------------------------------------
     # ADD APPROVED GPS DATA TO LOCATION HISTORY
