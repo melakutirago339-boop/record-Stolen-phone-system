@@ -385,6 +385,196 @@ def create_tables():
 
 
 
+# -------------------------------------------------
+# POLICE TELECOM REPORT SUBMISSION
+# -------------------------------------------------
+
+@app.route(
+    "/telecom-report",
+    methods=["GET", "POST"]
+)
+@login_required
+def submit_telecom_report():
+
+    message = None
+    error = None
+
+    role = session.get("role", "").strip().lower()
+
+    if role != "officer":
+        abort(403)
+
+    if request.method == "POST":
+
+        case_number = request.form.get(
+            "case_number", ""
+        ).strip()
+
+        imei = request.form.get(
+            "imei", ""
+        ).strip()
+
+        provider = request.form.get(
+            "provider", ""
+        ).strip()
+
+        report_reference = request.form.get(
+            "report_reference", ""
+        ).strip()
+
+        latitude_text = request.form.get(
+            "latitude", ""
+        ).strip()
+
+        longitude_text = request.form.get(
+            "longitude", ""
+        ).strip()
+
+        location_description = request.form.get(
+            "location_description", ""
+        ).strip()
+
+        authorization_reference = request.form.get(
+            "authorization_reference", ""
+        ).strip()
+
+        notes = request.form.get(
+            "notes", ""
+        ).strip()
+
+        latitude = None
+        longitude = None
+
+        # -----------------------------------------
+        # VALIDATION
+        # -----------------------------------------
+
+        if not case_number or not imei:
+            error = "Case number and IMEI are required."
+
+        elif not imei.isdigit() or len(imei) != 15:
+            error = "IMEI must contain exactly 15 digits."
+
+        elif provider not in [
+            "Ethio Telecom",
+            "Safaricom Ethiopia"
+        ]:
+            error = "Select a valid telecom provider."
+
+        elif not authorization_reference:
+            error = "Authorization reference is required."
+
+        else:
+
+            try:
+
+                if latitude_text:
+                    latitude = float(latitude_text)
+
+                if longitude_text:
+                    longitude = float(longitude_text)
+
+            except ValueError:
+
+                error = "GPS coordinates must be valid numbers."
+
+            if not error and (
+                (latitude is None) != (longitude is None)
+            ):
+                error = "Enter both GPS coordinates or leave both blank."
+
+            if not error and latitude is not None:
+
+                if not -90 <= latitude <= 90:
+                    error = "Invalid latitude."
+
+                elif not -180 <= longitude <= 180:
+                    error = "Invalid longitude."
+
+        # -----------------------------------------
+        # SAVE TELECOM REPORT
+        # -----------------------------------------
+
+        if not error:
+
+            conn = None
+            cur = None
+
+            try:
+
+                conn = get_db_connection()
+                cur = conn.cursor()
+
+                cur.execute("""
+                    INSERT INTO telecom_location_reports (
+                        case_number,
+                        imei,
+                        provider,
+                        report_reference,
+                        latitude,
+                        longitude,
+                        location_description,
+                        received_by,
+                        authorization_reference,
+                        verification_status,
+                        notes
+                    )
+                    VALUES (
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s, 'Pending', %s
+                    )
+                    RETURNING id
+                """, (
+                    case_number,
+                    imei,
+                    provider,
+                    report_reference or None,
+                    latitude,
+                    longitude,
+                    location_description or None,
+                    session.get("username"),
+                    authorization_reference,
+                    notes or None
+                ))
+
+                report = cur.fetchone()
+
+                conn.commit()
+
+                message = (
+                    f"Telecom report submitted successfully. "
+                    f"Report ID: {report[0]}. "
+                    "Status: Pending."
+                )
+
+            except Exception:
+
+                if conn:
+                    conn.rollback()
+
+                app.logger.exception(
+                    "Police telecom report submission failed"
+                )
+
+                error = (
+                    "Could not submit telecom report. "
+                    "Check Render logs."
+                )
+
+            finally:
+
+                if cur:
+                    cur.close()
+
+                if conn:
+                    conn.close()
+
+    return render_template(
+        "submit_telecom_report.html",
+        message=message,
+        error=error
+    )
+
 # =================================================
 # AUTHORIZED LOCATIONS
 # =================================================
