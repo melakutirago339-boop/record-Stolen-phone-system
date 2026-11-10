@@ -262,16 +262,16 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS permission_confirmed
             BOOLEAN NOT NULL DEFAULT FALSE
         """)
-        cur.execute("""
-    ALTER TABLE phone_location_history
-    ADD COLUMN IF NOT EXISTS telecom_report_id INTEGER
-""")
+                cur.execute("""
+            ALTER TABLE phone_location_history
+            ADD COLUMN IF NOT EXISTS telecom_report_id INTEGER
+        """)
 
-cur.execute("""
-    CREATE INDEX IF NOT EXISTS
-    idx_phone_location_telecom_report
-    ON phone_location_history(telecom_report_id)
-""")
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS
+            idx_phone_location_telecom_report
+            ON phone_location_history(telecom_report_id)
+        """)
 
                       # Authorized locations
         cur.execute("""
