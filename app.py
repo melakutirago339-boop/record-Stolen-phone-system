@@ -1192,31 +1192,36 @@ def admin_telecom_reports():
                             f"Approval Notes: {approval_notes or 'N/A'}"
                         )
 
-                        cur.execute("""
-                            INSERT INTO phone_location_history (
-                                imei,
-                                location,
-                                latitude,
-                                longitude,
-                                source,
-                                notes,
-                                permission_confirmed,
-                                recorded_by
-                            )
-                            VALUES (
-                                %s, %s, %s, %s,
-                                %s, %s, %s, %s
-                            )
-                        """, (
-                            updated[1],
-                            location_value,
-                            updated[4],
-                            updated[5],
-                            updated[2],
-                            location_notes,
-                            False,
-                            session.get("username")
-                        ))
+                       
+cur.execute("""
+    INSERT INTO phone_location_history (
+        imei,
+        location,
+        latitude,
+        longitude,
+        source,
+        notes,
+        permission_confirmed,
+        recorded_by,
+        telecom_report_id
+    )
+    VALUES (
+        %s, %s, %s, %s,
+        %s, %s, %s, %s, %s
+    )
+    ON CONFLICT DO NOTHING
+""", (
+    updated[1],
+    location_value,
+    updated[4],
+    updated[5],
+    updated[2],
+    location_notes,
+    False,
+    session.get("username"),
+    updated[0]
+))
+
 
                     # ---------------------------------
                     # COMMIT TRANSACTION
@@ -2460,6 +2465,7 @@ def cases():
         message=message,
         error=error
     )
+
 # =================================================
 # AUTHORIZED LOCATION / PHONE GPS LOCATION HISTORY
 # =================================================
@@ -2467,50 +2473,87 @@ def cases():
 @app.route("/phone_locations", methods=["GET", "POST"])
 @login_required
 def phone_locations():
+
     message = None
     error = None
     locations = []
     authorized_locations = []
-    search_imei = request.args.get("search_imei", "").strip()
+
+    search_imei = request.args.get(
+        "search_imei", ""
+    ).strip()
+
+    # -----------------------------------------
+    # SAVE MANUAL PHONE GPS LOCATION
+    # -----------------------------------------
 
     if request.method == "POST":
+
         imei = request.form.get("imei", "").strip()
         location = request.form.get("location", "").strip()
         source = request.form.get("source", "").strip()
         notes = request.form.get("notes", "").strip()
+
         permission = (
             request.form.get("permission_confirmed") == "yes"
         )
 
-        latitude_text = request.form.get("latitude", "").strip()
-        longitude_text = request.form.get("longitude", "").strip()
+        latitude_text = request.form.get(
+            "latitude", ""
+        ).strip()
+
+        longitude_text = request.form.get(
+            "longitude", ""
+        ).strip()
+
         latitude = None
         longitude = None
 
         try:
             if latitude_text:
                 latitude = float(latitude_text)
+
             if longitude_text:
                 longitude = float(longitude_text)
+
         except ValueError:
             error = "Latitude and Longitude must be valid numbers."
 
         if not error and (not imei or not location):
             error = "IMEI and location are required."
-        elif not error and (len(imei) != 15 or not imei.isdigit()):
+
+        elif not error and (
+            len(imei) != 15 or not imei.isdigit()
+        ):
             error = "IMEI must contain exactly 15 digits."
+
         elif not error and not permission:
             error = "Confirm legal authorization before saving."
-        elif not error and ((latitude is None) != (longitude is None)):
+
+        elif not error and (
+            (latitude is None) != (longitude is None)
+        ):
             error = "Enter both Latitude and Longitude, or leave both empty."
-        elif not error and latitude is not None and not (-90 <= latitude <= 90):
+
+        elif not error and latitude is not None and not (
+            -90 <= latitude <= 90
+        ):
             error = "Latitude must be between -90 and 90."
-        elif not error and longitude is not None and not (-180 <= longitude <= 180):
+
+        elif not error and longitude is not None and not (
+            -180 <= longitude <= 180
+        ):
             error = "Longitude must be between -180 and 180."
 
-                if not error:
+        # -------------------------------------
+        # INSERT LOCATION HISTORY
+        # -------------------------------------
+
+        if not error:
+
             conn = None
             cur = None
+
             try:
                 conn = get_db_connection()
                 cur = conn.cursor()
@@ -2532,57 +2575,88 @@ def phone_locations():
                     location,
                     latitude,
                     longitude,
-                    source,
-                    notes,
+                    source or None,
+                    notes or None,
                     permission,
                     session.get("username")
                 ))
 
                 conn.commit()
+
                 message = "Phone location record saved successfully."
 
             except Exception:
+
                 if conn:
                     conn.rollback()
-                app.logger.exception("Phone location save failed")
-                error = "Save failed. Check the Render logs and database."
+
+                app.logger.exception(
+                    "Phone location save failed"
+                )
+
+                error = (
+                    "Save failed. Check the Render logs and database."
+                )
 
             finally:
+
                 if cur:
                     cur.close()
+
                 if conn:
                     conn.close()
-    # Load phone GPS location history.
+
+    # -----------------------------------------
+    # LOAD PHONE GPS LOCATION HISTORY
+    # -----------------------------------------
+
     conn = None
     cur = None
+
     try:
         conn = get_db_connection()
         cur = conn.cursor()
 
         if search_imei and (
-            len(search_imei) != 15 or not search_imei.isdigit()
+            len(search_imei) != 15
+            or not search_imei.isdigit()
         ):
-            error = error or "Search IMEI must contain exactly 15 digits."
+
+            error = error or (
+                "Search IMEI must contain exactly 15 digits."
+            )
+
         else:
+
             if search_imei:
+
                 cur.execute("""
-                    SELECT id, imei, location, latitude, longitude,
-                           source, notes, permission_confirmed,
-                           recorded_by, recorded_at
+                    SELECT
+                        id, imei, location,
+                        latitude, longitude,
+                        source, notes,
+                        permission_confirmed,
+                        recorded_by, recorded_at
                     FROM phone_location_history
                     WHERE imei = %s
                     ORDER BY recorded_at DESC
                 """, (search_imei,))
+
             else:
+
                 cur.execute("""
-                    SELECT id, imei, location, latitude, longitude,
-                           source, notes, permission_confirmed,
-                           recorded_by, recorded_at
+                    SELECT
+                        id, imei, location,
+                        latitude, longitude,
+                        source, notes,
+                        permission_confirmed,
+                        recorded_by, recorded_at
                     FROM phone_location_history
                     ORDER BY recorded_at DESC
                 """)
 
             for row in cur.fetchall():
+
                 locations.append({
                     "id": row[0],
                     "imei": row[1],
@@ -2597,30 +2671,53 @@ def phone_locations():
                 })
 
     except Exception:
-        app.logger.exception("Phone location history load failed")
-        error = error or "Could not load phone location history. Check Render logs."
+
+        app.logger.exception(
+            "Phone location history load failed"
+        )
+
+        error = error or (
+            "Could not load phone location history. "
+            "Check Render logs."
+        )
+
     finally:
+
         if cur:
             cur.close()
+
         if conn:
             conn.close()
 
-    # Load authorized locations for the GPS map.
+    # -----------------------------------------
+    # LOAD AUTHORIZED LOCATIONS FOR GPS MAP
+    # -----------------------------------------
+
     conn = None
     cur = None
+
     try:
         conn = get_db_connection()
         cur = conn.cursor()
+
         cur.execute("""
-            SELECT location_name, address, city,
-                   latitude, longitude, location_type, status
+            SELECT
+                location_name,
+                address,
+                city,
+                latitude,
+                longitude,
+                location_type,
+                status
             FROM authorized_locations
             WHERE latitude IS NOT NULL
               AND longitude IS NOT NULL
               AND LOWER(TRIM(COALESCE(status, ''))) = 'active'
             ORDER BY location_name
         """)
+
         for row in cur.fetchall():
+
             authorized_locations.append({
                 "location_name": row[0],
                 "address": row[1],
@@ -2630,66 +2727,38 @@ def phone_locations():
                 "location_type": row[5],
                 "status": row[6]
             })
-    except Exception:
-        app.logger.exception("Authorized locations map load failed")
-        error = error or "Could not load authorized locations for the map."
-    finally:
-        if cur:
-            cur.close()
-        if conn:
-            conn.close()
-            
-     # Count GPS history records.
-    if not error:
-    conn = None
-    cur = None
-    try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            INSERT INTO phone_location_history (
-                imei,
-                location,
-                latitude,
-                longitude,
-                source,
-                notes,
-                permission_confirmed,
-                recorded_by,
-                telecom_report_id
-            )
-            VALUES (
-                %s, %s, %s, %s,
-                %s, %s, %s, %s, %s
-            )
-            ON CONFLICT DO NOTHING
-        """, (
-            updated[1],
-            location_value,
-            updated[4],
-            updated[5],
-            updated[2],
-            location_notes,
-            True,
-            session.get("username"),
-            updated[0]
-        ))
-
-        conn.commit()
-        message = "Phone location record saved successfully."
 
     except Exception:
-        if conn:
-            conn.rollback()
-        app.logger.exception("Phone location save failed")
-        error = "Save failed. Check the Render logs and database."
+
+        app.logger.exception(
+            "Authorized locations map load failed"
+        )
+
+        error = error or (
+            "Could not load authorized locations for the map."
+        )
 
     finally:
+
         if cur:
             cur.close()
+
         if conn:
             conn.close()
+
+    # -----------------------------------------
+    # RENDER PHONE LOCATION HISTORY PAGE
+    # -----------------------------------------
+
+    return render_template(
+        "phone_locations.html",
+        locations=locations,
+        authorized_locations=authorized_locations,
+        search_imei=search_imei,
+        message=message,
+        error=error
+    )
+
 # =================================================
 # CASE HISTORY
 # =================================================
