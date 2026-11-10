@@ -422,14 +422,8 @@
 
                         </td>
 
-                        <td>{{ report.approved_by or '-' }}</td>
-
-                        <td>{{ report.approved_at or '-' }}</td>
-                        <td style="white-space:normal;min-width:180px;">
-    {{ report.approval_notes or '-' }}
-</td>
-                        
-   
+                       
+<!-- GPS STATUS -->
 <td>
     {% if report.latitude is not none
           and report.longitude is not none %}
@@ -441,6 +435,17 @@
             No GPS
         </span>
     {% endif %}
+</td>
+
+<!-- APPROVED BY -->
+<td>{{ report.approved_by or '-' }}</td>
+
+<!-- APPROVAL DATE -->
+<td>{{ report.approved_at or '-' }}</td>
+
+<!-- APPROVAL NOTES -->
+<td style="white-space:normal;min-width:180px;">
+    {{ report.approval_notes or '-' }}
 </td>
 
 <!-- ACTION COLUMN -->
