@@ -297,19 +297,17 @@
             </strong>
         </div>
 
-        <div class="summary-card">
-            <h3>Approved Reports</h3>
-            <strong>
-                {{ reports|selectattr('verification_status', 'equalto', 'Approved')|list|length }}
-                onclick="return confirm('Are you sure you want to approve this telecom report?');"
-            </strong>
-        </div>
+       <div class="summary-card">
+    <h3>Approved Reports</h3>
+    <strong>
+        {{ reports|selectattr('verification_status', 'equalto', 'Approved')|list|length }}
+    </strong>
+</div>
 
         <div class="summary-card">
             <h3>Rejected Reports</h3>
             <strong>
                 {{ reports|selectattr('verification_status', 'equalto', 'Rejected')|list|length }}
-                onclick="return confirm('Are you sure you want to reject this telecom report?');"
             </strong>
         </div>
 
@@ -367,11 +365,12 @@
                         <th>Authorization</th>
                         <th>Received Date</th>
                         <th>Received By</th>
-                        <th>Verification</th>
-                        <th>Approved By</th>
-                        <th>Approval Date</th>
-                        <th>Actions</th>
-                        <th>Approval Notes</th>
+                       <th>Verification</th>
+<th>GPS Status</th>
+<th>Approved By</th>
+<th>Approval Date</th>
+<th>Approval Notes</th>
+<th>Actions</th>
                     </tr>
                 </thead>
 
@@ -430,7 +429,8 @@
     {{ report.approval_notes or '-' }}
 </td>
                         
-                            <td>
+   
+<td>
     {% if report.latitude is not none
           and report.longitude is not none %}
         <span style="color:#16a34a;font-weight:bold;">
@@ -442,6 +442,9 @@
         </span>
     {% endif %}
 </td>
+
+<!-- ACTION COLUMN -->
+<td style="min-width:220px;">
 
     {% if status == 'pending' %}
 
@@ -459,7 +462,8 @@
         <textarea
             name="approval_notes"
             placeholder="Review notes (optional)"
-            rows="2"></textarea>
+            rows="2"
+            style="width:100%;"></textarea>
 
         <button type="submit"
                 name="action"
@@ -484,6 +488,7 @@
     {% endif %}
 
 </td>
+
 
                     </tr>
 
