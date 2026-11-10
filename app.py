@@ -1089,7 +1089,6 @@ def admin_telecom_reports():
             "Check Render logs."
         )
 
-    
     finally:
 
         if cur:
@@ -1098,22 +1097,22 @@ def admin_telecom_reports():
         if conn:
             conn.close()
 
-  return render_template(
-    "telecom_reports.html",
-    reports=reports,
-    message=message,
-    error=error
-)
+    return render_template(
+        "telecom_reports.html",
+        reports=reports,
+        message=message,
+        error=error
+    )
 
 
 # -------------------------------------------------
 # DASHBOARD
 # -------------------------------------------------
 
-
 @app.route("/dashboard")
 @login_required
 def dashboard():
+
     registered_count = 0
     stolen_count = 0
     recovered_count = 0
@@ -1128,18 +1127,40 @@ def dashboard():
         conn = get_db_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) FROM registered_phones")
+        # -----------------------------------------
+        # REGISTERED PHONES
+        # -----------------------------------------
+
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM registered_phones
+        """)
+
         registered_count = cur.fetchone()[0]
 
-        cur.execute("SELECT COUNT(*) FROM stolen_phones")
+        # -----------------------------------------
+        # STOLEN PHONES
+        # -----------------------------------------
+
+        cur.execute("""
+            SELECT COUNT(*)
+            FROM stolen_phones
+        """)
+
         stolen_count = cur.fetchone()[0]
 
-               # Count ALL records, even when IMEI is repeated.
+        # -----------------------------------------
+        # COUNT ALL CASE RECORDS
+        # -----------------------------------------
+
         cur.execute("""
             WITH all_records AS (
+
                 SELECT
                     COALESCE(
-                        NULLIF(LOWER(TRIM(case_status)), ''),
+                        NULLIF(
+                            LOWER(TRIM(case_status)), ''
+                        ),
                         'reported'
                     ) AS status
                 FROM cases
@@ -1148,16 +1169,23 @@ def dashboard():
 
                 SELECT
                     COALESCE(
-                        NULLIF(LOWER(TRIM(case_status)), ''),
-                        NULLIF(LOWER(TRIM(status)), ''),
+                        NULLIF(
+                            LOWER(TRIM(case_status)), ''
+                        ),
+                        NULLIF(
+                            LOWER(TRIM(status)), ''
+                        ),
                         'reported'
                     ) AS status
                 FROM stolen_phones
             )
+
             SELECT
+
                 COUNT(*) FILTER (
                     WHERE status = 'recovered'
                 ),
+
                 COUNT(*) FILTER (
                     WHERE status IN (
                         'reported',
@@ -1166,24 +1194,39 @@ def dashboard():
                         'in progress'
                     )
                 )
+
             FROM all_records
         """)
 
         row = cur.fetchone()
+
         recovered_count = row[0]
         active_cases = row[1]
 
-        # Get notifications for logged-in user
+        # -----------------------------------------
+        # USER NOTIFICATIONS
+        # -----------------------------------------
+
         current_username = session.get("username")
 
         cur.execute("""
-            SELECT id, title, message, is_read, created_at
+            SELECT
+                id,
+                title,
+                message,
+                is_read,
+                created_at
             FROM notifications
             WHERE username = %s
             ORDER BY created_at DESC
             LIMIT 10
         """, (current_username,))
+
         notifications = cur.fetchall()
+
+        # -----------------------------------------
+        # UNREAD NOTIFICATIONS
+        # -----------------------------------------
 
         cur.execute("""
             SELECT COUNT(*)
@@ -1191,18 +1234,29 @@ def dashboard():
             WHERE username = %s
               AND is_read = FALSE
         """, (current_username,))
+
         unread_count = cur.fetchone()[0]
 
     except Exception as e:
+
         if conn:
             conn.rollback()
-        app.logger.exception("Dashboard database error: %s", e)
+
+        app.logger.exception(
+            "Dashboard database error: %s", e
+        )
 
     finally:
+
         if cur:
             cur.close()
+
         if conn:
             conn.close()
+
+    # -----------------------------------------
+    # RENDER DASHBOARD
+    # -----------------------------------------
 
     return render_template(
         "dashboard.html",
@@ -1215,6 +1269,7 @@ def dashboard():
         notifications=notifications,
         unread_count=unread_count
     )
+
 
    
 # -------------------------------------------------
