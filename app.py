@@ -2508,55 +2508,50 @@ def phone_locations():
         elif not error and longitude is not None and not (-180 <= longitude <= 180):
             error = "Longitude must be between -180 and 180."
 
-        if not error:
+                if not error:
             conn = None
             cur = None
             try:
                 conn = get_db_connection()
                 cur = conn.cursor()
-               
-                        cur.execute("""
-                            INSERT INTO phone_location_history (
-                                imei,
-                                location,
-                                latitude,
-                                longitude,
-                                source,
-                                notes,
-                                permission_confirmed,
-                                recorded_by,
-                                telecom_report_id
-                            )
-                            VALUES (
-                                %s, %s, %s, %s,
-                                %s, %s, %s, %s, %s
-                            )
-                            ON CONFLICT DO NOTHING
-                        """, (
-                            updated[1],
-                            location_value,
-                            updated[4],
-                            updated[5],
-                            updated[2],
-                            location_notes,
-                            True,
-                            session.get("username"),
-                            updated[0]
-                        ))
+
+                cur.execute("""
+                    INSERT INTO phone_location_history (
+                        imei,
+                        location,
+                        latitude,
+                        longitude,
+                        source,
+                        notes,
+                        permission_confirmed,
+                        recorded_by
+                    )
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    imei,
+                    location,
+                    latitude,
+                    longitude,
+                    source,
+                    notes,
+                    permission,
+                    session.get("username")
+                ))
 
                 conn.commit()
                 message = "Phone location record saved successfully."
+
             except Exception:
                 if conn:
                     conn.rollback()
                 app.logger.exception("Phone location save failed")
                 error = "Save failed. Check the Render logs and database."
+
             finally:
                 if cur:
                     cur.close()
                 if conn:
                     conn.close()
-
     # Load phone GPS location history.
     conn = None
     cur = None
@@ -2645,25 +2640,56 @@ def phone_locations():
             conn.close()
             
      # Count GPS history records.
-    gps_record_count = sum(
-        1 for item in locations
-        if item["latitude"] is not None
-        and item["longitude"] is not None
-    )
+    if not error:
+    conn = None
+    cur = None
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
 
-    no_gps_record_count = len(locations) - gps_record_count
+        cur.execute("""
+            INSERT INTO phone_location_history (
+                imei,
+                location,
+                latitude,
+                longitude,
+                source,
+                notes,
+                permission_confirmed,
+                recorded_by,
+                telecom_report_id
+            )
+            VALUES (
+                %s, %s, %s, %s,
+                %s, %s, %s, %s, %s
+            )
+            ON CONFLICT DO NOTHING
+        """, (
+            updated[1],
+            location_value,
+            updated[4],
+            updated[5],
+            updated[2],
+            location_notes,
+            True,
+            session.get("username"),
+            updated[0]
+        ))
 
-    return render_template(
-        "phone_locations.html",
-        locations=locations,
-        authorized_locations=authorized_locations,
-        success=message,
-        error=error,
-        search_imei=search_imei,
-        gps_record_count=gps_record_count,
-        no_gps_record_count=no_gps_record_count
-    )
+        conn.commit()
+        message = "Phone location record saved successfully."
 
+    except Exception:
+        if conn:
+            conn.rollback()
+        app.logger.exception("Phone location save failed")
+        error = "Save failed. Check the Render logs and database."
+
+    finally:
+        if cur:
+            cur.close()
+        if conn:
+            conn.close()
 # =================================================
 # CASE HISTORY
 # =================================================
