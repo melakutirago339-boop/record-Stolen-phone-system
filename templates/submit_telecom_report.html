@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Submit Telecom Report | SafeDevice</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 25px;
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 30px auto;
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 5px 20px rgba(0,0,0,.07);
+        }
+
+        h1 {
+            color: #0f172a;
+            margin-top: 0;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 16px 0 7px;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 25px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .message {
+            padding: 13px;
+            border-radius: 7px;
+            background: #dcfce7;
+            color: #166534;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            padding: 13px;
+            border-radius: 7px;
+            background: #fee2e2;
+            color: #991b1b;
+            margin-bottom: 15px;
+        }
+
+        .notice {
+            background: #eff6ff;
+            padding: 13px;
+            border-radius: 7px;
+            color: #1e40af;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 20px;
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        @media(max-width:600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Telecom Location Report</h1>
+
+    <p class="subtitle">
+        SafeDevice | Police Officer Submission Panel
+    </p>
+
+    {% if message %}
+        <div class="message">
+            {{ message }}
+        </div>
+    {% endif %}
+
+    {% if error %}
+        <div class="error">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('submit_telecom_report') }}">
+
+        <input type="hidden" name="csrf_token"
+               value="{{ csrf_token() }}">
+
+        <label>Case Number *</label>
+        <input
+            type="text"
+            name="case_number"
+            placeholder="Enter case number"
+            required
+        >
+
+        <label>IMEI Number *</label>
+        <input
+            type="text"
+            name="imei"
+            maxlength="15"
+            minlength="15"
+            pattern="[0-9]{15}"
+            placeholder="15-digit IMEI"
+            required
+        >
+
+        <label>Telecom Provider *</label>
+        <select name="provider" required>
+            <option value="">Select Provider</option>
+            <option value="Ethio Telecom">
+                Ethio Telecom
+            </option>
+            <option value="Safaricom Ethiopia">
+                Safaricom Ethiopia
+            </option>
+        </select>
+
+        <label>Telecom Report Reference</label>
+        <input
+            type="text"
+            name="report_reference"
+            placeholder="Provider report reference"
+        >
+
+        <h3>Location Information</h3>
+
+        <label>Latitude</label>
+        <input
+            type="number"
+            name="latitude"
+            step="any"
+            min="-90"
+            max="90"
+            placeholder="Example: 9.0192"
+        >
+
+        <label>Longitude</label>
+        <input
+            type="number"
+            name="longitude"
+            step="any"
+            min="-180"
+            max="180"
+            placeholder="Example: 38.7525"
+        >
+
+        <label>Location Description</label>
+        <textarea
+            name="location_description"
+            placeholder="Describe the location provided in the authorized telecom report"
+        ></textarea>
+
+        <h3>Authorization Information</h3>
+
+        <label>Authorization Reference *</label>
+        <input
+            type="text"
+            name="authorization_reference"
+            placeholder="Enter official authorization reference"
+            required
+        >
+
+        <label>Additional Notes</label>
+        <textarea
+            name="notes"
+            placeholder="Additional report information"
+        ></textarea>
+
+        <div class="notice">
+            All submissions are subject to administrative verification.
+            GPS information will not be added to location history
+            until the report is approved.
+        </div>
+
+        <button type="submit">
+            Submit Telecom Report
+        </button>
+
+    </form>
+
+    <a class="back" href="{{ url_for('dashboard') }}">
+        ← Back to Dashboard
+    </a>
+
+</div>
+
+</body>
+</html>
