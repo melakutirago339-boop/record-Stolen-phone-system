@@ -276,6 +276,15 @@ def create_tables():
             idx_phone_location_telecom_report
             ON phone_location_history(telecom_report_id)
         """)
+        
+        # Prevent duplicate telecom GPS history records
+        cur.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS
+            idx_phone_location_telecom_report_unique
+            ON phone_location_history(telecom_report_id)
+            WHERE telecom_report_id IS NOT NULL
+        """)
+
 
         # -------------------------------------------------
         # AUTHORIZED LOCATIONS
@@ -2510,17 +2519,36 @@ def phone_locations():
             try:
                 conn = get_db_connection()
                 cur = conn.cursor()
-                cur.execute("""
-                    INSERT INTO phone_location_history (
-                        imei, location, latitude, longitude,
-                        source, notes, permission_confirmed, recorded_by
-                    )
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    imei, location, latitude, longitude,
-                    source or None, notes or None, True,
-                    str(session.get("username", "unknown"))
-                ))
+               
+                        cur.execute("""
+                            INSERT INTO phone_location_history (
+                                imei,
+                                location,
+                                latitude,
+                                longitude,
+                                source,
+                                notes,
+                                permission_confirmed,
+                                recorded_by,
+                                telecom_report_id
+                            )
+                            VALUES (
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s
+                            )
+                            ON CONFLICT DO NOTHING
+                        """, (
+                            updated[1],
+                            location_value,
+                            updated[4],
+                            updated[5],
+                            updated[2],
+                            location_notes,
+                            True,
+                            session.get("username"),
+                            updated[0]
+                        ))
+
                 conn.commit()
                 message = "Phone location record saved successfully."
             except Exception:
