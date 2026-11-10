@@ -301,6 +301,7 @@
             <h3>Approved Reports</h3>
             <strong>
                 {{ reports|selectattr('verification_status', 'equalto', 'Approved')|list|length }}
+                onclick="return confirm('Are you sure you want to approve this telecom report?');"
             </strong>
         </div>
 
@@ -308,6 +309,7 @@
             <h3>Rejected Reports</h3>
             <strong>
                 {{ reports|selectattr('verification_status', 'equalto', 'Rejected')|list|length }}
+                onclick="return confirm('Are you sure you want to reject this telecom report?');"
             </strong>
         </div>
 
@@ -369,6 +371,7 @@
                         <th>Approved By</th>
                         <th>Approval Date</th>
                         <th>Actions</th>
+                        <th>Approval Notes</th>
                     </tr>
                 </thead>
 
@@ -423,7 +426,22 @@
                         <td>{{ report.approved_by or '-' }}</td>
 
                         <td>{{ report.approved_at or '-' }}</td>
-                        <td>
+                        <td style="white-space:normal;min-width:180px;">
+    {{ report.approval_notes or '-' }}
+</td>
+                        
+                            <td>
+    {% if report.latitude is not none
+          and report.longitude is not none %}
+        <span style="color:#16a34a;font-weight:bold;">
+            GPS Available
+        </span>
+    {% else %}
+        <span style="color:#64748b;">
+            No GPS
+        </span>
+    {% endif %}
+</td>
 
     {% if status == 'pending' %}
 
