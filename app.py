@@ -665,13 +665,21 @@ def location_redirect():
                     if not error and ((latitude is None) != (longitude is None)):
                         error = "Enter both coordinates or leave both blank."
 
-                    if not error and latitude is not None:
-                        if not -90 <= latitude <= 90:
-                            error = "Latitude must be between -90 and 90."
+                    
+            if not error and latitude is not None:
 
-                    if not error and longitude is not None:
-                        if not -180 <= longitude <= 180:
-                            error = "Longitude must be between -180 and 180."
+                if (
+                    not math.isfinite(latitude)
+                    or not math.isfinite(longitude)
+                ):
+                    error = "GPS coordinates must be finite numbers."
+
+                elif not -90 <= latitude <= 90:
+                    error = "Invalid latitude."
+
+                elif not -180 <= longitude <= 180:
+                    error = "Invalid longitude."
+"
 
                 # -------------------------------------
                 # ADD LOCATION
