@@ -414,16 +414,15 @@ def create_tables():
     "/telecom-report",
     methods=["GET", "POST"]
 )
+@app.route("/telecom-report", methods=["GET", "POST"])
 @login_required
 def submit_telecom_report():
 
+    if session.get("role") != "admin":
+        return "Access denied", 403
+
     message = None
     error = None
-
-    role = session.get("role", "").strip().lower()
-
-    if role != "officer":
-        abort(403)
 
     if request.method == "POST":
 
