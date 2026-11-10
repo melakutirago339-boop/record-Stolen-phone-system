@@ -187,7 +187,7 @@ def create_tables():
             ALTER TABLE cases
             ADD COLUMN IF NOT EXISTS case_number VARCHAR(100)
         """)
-                # Officer notifications
+        # Officer notifications
         cur.execute("""
             CREATE TABLE IF NOT EXISTS notifications (
                 id SERIAL PRIMARY KEY,
@@ -200,7 +200,7 @@ def create_tables():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-                # Officer reports
+                      # Officer reports
         cur.execute("""
             CREATE TABLE IF NOT EXISTS officer_reports (
                 id SERIAL PRIMARY KEY,
@@ -271,11 +271,6 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS telecom_report_id INTEGER
         """)
 
-        cur.execute("""
-            CREATE INDEX IF NOT EXISTS
-            idx_phone_location_telecom_report
-            ON phone_location_history(telecom_report_id)
-        """)
         
         # Prevent duplicate telecom GPS history records
         cur.execute("""
