@@ -860,6 +860,7 @@ def login():
 
     return render_template("login.html")
 
+
 # -------------------------------------------------
 # ADMIN TELECOM REPORTS
 # -------------------------------------------------
@@ -873,6 +874,7 @@ def admin_telecom_reports():
 
     conn = None
     cur = None
+
     reports = []
     message = None
     error = None
@@ -900,17 +902,24 @@ def admin_telecom_reports():
             ).strip()
 
             if not report_id.isdigit():
+
                 error = "Invalid report ID."
 
             elif action not in ["approve", "reject"]:
+
                 error = "Invalid verification action."
 
             else:
+
                 new_status = (
                     "Approved"
                     if action == "approve"
                     else "Rejected"
                 )
+
+                # ---------------------------------
+                # UPDATE PENDING REPORT ONLY
+                # ---------------------------------
 
                 cur.execute("""
                     UPDATE telecom_location_reports
@@ -939,11 +948,19 @@ def admin_telecom_reports():
 
                 updated = cur.fetchone()
 
-                if updated:
+                if updated is None:
 
-                    # -----------------------------------------
-                    # ADD APPROVED GPS DATA TO LOCATION HISTORY
-                    # -----------------------------------------
+                    conn.rollback()
+
+                    error = (
+                        "Report not found or already reviewed."
+                    )
+
+                else:
+
+                    # ---------------------------------
+                    # APPROVED GPS REPORT TO LOCATION HISTORY
+                    # ---------------------------------
 
                     if (
                         action == "approve"
@@ -953,7 +970,7 @@ def admin_telecom_reports():
 
                         location_value = (
                             updated[6]
-                            or f"Telecom GPS report #{updated[0]}"
+                            or f"Telecom GPS Report #{updated[0]}"
                         )
 
                         location_notes = (
@@ -975,7 +992,10 @@ def admin_telecom_reports():
                                 permission_confirmed,
                                 recorded_by
                             )
-                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                            VALUES (
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s
+                            )
                         """, (
                             updated[1],
                             location_value,
@@ -987,7 +1007,10 @@ def admin_telecom_reports():
                             session.get("username")
                         ))
 
-                    # Save report update and GPS history together
+                    # ---------------------------------
+                    # COMMIT TRANSACTION
+                    # ---------------------------------
+
                     conn.commit()
 
                     if action == "approve":
@@ -996,36 +1019,51 @@ def admin_telecom_reports():
                             updated[4] is not None
                             and updated[5] is not None
                         ):
+
                             message = (
-                                f"Telecom report {updated[0]} approved "
-                                "and GPS history updated."
+                                f"Telecom report {updated[0]} "
+                                "approved and GPS history updated."
                             )
+
                         else:
+
                             message = (
-                                f"Telecom report {updated[0]} approved. "
-                                "No GPS coordinates were available."
+                                f"Telecom report {updated[0]} "
+                                "approved. No GPS coordinates "
+                                "were available."
                             )
 
                     else:
+
                         message = (
                             f"Telecom report {updated[0]} "
                             "marked as Rejected."
                         )
-
-                else:
-                    conn.rollback()
-                    error = (
-                        "Report not found or already reviewed."
-                    )
 
         # -----------------------------------------
         # LOAD TELECOM REPORTS
         # -----------------------------------------
 
         cur.execute("""
-            SELECT *
+            SELECT
+                id,
+                case_number,
+                imei,
+                provider,
+                report_reference,
+                latitude,
+                longitude,
+                location_description,
+                received_at,
+                received_by,
+                authorization_reference,
+                verification_status,
+                approved_by,
+                approved_at,
+                approval_notes,
+                notes
             FROM telecom_location_reports
-            ORDER BY received_at DESC
+            ORDER BY received_at DESC, id DESC
         """)
 
         columns = [
@@ -1065,6 +1103,7 @@ def admin_telecom_reports():
         message=message,
         error=error
     )
+
 
 
 # -------------------------------------------------
