@@ -414,7 +414,6 @@ def create_tables():
     "/telecom-report",
     methods=["GET", "POST"]
 )
-@app.route("/telecom-report", methods=["GET", "POST"])
 @login_required
 def submit_telecom_report():
 
