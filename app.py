@@ -231,7 +231,10 @@ def create_tables():
             )
         """)
 
-        # Phone location history
+        # -------------------------------------------------
+        # PHONE LOCATION HISTORY
+        # -------------------------------------------------
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS phone_location_history (
                 id SERIAL PRIMARY KEY,
@@ -262,7 +265,8 @@ def create_tables():
             ADD COLUMN IF NOT EXISTS permission_confirmed
             BOOLEAN NOT NULL DEFAULT FALSE
         """)
-                cur.execute("""
+
+        cur.execute("""
             ALTER TABLE phone_location_history
             ADD COLUMN IF NOT EXISTS telecom_report_id INTEGER
         """)
@@ -273,7 +277,10 @@ def create_tables():
             ON phone_location_history(telecom_report_id)
         """)
 
-                      # Authorized locations
+        # -------------------------------------------------
+        # AUTHORIZED LOCATIONS
+        # -------------------------------------------------
+
         cur.execute("""
             CREATE TABLE IF NOT EXISTS authorized_locations (
                 id SERIAL PRIMARY KEY,
@@ -291,7 +298,6 @@ def create_tables():
             ALTER TABLE authorized_locations
             ADD COLUMN IF NOT EXISTS address TEXT
         """)
-        
 
         cur.execute("""
             ALTER TABLE authorized_locations
@@ -307,6 +313,7 @@ def create_tables():
             ALTER TABLE authorized_locations
             ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'Active'
         """)
+
         # System users
         cur.execute("""
             CREATE TABLE IF NOT EXISTS system_users (
