@@ -1098,13 +1098,12 @@ def admin_telecom_reports():
         if conn:
             conn.close()
 
-    return render_template(
-        "telecom_report.html",
-        reports=reports,
-        message=message,
-        error=error
-    )
-
+  return render_template(
+    "telecom_reports.html",
+    reports=reports,
+    message=message,
+    error=error
+)
 
 
 # -------------------------------------------------
