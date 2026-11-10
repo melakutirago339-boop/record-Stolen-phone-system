@@ -1089,6 +1089,7 @@ def admin_telecom_reports():
             "Check Render logs."
         )
 
+    
     finally:
 
         if cur:
@@ -1097,7 +1098,7 @@ def admin_telecom_reports():
         if conn:
             conn.close()
 
-      return render_template(
+    return render_template(
         "telecom_report.html",
         reports=reports,
         message=message,
