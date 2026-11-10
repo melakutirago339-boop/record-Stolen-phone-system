@@ -4,6 +4,7 @@ from flask import (
     redirect, session, url_for, abort
 )
 import os
+import math
 import psycopg2
 from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -504,11 +505,14 @@ def submit_telecom_report():
 
             if not error and latitude is not None:
 
-                if not -90 <= latitude <= 90:
-                    error = "Invalid latitude."
+               if not math.isfinite(latitude) or not math.isfinite(longitude):
+    error = "GPS coordinates must be finite numbers."
 
-                elif not -180 <= longitude <= 180:
-                    error = "Invalid longitude."
+elif not -90 <= latitude <= 90:
+    error = "Invalid latitude."
+
+elif not -180 <= longitude <= 180:
+    error = "Invalid longitude.""
 
         # -----------------------------------------
         # SAVE TELECOM REPORT
