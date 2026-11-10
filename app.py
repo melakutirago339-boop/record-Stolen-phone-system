@@ -503,16 +503,21 @@ def submit_telecom_report():
             ):
                 error = "Enter both GPS coordinates or leave both blank."
 
+           
             if not error and latitude is not None:
 
-               if not math.isfinite(latitude) or not math.isfinite(longitude):
-    error = "GPS coordinates must be finite numbers."
+                if (
+                    not math.isfinite(latitude)
+                    or not math.isfinite(longitude)
+                ):
+                    error = "GPS coordinates must be finite numbers."
 
-elif not -90 <= latitude <= 90:
-    error = "Invalid latitude."
+                elif not -90 <= latitude <= 90:
+                    error = "Invalid latitude."
 
-elif not -180 <= longitude <= 180:
-   error = "Invalid longitude."
+                elif not -180 <= longitude <= 180:
+                    error = "Invalid longitude."
+
 
         # -----------------------------------------
         # SAVE TELECOM REPORT
