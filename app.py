@@ -512,7 +512,7 @@ elif not -90 <= latitude <= 90:
     error = "Invalid latitude."
 
 elif not -180 <= longitude <= 180:
-    error = "Invalid longitude."
+   error = "Invalid longitude."
 
         # -----------------------------------------
         # SAVE TELECOM REPORT
