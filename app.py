@@ -1193,36 +1193,34 @@ def admin_telecom_reports():
                         )
 
                        
-cur.execute("""
-    INSERT INTO phone_location_history (
-        imei,
-        location,
-        latitude,
-        longitude,
-        source,
-        notes,
-        permission_confirmed,
-        recorded_by,
-        telecom_report_id
-    )
-    VALUES (
-        %s, %s, %s, %s,
-        %s, %s, %s, %s, %s
-    )
-    ON CONFLICT DO NOTHING
-""", (
-    updated[1],
-    location_value,
-    updated[4],
-    updated[5],
-    updated[2],
-    location_notes,
-    False,
-    session.get("username"),
-    updated[0]
-))
-
-
+                        cur.execute("""
+                            INSERT INTO phone_location_history (
+                                imei,
+                                location,
+                                latitude,
+                                longitude,
+                                source,
+                                notes,
+                                permission_confirmed,
+                                recorded_by,
+                                telecom_report_id
+                            )
+                            VALUES (
+                                %s, %s, %s, %s,
+                                %s, %s, %s, %s, %s
+                            )
+                            ON CONFLICT DO NOTHING
+                        """, (
+                            updated[1],
+                            location_value,
+                            updated[4],
+                            updated[5],
+                            updated[2],
+                            location_notes,
+                            False,
+                            session.get("username"),
+                            updated[0]
+                        ))
                     # ---------------------------------
                     # COMMIT TRANSACTION
                     # ---------------------------------
