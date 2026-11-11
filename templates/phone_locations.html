@@ -245,9 +245,15 @@
             An IMEI alone cannot reveal a phone's live GPS position.
         </p>
 
-        {% if success %}
-            <p class="success">{{ success }}</p>
-        {% endif %}
+       
+{% if message %}
+    <p class="success">{{ message }}</p>
+{% endif %}
+
+{% if error %}
+    <p class="error">{{ error }}</p>
+{% endif %}
+
 
         {% if error %}
             <p class="error">{{ error }}</p>
@@ -279,6 +285,20 @@
             </div>
 
             <div class="grid">
+                
+<div class="field">
+    <button type="button"
+            class="secondary"
+            id="getCurrentGPSButton">
+        📍 Get My Current GPS Location
+    </button>
+
+    <p id="gpsPermissionMessage" class="hint" role="status">
+        Click the button and allow location access
+        to retrieve your current device GPS coordinates.
+    </p>
+</div>
+
                 <div class="field">
                     <label for="latitude">Latitude</label>
                     <input type="number"
@@ -416,12 +436,14 @@
             </a>
         </form>
 
-        {% if search_imei %}
-            <p class="hint">
-                Search results for IMEI: {{ search_imei }}
-                — {{ locations|length }} record(s) found.
-                 {% endif %}
-            </p>
+        
+{% if search_imei %}
+    <p class="hint">
+        Search results for IMEI: {{ search_imei }}
+        — {{ locations|length }} record(s) found.
+    </p>
+{% endif %}
+
         
 <div class="gps-summary">
     <div class="gps-summary-card">
@@ -551,6 +573,72 @@
     const previewButton = document.getElementById("previewButton");
     const resetButton = document.getElementById("resetMapButton");
     const form = document.getElementById("locationForm");
+    
+const gpsButton = document.getElementById("getCurrentGPSButton");
+const gpsMessage = document.getElementById("gpsPermissionMessage");
+
+gpsButton.addEventListener("click", function () {
+
+    if (!navigator.geolocation) {
+        gpsMessage.textContent =
+            "GPS location is not supported by this browser.";
+        gpsMessage.className = "error";
+        return;
+    }
+
+    gpsButton.disabled = true;
+    gpsButton.textContent = "Getting GPS Location...";
+
+    gpsMessage.textContent =
+        "Please allow location permission in your browser.";
+
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+
+            latitudeInput.value = lat.toFixed(6);
+            longitudeInput.value = lon.toFixed(6);
+
+            previewCoordinates();
+
+            gpsMessage.textContent =
+                "GPS coordinates received successfully. Verify the location before saving.";
+
+            gpsMessage.className = "success";
+
+            gpsButton.disabled = false;
+            gpsButton.textContent =
+                "📍 Get My Current GPS Location";
+        },
+
+        function (error) {
+
+            const errors = {
+                1: "Location permission was denied.",
+                2: "GPS position is currently unavailable.",
+                3: "GPS request timed out."
+            };
+
+            gpsMessage.textContent =
+                errors[error.code] || "Could not retrieve GPS location.";
+
+            gpsMessage.className = "error";
+
+            gpsButton.disabled = false;
+            gpsButton.textContent =
+                "📍 Get My Current GPS Location";
+        },
+
+        {
+            enableHighAccuracy: true,
+            timeout: 20000,
+            maximumAge: 0
+        }
+    );
+});
+
 
     const defaultLat = 8.9806;
     const defaultLon = 38.7578;
