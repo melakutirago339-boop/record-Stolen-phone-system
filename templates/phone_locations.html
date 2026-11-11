@@ -577,22 +577,24 @@
 const gpsButton = document.getElementById("getCurrentGPSButton");
 const gpsMessage = document.getElementById("gpsPermissionMessage");
 
+
 gpsButton.addEventListener("click", function () {
 
     if (!navigator.geolocation) {
         gpsMessage.textContent =
-            "GPS location is not supported by this browser.";
+            "Location services are not supported by this browser.";
         gpsMessage.className = "error";
         return;
     }
 
     gpsButton.disabled = true;
-    gpsButton.textContent = "Getting GPS Location...";
+    gpsButton.textContent = "Getting Location...";
 
     gpsMessage.textContent =
-        "Please allow location permission in your browser.";
+        "Trying to detect your current location. Please wait.";
 
     navigator.geolocation.getCurrentPosition(
+
         function (position) {
 
             const lat = position.coords.latitude;
@@ -604,7 +606,7 @@ gpsButton.addEventListener("click", function () {
             previewCoordinates();
 
             gpsMessage.textContent =
-                "GPS coordinates received successfully. Verify the location before saving.";
+                "Location received successfully. Verify before saving.";
 
             gpsMessage.className = "success";
 
@@ -615,26 +617,34 @@ gpsButton.addEventListener("click", function () {
 
         function (error) {
 
-            const errors = {
-                1: "Location permission was denied.",
-                2: "GPS position is currently unavailable.",
-                3: "GPS request timed out."
-            };
+            let errorMessage = "";
 
-            gpsMessage.textContent =
-                errors[error.code] || "Could not retrieve GPS location.";
+            if (error.code === 1) {
+                errorMessage =
+                    "Location permission denied. Allow location access in your browser and Windows settings.";
+            } else if (error.code === 2) {
+                errorMessage =
+                    "Location unavailable. Check Windows Location Services and try again.";
+            } else if (error.code === 3) {
+                errorMessage =
+                    "Location request timed out. You can enter authorized coordinates manually.";
+            } else {
+                errorMessage =
+                    "Unable to retrieve location. Enter coordinates manually if available.";
+            }
 
+            gpsMessage.textContent = errorMessage;
             gpsMessage.className = "error";
 
             gpsButton.disabled = false;
             gpsButton.textContent =
-                "📍 Get My Current GPS Location";
+                "📍 Try GPS Again";
         },
 
         {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
+            enableHighAccuracy: false,
+            timeout: 60000,
+            maximumAge: 10000
         }
     );
 });
