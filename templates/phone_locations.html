@@ -986,7 +986,8 @@ gpsLocationGroups.get(locationKey).records.push({
 gpsLocationGroups.forEach(function (group) {
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
-    }).addTo(historyMap);
+    .addTo(historyMap);
+    })
 
     const popupContainer = document.createElement("div");
 
