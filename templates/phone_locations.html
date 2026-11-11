@@ -970,6 +970,7 @@ rows.forEach(function (row) {
 
     const source = cells[5].textContent.trim();
     const notes = cells[6].textContent.trim();
+    const recordedBy = cells[7].textContent.trim();
 
     gpsLocationGroups.get(locationKey).records.push({
         imei: imei,
@@ -977,6 +978,7 @@ rows.forEach(function (row) {
         recordedAt: recordedAt,
         source: source,
         notes: notes
+        recordedBy: recordedBy
     });
 });
 
@@ -1018,6 +1020,7 @@ gpsLocationGroups.forEach(function (group) {
         addLine("Longitude", group.lon);
         addLine("Information Source", record.source);
         addLine("Additional Notes", record.notes);
+        addLine("Recorded By", record.recordedBy);
         addLine("Recorded at", record.recordedAt);
 
         popupContainer.appendChild(recordBox);
