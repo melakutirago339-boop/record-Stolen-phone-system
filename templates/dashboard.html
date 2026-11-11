@@ -527,11 +527,13 @@ footer {
     </div>
 </div>
             <label for="language">Language / ቋንቋ:</label>
-            <select id="language" name="language">
-                <option value="en">English</option>
-                <option value="am">አማርኛ</option>
-                <option value="om">Afaan Oromoo</option>
-                <option value="ti">ትግርኛ</option>
+            
+<select id="language" name="language">
+    <option value="en">English</option>
+    <option value="am">አማርኛ</option>
+    <option value="om">Afaan Oromoo</option>
+    <option value="ti">ትግርኛ</option>
+
             </select>
         </div>
     </div>
@@ -564,17 +566,20 @@ footer {
 
     <h2>System Menu</h2>
 
-    <nav>
-        <a href="/register_phone">Register Phone</a>
-        <a href="/report_stolen">Report Stolen Phone</a>
-        <a href="/search_imei">Search IMEI</a>
-        <a href="/cases">Case Management</a>
-        <a href="/case_history">Case History</a>
-        <a href="/location">Authorized Locations</a>
-        <a href="/phone_locations" class="location-link">Phone Location History</a>
-        <a href="/reports">Reports</a>
-        <a href="/logout">Logout</a>
-    </nav>
+    
+<nav>
+    <a href="/register_phone">Register Phone</a>
+    <a href="/report_stolen">Report Stolen Phone</a>
+    <a href="/search_imei">Search IMEI</a>
+    <a href="/cases">Case Management</a>
+    <a href="/case_history">Case History</a>
+    <a href="/location">Authorized Locations</a>
+    <a href="/phone_locations" class="location-link">Phone Location History</a>
+    <a href="/reports">Reports</a>
+    <a href="/telecom-report">Telecom Reports</a>
+    <a href="/logout">Logout</a>
+</nav>
+
 </main>
 
 <footer>
@@ -598,6 +603,7 @@ const translations = {
     locations: "Authorized Locations",
     phoneLocations: "Phone Location History",
     reports: "Reports",
+      telecomReports: "Telecom Reports",
     logout: "Logout"
   },
   am: {
@@ -615,6 +621,7 @@ const translations = {
     locations: "የተፈቀዱ ቦታዎች",
     phoneLocations: "የስልክ መገኛ ታሪክ",
     reports: "ሪፖርቶች",
+      telecomReports: "የቴሌኮም ሪፖርቶች",
     logout: "ውጣ"
   },
   om: {
@@ -632,6 +639,7 @@ const translations = {
     locations: "Bakkeewwan Hayyamaman",
     phoneLocations: "Seenaa Bakka Bilbilaa",
     reports: "Gabaasota",
+      telecomReports: "Gabaasa Telekomii",
     logout: "Ba'i"
   },
   ti: {
@@ -649,6 +657,7 @@ const translations = {
     locations: "ዝተፈቐዱ ቦታታት",
     phoneLocations: "ታሪኽ ቦታ ስልኪ",
     reports: "ጸብጻባት",
+      telecomReports: "ጸብጻባት ቴሌኮም",
     logout: "ውጻእ"
   }
 };
@@ -672,10 +681,20 @@ function setLanguage(lang) {
   document.querySelector("main > h2:nth-of-type(2)").textContent =
     t.menu;
 
-  const linkKeys = [
-    "register", "report", "search", "cases", "history",
-    "locations", "phoneLocations", "reports", "logout"
-  ];
+  
+const linkKeys = [
+    "register",
+    "report",
+    "search",
+    "cases",
+    "history",
+    "locations",
+    "phoneLocations",
+    "reports",
+    "telecomReports",
+    "logout"
+];
+
 
   document.querySelectorAll("nav a").forEach((el, i) => {
     el.textContent = t[linkKeys[i]];
