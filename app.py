@@ -465,6 +465,7 @@ def submit_telecom_report():
         latitude = None
         longitude = None
 
+
         # -----------------------------------------
         # VALIDATION
         # -----------------------------------------
@@ -487,7 +488,6 @@ def submit_telecom_report():
         else:
 
             try:
-
                 if latitude_text:
                     latitude = float(latitude_text)
 
@@ -495,16 +495,17 @@ def submit_telecom_report():
                     longitude = float(longitude_text)
 
             except ValueError:
-
                 error = "GPS coordinates must be valid numbers."
 
             if not error and (
                 (latitude is None) != (longitude is None)
             ):
-                error = "Enter both GPS coordinates or leave both blank."
+                error = (
+                    "Enter both GPS coordinates "
+                    "or leave both blank."
+                )
 
-           
-            if not error and latitude is not None:
+            elif not error and latitude is not None:
 
                 if (
                     not math.isfinite(latitude)
@@ -517,7 +518,6 @@ def submit_telecom_report():
 
                 elif not -180 <= longitude <= 180:
                     error = "Invalid longitude."
-
 
         # -----------------------------------------
         # SAVE TELECOM REPORT
@@ -671,8 +671,7 @@ def location_redirect():
                         error = "Enter both coordinates or leave both blank."
 
                     
-            if not error and latitude is not None:
-
+                           if not error:
                 if (
                     not math.isfinite(latitude)
                     or not math.isfinite(longitude)
