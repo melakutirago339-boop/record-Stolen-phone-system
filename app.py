@@ -2510,6 +2510,10 @@ def phone_locations():
         longitude = None
 
         try:
+                   latitude = None
+        longitude = None
+
+        try:
             if latitude_text:
                 latitude = float(latitude_text)
 
@@ -2519,9 +2523,16 @@ def phone_locations():
         except ValueError:
             error = "Latitude and Longitude must be valid numbers."
 
+        app.logger.info(
+            "PHONE GPS SUBMISSION: latitude_received=%s longitude_received=%s latitude_parsed=%s longitude_parsed=%s",
+            bool(latitude_text),
+            bool(longitude_text),
+            latitude is not None,
+            longitude is not None
+        )
+
         if not error and (not imei or not location):
             error = "IMEI and location are required."
-
         elif not error and (
             len(imei) != 15 or not imei.isdigit()
         ):
