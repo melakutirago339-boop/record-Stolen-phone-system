@@ -2506,11 +2506,8 @@ def phone_locations():
             "longitude", ""
         ).strip()
 
+        
         latitude = None
-        longitude = None
-
-        try:
-                   latitude = None
         longitude = None
 
         try:
@@ -2522,6 +2519,7 @@ def phone_locations():
 
         except ValueError:
             error = "Latitude and Longitude must be valid numbers."
+
 
         app.logger.info(
             "PHONE GPS SUBMISSION: latitude_received=%s longitude_received=%s latitude_parsed=%s longitude_parsed=%s",
