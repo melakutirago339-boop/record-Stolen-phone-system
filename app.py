@@ -629,146 +629,150 @@ def location_redirect():
 
             action = request.form.get("action", "").strip()
 
-            # -----------------------------------------
-            # READ AND VALIDATE LOCATION FORM
-            # -----------------------------------------
+           
+# -----------------------------------------
+# READ AND VALIDATE LOCATION FORM
+# -----------------------------------------
 
-            if action in ["add_location", "update_location"]:
+if action in ["add_location", "update_location"]:
 
-                name = request.form.get("name", "").strip()
-                city = request.form.get("city", "").strip()
-                address = request.form.get("address", "").strip()
-                location_type = request.form.get("type", "").strip()
-                status = request.form.get("status", "Active").strip()
+    name = request.form.get("name", "").strip()
+    city = request.form.get("city", "").strip()
+    address = request.form.get("address", "").strip()
+    location_type = request.form.get("type", "").strip()
+    status = request.form.get("status", "Active").strip()
 
-                latitude_text = request.form.get("latitude", "").strip()
-                longitude_text = request.form.get("longitude", "").strip()
+    latitude_text = request.form.get("latitude", "").strip()
+    longitude_text = request.form.get("longitude", "").strip()
 
-                latitude = None
-                longitude = None
+    latitude = None
+    longitude = None
 
-                if action == "update_location" and role != "admin":
-                    error = "Access denied. Admin only."
+    if action == "update_location" and role != "admin":
+        error = "Access denied. Admin only."
 
-                elif not name or not city:
-                    error = "Location name and city are required."
+    elif not name or not city:
+        error = "Location name and city are required."
 
-                elif status not in ["Active", "Inactive"]:
-                    error = "Invalid location status."
+    elif status not in ["Active", "Inactive"]:
+        error = "Invalid location status."
 
-                else:
-                    try:
-                        if latitude_text:
-                            latitude = float(latitude_text)
+    else:
+        try:
+            if latitude_text:
+                latitude = float(latitude_text)
 
-                        if longitude_text:
-                            longitude = float(longitude_text)
+            if longitude_text:
+                longitude = float(longitude_text)
 
-                    except ValueError:
-                        error = "Latitude and longitude must be valid numbers."
+        except ValueError:
+            error = "Latitude and longitude must be valid numbers."
 
-                    if not error and ((latitude is None) != (longitude is None)):
-                        error = "Enter both coordinates or leave both blank."
+        if not error and ((latitude is None) != (longitude is None)):
+            error = "Enter both coordinates or leave both blank."
 
-                    
-                           if not error:
-                if (
-                    not math.isfinite(latitude)
-                    or not math.isfinite(longitude)
-                ):
-                    error = "GPS coordinates must be finite numbers."
+        # -------------------------------------
+        # GPS COORDINATE VALIDATION
+        # -------------------------------------
 
-                elif not -90 <= latitude <= 90:
-                    error = "Invalid latitude."
+        if not error and latitude is not None and longitude is not None:
 
-                elif not -180 <= longitude <= 180:
-                    error = "Invalid longitude."
-"
+            if (
+                not math.isfinite(latitude)
+                or not math.isfinite(longitude)
+            ):
+                error = "GPS coordinates must be finite numbers."
 
-                # -------------------------------------
-                # ADD LOCATION
-                # -------------------------------------
+            elif not -90 <= latitude <= 90:
+                error = "Invalid latitude."
 
-                if not error and action == "add_location":
+            elif not -180 <= longitude <= 180:
+                error = "Invalid longitude."
 
-                    cur.execute("""
-                        INSERT INTO authorized_locations (
-                            location_name,
-                            city,
-                            address,
-                            location_type,
-                            latitude,
-                            longitude,
-                            status
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        RETURNING id
-                    """, (
-                        name,
-                        city,
-                        address or None,
-                        location_type or None,
-                        latitude,
-                        longitude,
-                        status
-                    ))
+    # -------------------------------------
+    # ADD LOCATION
+    # -------------------------------------
 
-                    new_location = cur.fetchone()
-                    conn.commit()
+    if not error and action == "add_location":
 
-                    message = (
-                        "Authorized location saved successfully. "
-                        f"ID: {new_location[0]}"
-                    )
+        cur.execute("""
+            INSERT INTO authorized_locations (
+                location_name,
+                city,
+                address,
+                location_type,
+                latitude,
+                longitude,
+                status
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (
+            name,
+            city,
+            address or None,
+            location_type or None,
+            latitude,
+            longitude,
+            status
+        ))
 
-                # -------------------------------------
-                # UPDATE LOCATION - ADMIN ONLY
-                # -------------------------------------
+        new_location = cur.fetchone()
+        conn.commit()
 
-                elif not error and action == "update_location":
+        message = (
+            "Authorized location saved successfully. "
+            f"ID: {new_location[0]}"
+        )
 
-                    location_id = request.form.get(
-                        "location_id", ""
-                    ).strip()
+    # -------------------------------------
+    # UPDATE LOCATION - ADMIN ONLY
+    # -------------------------------------
 
-                    if not location_id.isdigit():
-                        error = "Invalid location ID."
+    elif not error and action == "update_location":
 
-                    else:
-                        cur.execute("""
-                            UPDATE authorized_locations
-                            SET
-                                location_name = %s,
-                                city = %s,
-                                address = %s,
-                                location_type = %s,
-                                latitude = %s,
-                                longitude = %s,
-                                status = %s
-                            WHERE id = %s
-                            RETURNING id
-                        """, (
-                            name,
-                            city,
-                            address or None,
-                            location_type or None,
-                            latitude,
-                            longitude,
-                            status,
-                            int(location_id)
-                        ))
+        location_id = request.form.get(
+            "location_id", ""
+        ).strip()
 
-                        updated = cur.fetchone()
+        if not location_id.isdigit():
+            error = "Invalid location ID."
 
-                        if updated:
-                            conn.commit()
-                            message = (
-                                f"Location ID {updated[0]} "
-                                "updated successfully."
-                            )
-                        else:
-                            conn.rollback()
-                            error = "Location not found."
+        else:
+            cur.execute("""
+                UPDATE authorized_locations
+                SET
+                    location_name = %s,
+                    city = %s,
+                    address = %s,
+                    location_type = %s,
+                    latitude = %s,
+                    longitude = %s,
+                    status = %s
+                WHERE id = %s
+                RETURNING id
+            """, (
+                name,
+                city,
+                address or None,
+                location_type or None,
+                latitude,
+                longitude,
+                status,
+                int(location_id)
+            ))
+
+            updated = cur.fetchone()
+
+            if updated:
+                conn.commit()
+                message = (
+                    f"Location ID {updated[0]} "
+                    "updated successfully."
+                )
+            else:
+                conn.rollback()
+                error = "Location not found."
 
             # -----------------------------------------
             # ACTIVATE / DEACTIVATE - ADMIN ONLY
