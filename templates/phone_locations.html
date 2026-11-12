@@ -982,9 +982,9 @@ gpsLocationGroups.get(locationKey).records.push({
     recordedBy: recordedBy
 });
 
+}); // Close rows.forEach
 
 gpsLocationGroups.forEach(function (group) {
-
     const marker = L.marker([group.lat, group.lon], {
         icon: gpsHistoryIcon
     }).addTo(historyMap);
